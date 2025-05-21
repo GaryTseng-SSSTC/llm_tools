@@ -1,0 +1,1047 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>70B大型語言模型推論部署報告</title>
+    <meta name="description" content="關於在4張NVIDIA RTX 6000 Ada GPU伺服器上部署70B大型語言模型的技術報告">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/preline@3.0.1/dist/preline.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/material-icons@1.13.14/iconfont/material-icons.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                            950: '#082f49',
+                        },
+                        secondary: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            300: '#c4b5fd',
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            800: '#5b21b6',
+                            900: '#4c1d95',
+                            950: '#2e1065',
+                        },
+                        neutral: {
+                            50: '#f9fafb',
+                            100: '#f3f4f6',
+                            200: '#e5e7eb',
+                            300: '#d1d5db',
+                            400: '#9ca3af',
+                            500: '#6b7280',
+                            600: '#4b5563',
+                            700: '#374151',
+                            800: '#1f2937',
+                            900: '#111827',
+                            950: '#030712',
+                        }
+                    },
+                    fontFamily: {
+                        'sans': ['Noto Sans TC', 'system-ui', 'sans-serif'],
+                        'serif': ['Noto Serif TC', 'Georgia', 'serif'],
+                        'mono': ['JetBrains Mono', 'monospace'],
+                    },
+                }
+            }
+        };
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@400;600;700&family=JetBrains+Mono&display=swap');
+        
+        .fade-in {
+            animation: fadeIn 0.8s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        .hover-scale {
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        .hover-scale:hover {
+            transform: scale(1.03);
+        }
+        
+        .code-block {
+            position: relative;
+        }
+        
+        .copy-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .code-block:hover .copy-button {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body class="bg-neutral-50 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-100 font-sans antialiased">
+    <!-- 主題切換按鈕 -->
+    <button id="theme-toggle" class="fixed z-50 top-4 right-4 p-2 rounded-full bg-neutral-200 dark:bg-neutral-700 shadow-md transition-all hover:shadow-lg">
+        <i class="fa-solid fa-sun dark:hidden text-yellow-500"></i>
+        <i class="fa-solid fa-moon hidden dark:inline text-blue-300"></i>
+    </button>
+
+    <!-- 頂部橫幅 -->
+    <div class="relative bg-gradient-to-r from-primary-700 to-secondary-700 dark:from-primary-900 dark:to-secondary-900 py-16 md:py-24 px-6">
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+CiAgICAgICAgPGcgZmlsbD0iI2ZmZmZmZiIgZmlsbC1vcGFjaXR5PSIwLjQiPgogICAgICAgICAgICA8cGF0aCBkPSJNMzYgMzRjMC0yLjIgMS44LTQgNC00czQgMS44IDQgNC0xLjggNC00IDQtNC0xLjgtNC00eiIgLz4KICAgICAgICA8L2c+CiAgICA8L2c+Cjwvc3ZnPg==')] opacity-50"></div>
+        </div>
+        <div class="container mx-auto relative">
+            <div class="max-w-4xl">
+                <h1 class="text-3xl md:text-5xl font-bold text-white mb-6 leading-tight fade-in">在4張NVIDIA RTX 6000 Ada GPU伺服器上<br>部署70B大型語言模型</h1>
+                <p class="text-lg md:text-xl text-white/90 fade-in delay-100 max-w-3xl">
+                    基於vLLM架構，實現OpenAI相容API的高性能推論服務
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 總覽 -->
+    <div class="container mx-auto px-4 py-12 md:py-16 max-w-6xl">
+        <div class="bg-white dark:bg-neutral-800 rounded-xl shadow-lg p-6 md:p-10 mb-12 transform transition hover:shadow-xl hover-scale">
+            <div class="flex items-center mb-6">
+                <div class="bg-primary-100 dark:bg-primary-900/50 p-3 rounded-full">
+                    <i class="material-icons text-primary-600 dark:text-primary-400 text-2xl">description</i>
+                </div>
+                <h2 class="text-2xl font-bold ml-4">總覽</h2>
+            </div>
+            <p class="text-neutral-700 dark:text-neutral-300 leading-relaxed">
+                本報告旨在闡述如何在配備4張NVIDIA RTX 6000 Ada GPU的伺服器上，參考vLLM架構部署一個700億參數（70B）的大型語言模型推論服務，並使其能夠執行OpenAI相容的API。核心發現指出，透過vLLM框架，利用其張量並行（Tensor Parallelism）功能，可以有效地在4張RTX 6000 Ada GPU（總計192GB顯存）上運行70B模型（即便是FP16精度，約需140GB顯存）。vLLM內建的OpenAI相容伺服器功能，使得整合現有應用程式或工具鏈變得直接。
+            </p>
+        </div>
+
+        <!-- 硬體配置 -->
+        <div class="mb-16 fade-in" id="hardware">
+            <h2 class="text-2xl md:text-3xl font-bold mb-8 text-center">硬體配置與考量</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- GPU顯存分析 -->
+                <div class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md hover-scale">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-full">
+                            <i class="material-icons text-primary-600 dark:text-primary-400">memory</i>
+                        </div>
+                        <h3 class="text-xl font-bold ml-3">GPU顯存分析</h3>
+                    </div>
+                    <p class="text-neutral-700 dark:text-neutral-300 mb-4">
+                        您的伺服器配備4張NVIDIA RTX 6000 Ada GPU。每張RTX 6000 Ada擁有48GB GDDR6 ECC顯存，因此4張GPU總共提供 <span class="bg-neutral-100 dark:bg-neutral-700 px-1.5 py-0.5 rounded font-mono">4 × 48GB = 192GB</span> 的顯存容量。
+                    </p>
+                    <div id="gpu-memory-chart" class="w-full h-64"></div>
+                </div>
+                
+                <!-- 70B模型顯存需求 -->
+                <div class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md hover-scale">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-full">
+                            <i class="material-icons text-primary-600 dark:text-primary-400">storage</i>
+                        </div>
+                        <h3 class="text-xl font-bold ml-3">70B模型顯存需求</h3>
+                    </div>
+                    <p class="text-neutral-700 dark:text-neutral-300 mb-4">
+                        一個70B參數的大型語言模型，其顯存需求如下：
+                    </p>
+                    <ul class="space-y-3 mb-4">
+                        <li class="flex items-start">
+                            <div class="bg-primary-100 dark:bg-primary-800 text-primary-700 dark:text-primary-300 rounded-full p-1 mr-2 mt-0.5">
+                                <i class="fa-solid fa-check text-xs"></i>
+                            </div>
+                            <span><strong>全精度 (FP16):</strong> 約需140GB顯存。</span>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="bg-primary-100 dark:bg-primary-800 text-primary-700 dark:text-primary-300 rounded-full p-1 mr-2 mt-0.5">
+                                <i class="fa-solid fa-check text-xs"></i>
+                            </div>
+                            <span><strong>4位元量化:</strong> 若採用4位元量化技術，模型本身約需35GB至48GB顯存，加上快取等額外開銷。</span>
+                        </li>
+                    </ul>
+                    <div id="model-memory-chart" class="w-full h-64"></div>
+                </div>
+            </div>
+            
+            <!-- RTX 6000 Ada特性 -->
+            <div class="mt-8 bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md hover-scale">
+                <div class="flex items-center mb-4">
+                    <div class="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-full">
+                        <i class="material-icons text-primary-600 dark:text-primary-400">settings_applications</i>
+                    </div>
+                    <h3 class="text-xl font-bold ml-3">RTX 6000 Ada特性</h3>
+                </div>
+                <p class="text-neutral-700 dark:text-neutral-300 mb-4">
+                    NVIDIA RTX 6000 Ada是一款基於Ada Lovelace架構的專業工作站GPU，具備以下特性：
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-neutral-50 dark:bg-neutral-700/50 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div class="flex items-center mb-2">
+                            <i class="material-icons text-primary-500 mr-2">speed</i>
+                            <h4 class="font-medium">運算性能</h4>
+                        </div>
+                        <p class="text-sm text-neutral-600 dark:text-neutral-400">提供高達91.1 TFLOPS的FP32單精度運算性能，對於AI推論任務表現出色。</p>
+                    </div>
+                    <div class="bg-neutral-50 dark:bg-neutral-700/50 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div class="flex items-center mb-2">
+                            <i class="material-icons text-primary-500 mr-2">memory</i>
+                            <h4 class="font-medium">記憶體</h4>
+                        </div>
+                        <p class="text-sm text-neutral-600 dark:text-neutral-400">配備48GB GDDR6 ECC記憶體，記憶體頻寬為960 GB/s。</p>
+                    </div>
+                    <div class="bg-neutral-50 dark:bg-neutral-700/50 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div class="flex items-center mb-2">
+                            <i class="material-icons text-primary-500 mr-2">auto_awesome</i>
+                            <h4 class="font-medium">適用場景</h4>
+                        </div>
+                        <p class="text-sm text-neutral-600 dark:text-neutral-400">專為AI研究人員、資料科學家和需要強大工作站能力的專業人士設計，適合AI訓練與推論。</p>
+                    </div>
+                    <div class="bg-neutral-50 dark:bg-neutral-700/50 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div class="flex items-center mb-2">
+                            <i class="material-icons text-primary-500 mr-2">devices</i>
+                            <h4 class="font-medium">多GPU擴展性</h4>
+                        </div>
+                        <p class="text-sm text-neutral-600 dark:text-neutral-400">RTX 6000 Ada主要為單工作站設計，缺乏如A100或H100等資料中心GPU所具備的NVLink高速GPU互連技術。儘管如此，透過PCIe Gen 4進行多卡協同推論依然可行且高效，特別是在vLLM這類框架的支援下。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 軟體堆疊 -->
+        <div class="mb-16 fade-in" id="software">
+            <h2 class="text-2xl md:text-3xl font-bold mb-8 text-center">軟體堆疊</h2>
+            
+            <!-- vLLM框架 -->
+            <div class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md mb-8 hover-scale">
+                <div class="flex items-center mb-4">
+                    <div class="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-full">
+                        <i class="material-icons text-primary-600 dark:text-primary-400">hub</i>
+                    </div>
+                    <h3 class="text-xl font-bold ml-3">vLLM框架</h3>
+                </div>
+                <p class="text-neutral-700 dark:text-neutral-300 mb-4">
+                    vLLM是一個為大型語言模型（LLM）推論而優化的高效能服務引擎。其主要優勢包括：
+                </p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-neutral-50 dark:bg-neutral-700/50 rounded-lg p-4">
+                        <h4 class="font-semibold text-primary-700 dark:text-primary-400 mb-2">高效能</h4>
+                        <p class="text-sm text-neutral-700 dark:text-neutral-300">透過PagedAttention等創新技術管理KV快取，顯著提升吞吐量並降低延遲。</p>
+                    </div>
+                    <div class="bg-neutral-50 dark:bg-neutral-700/50 rounded-lg p-4">
+                        <h4 class="font-semibold text-primary-700 dark:text-primary-400 mb-2">張量並行</h4>
+                        <p class="text-sm text-neutral-700 dark:text-neutral-300">內建支援張量並行（Tensor Parallelism），能夠自動將模型權重和運算分散到多張GPU上，充分利用硬體資源。</p>
+                    </div>
+                    <div class="bg-neutral-50 dark:bg-neutral-700/50 rounded-lg p-4">
+                        <h4 class="font-semibold text-primary-700 dark:text-primary-400 mb-2">OpenAI相容API</h4>
+                        <p class="text-sm text-neutral-700 dark:text-neutral-300">vLLM可以直接啟動一個與OpenAI API格式相容的HTTP伺服器，方便現有生態工具的接入。</p>
+                    </div>
+                    <div class="bg-neutral-50 dark:bg-neutral-700/50 rounded-lg p-4">
+                        <h4 class="font-semibold text-primary-700 dark:text-primary-400 mb-2">易用性</h4>
+                        <p class="text-sm text-neutral-700 dark:text-neutral-300">簡化了複雜模型的部署流程。</p>
+                    </div>
+                </div>
+                
+                <div class="mt-8">
+                    <h4 class="font-semibold mb-3">vLLM架構示意圖</h4>
+                    <div class="bg-neutral-50 dark:bg-neutral-700 p-4 rounded-lg overflow-hidden">
+                        <div class="mermaid">
+                        graph TD
+                            A[外部請求] -->|API請求| B[vLLM OpenAI相容伺服器]
+                            B --> C[連續批處理引擎]
+                            C --> D[PagedAttention管理器]
+                            D --> E[張量並行調度器]
+                            E -->|GPU 0| F[模型分片 0]
+                            E -->|GPU 1| G[模型分片 1]
+                            E -->|GPU 2| H[模型分片 2]
+                            E -->|GPU 3| I[模型分片 3]
+                            style F fill:#f9a8d4,stroke:#be185d
+                            style G fill:#f9a8d4,stroke:#be185d
+                            style H fill:#f9a8d4,stroke:#be185d
+                            style I fill:#f9a8d4,stroke:#be185d
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- OpenAI相容API -->
+            <div class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md mb-8 hover-scale">
+                <div class="flex items-center mb-4">
+                    <div class="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-full">
+                        <i class="material-icons text-primary-600 dark:text-primary-400">api</i>
+                    </div>
+                    <h3 class="text-xl font-bold ml-3">OpenAI相容API</h3>
+                </div>
+                <p class="text-neutral-700 dark:text-neutral-300 mb-4">
+                    vLLM提供的OpenAI相容伺服器支援以下主要API端點：
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-neutral-50 dark:bg-neutral-700/50 rounded-lg p-4 border-l-4 border-primary-500">
+                        <code class="text-neutral-800 dark:text-neutral-200 font-mono text-sm">/v1/chat/completions</code>
+                        <p class="mt-2 text-neutral-600 dark:text-neutral-400 text-sm">用於聊天模型的對話生成。</p>
+                    </div>
+                    <div class="bg-neutral-50 dark:bg-neutral-700/50 rounded-lg p-4 border-l-4 border-secondary-500">
+                        <code class="text-neutral-800 dark:text-neutral-200 font-mono text-sm">/v1/completions</code>
+                        <p class="mt-2 text-neutral-600 dark:text-neutral-400 text-sm">用於文本補全模型的生成。</p>
+                    </div>
+                </div>
+                <p class="text-neutral-700 dark:text-neutral-300 mt-4">
+                    您可以直接使用OpenAI官方的Python客戶端函式庫或其他標準HTTP客戶端與該伺服器互動。
+                </p>
+            </div>
+            
+            <!-- NVIDIA驅動程式與CUDA -->
+            <div class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md hover-scale">
+                <div class="flex items-center mb-4">
+                    <div class="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-full">
+                        <i class="material-icons text-primary-600 dark:text-primary-400">developer_board</i>
+                    </div>
+                    <h3 class="text-xl font-bold ml-3">NVIDIA驅動程式與CUDA</h3>
+                </div>
+                <p class="text-neutral-700 dark:text-neutral-300 mb-4">
+                    為了確保RTX 6000 Ada GPU的正常運作及vLLM的效能，需要安裝：
+                </p>
+                <ul class="space-y-3">
+                    <li class="flex items-start">
+                        <div class="bg-primary-100 dark:bg-primary-800 text-primary-700 dark:text-primary-300 rounded-full p-1 mr-2 mt-0.5">
+                            <i class="fa-solid fa-check text-xs"></i>
+                        </div>
+                        <span>與GPU和作業系統相容的最新NVIDIA驅動程式。</span>
+                    </li>
+                    <li class="flex items-start">
+                        <div class="bg-primary-100 dark:bg-primary-800 text-primary-700 dark:text-primary-300 rounded-full p-1 mr-2 mt-0.5">
+                            <i class="fa-solid fa-check text-xs"></i>
+                        </div>
+                        <span>與vLLM及相關深度學習框架（如PyTorch）版本相容的CUDA Toolkit。</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 部署步驟 -->
+        <div class="mb-16 fade-in" id="deployment">
+            <h2 class="text-2xl md:text-3xl font-bold mb-8 text-center">部署步驟</h2>
+            
+            <div class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md mb-8 hover-scale">
+                <div class="flex items-center mb-4">
+                    <div class="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-full">
+                        <i class="material-icons text-primary-600 dark:text-primary-400">build</i>
+                    </div>
+                    <h3 class="text-xl font-bold ml-3">環境準備</h3>
+                </div>
+                <ol class="space-y-3 list-decimal list-inside text-neutral-700 dark:text-neutral-300">
+                    <li>安裝Python（建議使用3.8或更新版本）。</li>
+                    <li>根據您的作業系統，安裝最新且穩定的NVIDIA顯示卡驅動程式。</li>
+                    <li>安裝CUDA Toolkit。請查詢vLLM官方文件以確認相容的CUDA版本。</li>
+                    <li>建議建立並啟用Python虛擬環境，以隔離專案依賴。</li>
+                </ol>
+            </div>
+            
+            <div class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md mb-8 hover-scale">
+                <div class="flex items-center mb-4">
+                    <div class="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-full">
+                        <i class="material-icons text-primary-600 dark:text-primary-400">download</i>
+                    </div>
+                    <h3 class="text-xl font-bold ml-3">安裝vLLM</h3>
+                </div>
+                <p class="text-neutral-700 dark:text-neutral-300 mb-4">
+                    在您的Python環境中，使用pip安裝vLLM：
+                </p>
+                <div class="bg-neutral-800 rounded-lg p-4 overflow-x-auto code-block">
+                    <pre class="text-white font-mono text-sm"><code>pip install vllm</code></pre>
+                    <button class="copy-button bg-neutral-700 hover:bg-neutral-600 text-white rounded p-1 text-xs" onclick="navigator.clipboard.writeText('pip install vllm')">
+                        <i class="fa-solid fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md mb-8 hover-scale">
+                <div class="flex items-center mb-4">
+                    <div class="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-full">
+                        <i class="material-icons text-primary-600 dark:text-primary-400">file_download</i>
+                    </div>
+                    <h3 class="text-xl font-bold ml-3">模型下載</h3>
+                </div>
+                <p class="text-neutral-700 dark:text-neutral-300 mb-4">
+                    從Hugging Face Hub下載您選擇的70B模型。例如，可以使用<code class="bg-neutral-100 dark:bg-neutral-700 px-1.5 py-0.5 rounded font-mono">meta-llama/Llama-3-70B-Instruct</code>。您可能需要先登入Hugging Face CLI並同意模型的使用條款。
+                </p>
+                <div class="bg-neutral-800 rounded-lg p-4 overflow-x-auto code-block">
+                    <pre class="text-white font-mono text-sm"><code># 範例：使用huggingface-cli下載 (需先 pip install huggingface_hub)
+# huggingface-cli login
+# huggingface-cli download meta-llama/Llama-3-70B-Instruct --local-dir ./Meta-Llama-3-70B-Instruct</code></pre>
+                    <button class="copy-button bg-neutral-700 hover:bg-neutral-600 text-white rounded p-1 text-xs" onclick="navigator.clipboard.writeText('# 範例：使用huggingface-cli下載 (需先 pip install huggingface_hub)\n# huggingface-cli login\n# huggingface-cli download meta-llama/Llama-3-70B-Instruct --local-dir ./Meta-Llama-3-70B-Instruct')">
+                        <i class="fa-solid fa-copy"></i>
+                    </button>
+                </div>
+                <p class="text-neutral-600 dark:text-neutral-400 mt-3 text-sm">
+                    <i class="fa-solid fa-info-circle mr-1 text-primary-500"></i> 或者，vLLM在啟動時可以直接從Hugging Face Hub下載模型。
+                </p>
+            </div>
+            
+            <div class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md mb-8 hover-scale">
+                <div class="flex items-center mb-4">
+                    <div class="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-full">
+                        <i class="material-icons text-primary-600 dark:text-primary-400">play_arrow</i>
+                    </div>
+                    <h3 class="text-xl font-bold ml-3">啟動vLLM OpenAI相容伺服器</h3>
+                </div>
+                <p class="text-neutral-700 dark:text-neutral-300 mb-4">
+                    使用vLLM提供的命令列工具啟動API伺服器。針對您的4張GPU，需要將<code class="bg-neutral-100 dark:bg-neutral-700 px-1.5 py-0.5 rounded font-mono">tensor-parallel-size</code>參數設定為4。
+                </p>
+                
+                <div class="mb-6">
+                    <p class="mb-2 font-medium text-primary-700 dark:text-primary-400">
+                        推薦使用 <code class="bg-neutral-100 dark:bg-neutral-700 px-1.5 py-0.5 rounded font-mono">vllm serve</code> 命令 (較新版本vLLM)：
+                    </p>
+                    <div class="bg-neutral-800 rounded-lg p-4 overflow-x-auto code-block">
+                        <pre class="text-white font-mono text-sm"><code>vllm serve meta-llama/Llama-3-70B-Instruct \
+    --tensor-parallel-size 4 \
+    --dtype auto \
+    --port 8000 \
+    # --api-key YOUR_SECRET_API_KEY \ # (可選) 設定API金鑰以保護端點
+    # --chat-template path/to/your/chat_template.jinja \ # (可選) 若模型有特定聊天格式且未在HuggingFace上正確配置
+    # --max-model-len 4096 # (可選) 設定模型最大序列長度</code></pre>
+                        <button class="copy-button bg-neutral-700 hover:bg-neutral-600 text-white rounded p-1 text-xs" onclick="navigator.clipboard.writeText('vllm serve meta-llama/Llama-3-70B-Instruct \\\n    --tensor-parallel-size 4 \\\n    --dtype auto \\\n    --port 8000')">
+                            <i class="fa-solid fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div>
+                    <p class="mb-2 font-medium text-primary-700 dark:text-primary-400">
+                        或者，若使用較舊版本的vLLM，可能是 <code class="bg-neutral-100 dark:bg-neutral-700 px-1.5 py-0.5 rounded font-mono">python -m vllm.entrypoints.openai.api_server</code>：
+                    </p>
+                    <div class="bg-neutral-800 rounded-lg p-4 overflow-x-auto code-block">
+                        <pre class="text-white font-mono text-sm"><code>python -m vllm.entrypoints.openai.api_server \
+    --model meta-llama/Llama-3-70B-Instruct \
+    --tensor-parallel-size 4 \
+    --dtype auto \
+    --port 8000 \
+    # --api-key YOUR_SECRET_API_KEY \
+    # --chat-template path/to/your/chat_template.jinja \
+    # --max-model-len 4096</code></pre>
+                        <button class="copy-button bg-neutral-700 hover:bg-neutral-600 text-white rounded p-1 text-xs" onclick="navigator.clipboard.writeText('python -m vllm.entrypoints.openai.api_server \\\n    --model meta-llama/Llama-3-70B-Instruct \\\n    --tensor-parallel-size 4 \\\n    --dtype auto \\\n    --port 8000')">
+                            <i class="fa-solid fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mt-6 bg-neutral-50 dark:bg-neutral-700/50 p-4 rounded-lg">
+                    <h4 class="font-semibold mb-2 text-primary-700 dark:text-primary-400">參數說明：</h4>
+                    <ul class="space-y-3 text-sm text-neutral-700 dark:text-neutral-300">
+                        <li><code class="bg-neutral-100 dark:bg-neutral-700/80 px-1 py-0.5 rounded font-mono">meta-llama/Llama-3-70B-Instruct</code>: 替換成您要使用的Hugging Face模型名稱或本地模型路徑。</li>
+                        <li><code class="bg-neutral-100 dark:bg-neutral-700/80 px-1 py-0.5 rounded font-mono">--tensor-parallel-size 4</code>: 指定使用4張GPU進行張量並行。</li>
+                        <li><code class="bg-neutral-100 dark:bg-neutral-700/80 px-1 py-0.5 rounded font-mono">--dtype auto</code>: vLLM會自動選擇合適的資料類型（如<code>float16</code>或<code>bfloat16</code>）。RTX 6000 Ada支援<code>bfloat16</code>，這通常是個好選擇。</li>
+                        <li><code class="bg-neutral-100 dark:bg-neutral-700/80 px-1 py-0.5 rounded font-mono">--port 8000</code>: 指定伺服器監聽的端口號，預設為8000。</li>
+                        <li><code class="bg-neutral-100 dark:bg-neutral-700/80 px-1 py-0.5 rounded font-mono">--api-key</code>: (可選) 如果設定，客戶端請求時需要在HTTP標頭中提供此金鑰。</li>
+                        <li><code class="bg-neutral-100 dark:bg-neutral-700/80 px-1 py-0.5 rounded font-mono">--chat-template</code>: (可選) 對於聊天模型，如果模型卡本身沒有定義聊天模板，或者您想覆寫它，可以提供一個Jinja2模板檔案的路徑。</li>
+                        <li><code class="bg-neutral-100 dark:bg-neutral-700/80 px-1 py-0.5 rounded font-mono">--max-model-len</code>: (可選) 設定模型能處理的最大序列長度（包括提示和生成的部分）。</li>
+                    </ul>
+                </div>
+                
+                <p class="text-neutral-700 dark:text-neutral-300 mt-6">
+                    伺服器成功啟動後，會在指定的端口（預設8000）上監聽API請求。
+                </p>
+            </div>
+        </div>
+
+        <!-- 效能優化與考量 -->
+        <div class="mb-16 fade-in" id="performance">
+            <h2 class="text-2xl md:text-3xl font-bold mb-8 text-center">效能優化與考量</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- 張量並行 (Tensor Parallelism) -->
+                <div class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md hover-scale">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-full">
+                            <i class="material-icons text-primary-600 dark:text-primary-400">view_comfy</i>
+                        </div>
+                        <h3 class="text-lg font-bold ml-3">張量並行 (Tensor Parallelism)</h3>
+                    </div>
+                    <p class="text-neutral-700 dark:text-neutral-300">
+                        透過 <code class="bg-neutral-100 dark:bg-neutral-700 px-1.5 py-0.5 rounded font-mono">--tensor-parallel-size 4</code> 參數，vLLM會自動將模型的運算和參數分散到4張GPU上，這是利用多GPU進行大型模型推論的關鍵。
+                    </p>
+                    
+                    <div class="mt-4">
+                        <div class="mermaid">
+                        graph LR
+                            A[70B模型] --> B[分片1: 17.5B]
+                            A --> C[分片2: 17.5B]
+                            A --> D[分片3: 17.5B]
+                            A --> E[分片4: 17.5B]
+                            B --> F[GPU 1]
+                            C --> G[GPU 2]
+                            D --> H[GPU 3]
+                            E --> I[GPU 4]
+                            style F fill:#818cf8,stroke:#4f46e5
+                            style G fill:#818cf8,stroke:#4f46e5
+                            style H fill:#818cf8,stroke:#4f46e5
+                            style I fill:#818cf8,stroke:#4f46e5
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 資料類型 (Data Type) -->
+                <div class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md hover-scale">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-full">
+                            <i class="material-icons text-primary-600 dark:text-primary-400">data_object</i>
+                        </div>
+                        <h3 class="text-lg font-bold ml-3">資料類型 (Data Type)</h3>
+                    </div>
+                    <p class="text-neutral-700 dark:text-neutral-300 mb-4">
+                        <code class="bg-neutral-100 dark:bg-neutral-700 px-1.5 py-0.5 rounded font-mono">bfloat16</code> 在Ada架構GPU上通常能提供良好的效能與數值穩定性平衡。vLLM的<code class="bg-neutral-100 dark:bg-neutral-700 px-1.5 py-0.5 rounded font-mono">--dtype auto</code>通常能做出正確選擇。
+                    </p><div id="datatype-chart" class="w-full h-48"></div>
+                </div>
+                
+                <!-- 量化 (Quantization) -->
+                <div class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md hover-scale">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-full">
+                            <i class="material-icons text-primary-600 dark:text-primary-400">compress</i>
+                        </div>
+                        <h3 class="text-lg font-bold ml-3">量化 (Quantization)</h3>
+                    </div>
+                    <p class="text-neutral-700 dark:text-neutral-300">
+                        雖然您的硬體配置足以運行FP16模型，但若追求極致的低延遲或更高的併發處理能力，可以研究vLLM對量化模型（如AWQ、GPTQ、FP8）的支援情況。這通常需要模型已經過量化處理。
+                    </p>
+                </div>
+                
+                <!-- KV快取優化 -->
+                <div class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md hover-scale">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-full">
+                            <i class="material-icons text-primary-600 dark:text-primary-400">memory</i>
+                        </div>
+                        <h3 class="text-lg font-bold ml-3">KV快取優化</h3>
+                    </div>
+                    <p class="text-neutral-700 dark:text-neutral-300">
+                        vLLM的核心技術之一是PagedAttention，它能更有效地管理GPU記憶體中的KV快取，減少記憶體碎片，從而支援更長的上下文序列和更高的批次大小。
+                    </p>
+                </div>
+                
+                <!-- 連續批次處理 (Continuous Batching) -->
+                <div class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md hover-scale">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-full">
+                            <i class="material-icons text-primary-600 dark:text-primary-400">dynamic_feed</i>
+                        </div>
+                        <h3 class="text-lg font-bold ml-3">連續批次處理 (Continuous Batching)</h3>
+                    </div>
+                    <p class="text-neutral-700 dark:text-neutral-300">
+                        vLLM會動態地將傳入的請求組合成批次，而不是等待固定大小的批次填滿，這能顯著提高GPU的利用率和整體吞吐量。
+                    </p>
+                </div>
+                
+                <!-- 模型特定優化 -->
+                <div class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md hover-scale">
+                    <div class="flex items-center mb-4">
+                        <div class="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-full">
+                            <i class="material-icons text-primary-600 dark:text-primary-400">tune</i>
+                        </div>
+                        <h3 class="text-lg font-bold ml-3">模型特定優化</h3>
+                    </div>
+                    <p class="text-neutral-700 dark:text-neutral-300">
+                        某些模型可能受益於特定的超參數調整，例如最大序列長度、波束寬度（beam width）等，這些可以在API請求中或伺服器啟動時配置。
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- API測試 -->
+        <div class="mb-16 fade-in" id="api-test">
+            <h2 class="text-2xl md:text-3xl font-bold mb-8 text-center">API測試</h2>
+            
+            <div class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md mb-8 hover-scale">
+                <div class="flex items-center mb-4">
+                    <div class="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-full">
+                        <i class="material-icons text-primary-600 dark:text-primary-400">code</i>
+                    </div>
+                    <h3 class="text-xl font-bold ml-3">使用OpenAI客戶端測試</h3>
+                </div>
+                <p class="text-neutral-700 dark:text-neutral-300 mb-4">
+                    您可以使用OpenAI官方Python客戶端庫來測試已部署的服務。首先確保已安裝該庫：
+                </p>
+                <div class="bg-neutral-800 rounded-lg p-4 overflow-x-auto code-block mb-6">
+                    <pre class="text-white font-mono text-sm"><code>pip install openai</code></pre>
+                    <button class="copy-button bg-neutral-700 hover:bg-neutral-600 text-white rounded p-1 text-xs" onclick="navigator.clipboard.writeText('pip install openai')">
+                        <i class="fa-solid fa-copy"></i>
+                    </button>
+                </div>
+                
+                <p class="text-neutral-700 dark:text-neutral-300 mb-4">
+                    然後，使用以下Python腳本進行測試：
+                </p>
+                <div class="bg-neutral-800 rounded-lg p-4 overflow-x-auto code-block">
+                    <pre class="text-white font-mono text-sm"><code>from openai import OpenAI
+
+# 如果在啟動vLLM伺服器時設定了api_key，請在此處提供
+# client = OpenAI(base_url="http://localhost:8000/v1", api_key="YOUR_SECRET_API_KEY")
+client = OpenAI(
+    base_url="http://localhost:8000/v1",
+    api_key="EMPTY" # vLLM預設不需要API金鑰，除非您在啟動時透過 --api-key 設定
+)
+
+try:
+    chat_completion = client.chat.completions.create(
+      model="meta-llama/Llama-3-70B-Instruct", # 必須與vLLM伺服器啟動時指定的模型名稱一致
+      messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "請用繁體中文介紹一下vLLM框架。"}
+      ],
+      max_tokens=500,
+      temperature=0.7
+    )
+    print("模型回應:")
+    print(chat_completion.choices[0].message.content)
+
+    # 如果需要測試 /v1/completions (適用於非聊天模型或特定配置)
+    # completion = client.completions.create(
+    #   model="meta-llama/Llama-3-70B-Instruct",
+    #   prompt="用繁體中文寫一個關於台灣美食的短詩：",
+    #   max_tokens=150
+    # )
+    # print("\n文本補全回應:")
+    # print(completion.choices[0].text)
+
+except Exception as e:
+    print(f"發生錯誤: {e}")
+</code></pre>
+                    <button class="copy-button bg-neutral-700 hover:bg-neutral-600 text-white rounded p-1 text-xs" onclick="navigator.clipboard.writeText('from openai import OpenAI\n\n# 如果在啟動vLLM伺服器時設定了api_key，請在此處提供\n# client = OpenAI(base_url=\"http://localhost:8000/v1\", api_key=\"YOUR_SECRET_API_KEY\")\nclient = OpenAI(\n    base_url=\"http://localhost:8000/v1\",\n    api_key=\"EMPTY\" # vLLM預設不需要API金鑰，除非您在啟動時透過 --api-key 設定\n)\n\ntry:\n    chat_completion = client.chat.completions.create(\n      model=\"meta-llama/Llama-3-70B-Instruct\", # 必須與vLLM伺服器啟動時指定的模型名稱一致\n      messages=[\n        {\"role\": \"system\", \"content\": \"You are a helpful assistant.\"},\n        {\"role\": \"user\", \"content\": \"請用繁體中文介紹一下vLLM框架。\"}\n      ],\n      max_tokens=500,\n      temperature=0.7\n    )\n    print(\"模型回應:\")\n    print(chat_completion.choices[0].message.content)\n\n    # 如果需要測試 /v1/completions (適用於非聊天模型或特定配置)\n    # completion = client.completions.create(\n    #   model=\"meta-llama/Llama-3-70B-Instruct\",\n    #   prompt=\"用繁體中文寫一個關於台灣美食的短詩：\",\n    #   max_tokens=150\n    # )\n    # print(\"\\n文本補全回應:\")\n    # print(completion.choices[0].text)\n\nexcept Exception as e:\n    print(f\"發生錯誤: {e}\")')">
+                        <i class="fa-solid fa-copy"></i>
+                    </button>
+                </div>
+                
+                <p class="text-neutral-600 dark:text-neutral-400 mt-4 text-sm">
+                    <i class="fa-solid fa-info-circle mr-1 text-primary-500"></i> 請確保腳本中的<code class="bg-neutral-100 dark:bg-neutral-700 px-1.5 py-0.5 rounded font-mono">base_url</code>指向您的vLLM伺服器地址和端口，<code class="bg-neutral-100 dark:bg-neutral-700 px-1.5 py-0.5 rounded font-mono">model</code>參數與您啟動vLLM時指定的模型標識符一致。
+                </p>
+            </div>
+        </div>
+        
+        <!-- 進階選項 -->
+        <div class="mb-16 fade-in" id="advanced">
+            <h2 class="text-2xl md:text-3xl font-bold mb-8 text-center">進階選項：NVIDIA Triton推論伺服器</h2>
+            
+            <div class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md hover-scale">
+                <div class="flex items-center mb-6">
+                    <div class="bg-primary-100 dark:bg-primary-900/50 p-2 rounded-full">
+                        <i class="material-icons text-primary-600 dark:text-primary-400">science</i>
+                    </div>
+                    <h3 class="text-xl font-bold ml-3">使用Triton推論伺服器</h3>
+                </div>
+                <p class="text-neutral-700 dark:text-neutral-300 mb-6">
+                    若您的應用場景需要更強固的生產級部署特性，例如模型版本控制、動態批次處理、多模型服務、HTTP/gRPC多種協議支援以及更細緻的效能監控與調優，可以考慮使用NVIDIA Triton Inference Server。
+                </p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-neutral-50 dark:bg-neutral-700/50 rounded-lg p-4">
+                        <h4 class="font-semibold text-primary-700 dark:text-primary-400 mb-2">與vLLM/TensorRT-LLM整合</h4>
+                        <p class="text-sm text-neutral-700 dark:text-neutral-300">Triton可以作為一個前端，後端則使用vLLM（透過Triton的Python後端）或NVIDIA TensorRT-LLM來執行實際的模型推論。</p>
+                    </div>
+                    <div class="bg-neutral-50 dark:bg-neutral-700/50 rounded-lg p-4">
+                        <h4 class="font-semibold text-primary-700 dark:text-primary-400 mb-2">TensorRT-LLM</h4>
+                        <p class="text-sm text-neutral-700 dark:text-neutral-300">這是NVIDIA官方推出的一個用於加速大型語言模型推論的開源函式庫。它能將模型編譯成高度優化的TensorRT引擎，實現極致的低延遲和高吞吐量。將70B模型編譯為TensorRT引擎通常涉及較多步驟，但能帶來顯著的效能提升。</p>
+                    </div>
+                </div>
+                
+                <div class="bg-neutral-50 dark:bg-neutral-700/50 rounded-lg p-4">
+                    <h4 class="font-semibold text-primary-700 dark:text-primary-400 mb-2">OpenAI相容API</h4>
+                    <p class="text-neutral-700 dark:text-neutral-300">Triton同樣可以配置為提供OpenAI相容的API端點，方便遷移。</p>
+                </div>
+                
+                <p class="text-neutral-700 dark:text-neutral-300 mt-6 font-medium">
+                    選擇Triton通常意味著更複雜的設定過程，但能換取更佳的生產環境適應性和擴展性。
+                </p>
+            </div>
+        </div>
+        
+        <!-- 可能遇到的挑戰 -->
+        <div class="mb-16 fade-in" id="challenges">
+            <h2 class="text-2xl md:text-3xl font-bold mb-8 text-center">可能遇到的挑戰</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 挑戰1 -->
+                <div class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md hover-scale">
+                    <div class="flex items-center mb-3">
+                        <div class="bg-primary-100 dark:bg-primary-900/50 p-1.5 rounded-full">
+                            <i class="material-icons text-primary-600 dark:text-primary-400 text-lg">bug_report</i>
+                        </div>
+                        <h3 class="text-lg font-bold ml-3">NVIDIA驅動程式與CUDA版本衝突</h3>
+                    </div>
+                    <p class="text-neutral-700 dark:text-neutral-300 text-sm">
+                        這是常見問題。務必查閱vLLM、PyTorch等核心組件的官方文件，確保各軟體版本之間的相容性。
+                    </p>
+                </div>
+                
+                <!-- 挑戰2 -->
+                <div class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md hover-scale">
+                    <div class="flex items-center mb-3">
+                        <div class="bg-primary-100 dark:bg-primary-900/50 p-1.5 rounded-full">
+                            <i class="material-icons text-primary-600 dark:text-primary-400 text-lg">lock</i>
+                        </div>
+                        <h3 class="text-lg font-bold ml-3">模型下載與存取權限</h3>
+                    </div>
+                    <p class="text-neutral-700 dark:text-neutral-300 text-sm">
+                        某些大型模型（如Llama系列）在Hugging Face上可能需要使用者申請存取權限。
+                    </p>
+                </div>
+                
+                <!-- 挑戰3 -->
+                <div class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md hover-scale">
+                    <div class="flex items-center mb-3">
+                        <div class="bg-primary-100 dark:bg-primary-900/50 p-1.5 rounded-full">
+                            <i class="material-icons text-primary-600 dark:text-primary-400 text-lg">memory_full</i>
+                        </div>
+                        <h3 class="text-lg font-bold ml-3">記憶體管理 (OOM)</h3>
+                    </div>
+                    <p class="text-neutral-700 dark:text-neutral-300 text-sm">
+                        儘管192GB顯存對於70B FP16模型而言是充足的，但在處理極長輸入序列、極大批次大小或複雜的解碼策略時，仍需留意顯存消耗，避免OOM錯誤。vLLM的PagedAttention有助於緩解此問題。
+                    </p>
+                </div>
+                
+                <!-- 挑戰4 -->
+                <div class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md hover-scale">
+                    <div class="flex items-center mb-3">
+                        <div class="bg-primary-100 dark:bg-primary-900/50 p-1.5 rounded-full">
+                            <i class="material-icons text-primary-600 dark:text-primary-400 text-lg">format_shapes</i>
+                        </div>
+                        <h3 class="text-lg font-bold ml-3">聊天模型模板</h3>
+                    </div>
+                    <p class="text-neutral-700 dark:text-neutral-300 text-sm">
+                        對於指令微調或聊天模型，正確配置其特有的聊天提示模板至關重要。如果模板不正確，模型可能無法理解輸入或產生非預期的回應。vLLM允許在啟動時透過<code class="bg-neutral-100 dark:bg-neutral-700/80 px-1 py-0.5 rounded font-mono">--chat-template</code>參數指定模板檔案。
+                    </p>
+                </div>
+                
+                <!-- 挑戰5 -->
+                <div class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md hover-scale">
+                    <div class="flex items-center mb-3">
+                        <div class="bg-primary-100 dark:bg-primary-900/50 p-1.5 rounded-full">
+                            <i class="material-icons text-primary-600 dark:text-primary-400 text-lg">schedule</i>
+                        </div>
+                        <h3 class="text-lg font-bold ml-3">首次啟動時間</h3>
+                    </div>
+                    <p class="text-neutral-700 dark:text-neutral-300 text-sm">
+                        大型模型首次從Hugging Face Hub下載並載入到GPU可能需要較長時間。
+                    </p>
+                </div>
+                
+                <!-- 挑戰6 -->
+                <div class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-md hover-scale">
+                    <div class="flex items-center mb-3">
+                        <div class="bg-primary-100 dark:bg-primary-900/50 p-1.5 rounded-full">
+                            <i class="material-icons text-primary-600 dark:text-primary-400 text-lg">swap_horiz</i>
+                        </div>
+                        <h3 class="text-lg font-bold ml-3">多GPU同步與通訊</h3>
+                    </div>
+                    <p class="text-neutral-700 dark:text-neutral-300 text-sm">
+                        雖然vLLM會處理張量並行下的GPU同步，但PCIe頻寬相較於NVLink仍是潛在瓶頸，尤其是在GPU間需要大量資料傳輸時。不過對於推論任務，這通常不如訓練任務敏感。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 頁腳 -->
+    <footer class="bg-neutral-900 text-neutral-300 py-10 mt-16">
+        <div class="container mx-auto px-4 max-w-6xl">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <h3 class="text-xl font-bold text-neutral-100">70B大型語言模型部署報告</h3>
+                    <p class="text-neutral-400 mt-2">透過vLLM框架實現高效能推論服務</p>
+                </div>
+                
+                <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-8 items-center">
+                    <a href="https://twitter.com/example" target="_blank" rel="noopener noreferrer" class="text-neutral-400 hover:text-primary-400 transition-colors">
+                        <i class="fa-brands fa-twitter mr-2"></i>Twitter/X
+                    </a>
+                    <a href="https://github.com/example" target="_blank" rel="noopener noreferrer" class="text-neutral-400 hover:text-primary-400 transition-colors">
+                        <i class="fa-brands fa-github mr-2"></i>GitHub
+                    </a>
+                </div>
+            </div>
+            
+            <hr class="border-neutral-800 my-6">
+            
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <p class="text-neutral-500 text-sm mb-4 md:mb-0">
+                    © 2025 Cl Tseng. 保留所有權利。
+                </p>
+                
+                <div class="flex space-x-6">
+                    <a href="#" class="text-neutral-500 hover:text-neutral-300 text-sm transition-colors">隱私政策</a>
+                    <a href="#" class="text-neutral-500 hover:text-neutral-300 text-sm transition-colors">使用條款</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // 深色/淺色模式切換
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        
+        // 檢查系統偏好或之前的設置
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+        
+        themeToggleBtn.addEventListener('click', function() {
+            document.documentElement.classList.toggle('dark');
+            
+            // 儲存偏好
+            if (document.documentElement.classList.contains('dark')) {
+                localStorage.theme = 'dark';
+            } else {
+                localStorage.theme = 'light';
+            }
+        });
+        
+        // 初始化 Mermaid
+        mermaid.initialize({ theme: 'neutral', startOnLoad: true });
+        
+        // 淡入動畫
+        document.addEventListener('DOMContentLoaded', function() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('fade-in');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, {
+                root: null,
+                threshold: 0.1,
+                rootMargin: "0px 0px -100px 0px"
+            });
+            
+            document.querySelectorAll('.hover-scale:not(.fade-in)').forEach(el => {
+                observer.observe(el);
+            });
+        });
+
+        // GPU顯存分析圖表
+        const gpuMemoryChart = echarts.init(document.getElementById('gpu-memory-chart'));
+        
+        const gpuMemoryOption = {
+            tooltip: {
+                trigger: 'item',
+                formatter: '{b}: {c} GB'
+            },
+            color: ['#0ea5e9', '#6366f1', '#8b5cf6', '#ec4899'],
+            series: [{
+                name: 'GPU顯存',
+                type: 'pie',
+                radius: '70%',
+                center: ['50%', '50%'],
+                data: [
+                    { value: 48, name: 'RTX 6000 Ada #1' },
+                    { value: 48, name: 'RTX 6000 Ada #2' },
+                    { value: 48, name: 'RTX 6000 Ada #3' },
+                    { value: 48, name: 'RTX 6000 Ada #4' }
+                ],
+                label: {
+                    formatter: '{b}: {c} GB',
+                    color: document.documentElement.classList.contains('dark') ? '#e5e7eb' : '#1f2937'
+                }
+            }]
+        };
+        
+        gpuMemoryChart.setOption(gpuMemoryOption);
+        
+        // 模型顯存需求圖表
+        const modelMemoryChart = echarts.init(document.getElementById('model-memory-chart'));
+        
+        const modelMemoryOption = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                },
+                formatter: '{b}: {c} GB'
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '8%',
+                top: '10%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: ['總GPU顯存', '70B模型 (FP16)', '70B模型 (4-bit)'],
+                axisLabel: {
+                    color: document.documentElement.classList.contains('dark') ? '#d1d5db' : '#4b5563'
+                }
+            },
+            yAxis: {
+                type: 'value',
+                axisLabel: {
+                    formatter: '{value} GB',
+                    color: document.documentElement.classList.contains('dark') ? '#d1d5db' : '#4b5563'
+                }
+            },
+            series: [{
+                name: '顯存需求',
+                type: 'bar',
+                data: [192, 140, 48],
+                itemStyle: {
+                    color: function(params) {
+                        const colors = ['#10b981', '#0ea5e9', '#8b5cf6'];
+                        return colors[params.dataIndex];
+                    }
+                },
+                label: {
+                    show: true,
+                    formatter: '{c} GB',
+                    position: 'top',
+                    color: document.documentElement.classList.contains('dark') ? '#e5e7eb' : '#1f2937'
+                }
+            }]
+        };
+        
+        modelMemoryChart.setOption(modelMemoryOption);
+
+        // 資料類型效能對比圖表
+        const datatypeChart = echarts.init(document.getElementById('datatype-chart'));
+        
+        const datatypeOption = {
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '8%',
+                top: '15%',
+                containLabel: true
+            },
+            legend: {
+                data: ['相對推理速度', '顯存使用'],
+                top: 0,
+                textStyle: {
+                    color: document.documentElement.classList.contains('dark') ? '#e5e7eb' : '#1f2937'
+                }
+            },
+            xAxis: {
+                type: 'category',
+                data: ['FP32', 'FP16/BF16', '8-bit量化', '4-bit量化'],
+                axisLabel: {
+                    color: document.documentElement.classList.contains('dark') ? '#d1d5db' : '#4b5563'
+                }
+            },
+            yAxis: [
+                {
+                    type: 'value',
+                    name: '相對速度',
+                    min: 0,
+                    max: 4,
+                    axisLabel: {
+                        formatter: '{value}x',
+                        color: document.documentElement.classList.contains('dark') ? '#d1d5db' : '#4b5563'
+                    }
+                },
+                {
+                    type: 'value',
+                    name: '顯存比例',
+                    min: 0,
+                    max: 1,
+                    axisLabel: {
+                        formatter: '{value}x',
+                        color: document.documentElement.classList.contains('dark') ? '#d1d5db' : '#4b5563'
+                    }
+                }
+            ],
+            series: [
+                {
+                    name: '相對推理速度',
+                    type: 'bar',
+                    data: [1.0, 1.8, 2.2, 3.5],
+                    itemStyle: {
+                        color: '#6366f1'
+                    }
+                },
+                {
+                    name: '顯存使用',
+                    type: 'line',
+                    yAxisIndex: 1,
+                    data: [1.0, 0.5, 0.25, 0.125],
+                    symbol: 'circle',
+                    symbolSize: 8,
+                    itemStyle: {
+                        color: '#f43f5e'
+                    },
+                    lineStyle: {
+                        width: 3,
+                        type: 'dashed'
+                    }
+                }
+            ]
+        };
+        
+        datatypeChart.setOption(datatypeOption);
+        
+        // 窗口大小調整時重繪圖表
+        window.addEventListener('resize', function() {
+            gpuMemoryChart.resize();
+            modelMemoryChart.resize();
+            datatypeChart.resize();
+        });
+        
+        // 深色模式變化時更新圖表
+        const darkModeObserver = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === 'class') {
+                    const isDark = document.documentElement.classList.contains('dark');
+                    
+                    // 更新圖表主題
+                    gpuMemoryOption.series[0].label.color = isDark ? '#e5e7eb' : '#1f2937';
+                    gpuMemoryChart.setOption(gpuMemoryOption);
+                    
+                    modelMemoryOption.xAxis.axisLabel.color = isDark ? '#d1d5db' : '#4b5563';
+                    modelMemoryOption.yAxis.axisLabel.color = isDark ? '#d1d5db' : '#4b5563';
+                    modelMemoryOption.series[0].label.color = isDark ? '#e5e7eb' : '#1f2937';
+                    modelMemoryChart.setOption(modelMemoryOption);
+                    
+                    datatypeOption.legend.textStyle.color = isDark ? '#e5e7eb' : '#1f2937';
+                    datatypeOption.xAxis.axisLabel.color = isDark ? '#d1d5db' : '#4b5563';
+                    datatypeOption.yAxis[0].axisLabel.color = isDark ? '#d1d5db' : '#4b5563';
+                    datatypeOption.yAxis[1].axisLabel.color = isDark ? '#d1d5db' : '#4b5563';
+                    datatypeChart.setOption(datatypeOption);
+                }
+            });
+        });
+        
+        darkModeObserver.observe(document.documentElement, { attributes: true });
+    </script>
+</body>
+</html>
