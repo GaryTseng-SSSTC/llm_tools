@@ -1,0 +1,1225 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>vLLM 安裝與部署指南</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/preline@3.0.1/dist/preline.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/material-icons@1.13.14/iconfont/material-icons.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#EBF5FF',
+              100: '#E1EFFE',
+              200: '#C3DDFD',
+              300: '#A4CAFE',
+              400: '#76A9FA',
+              500: '#3F83F8',
+              600: '#1C64F2',
+              700: '#1A56DB',
+              800: '#1E429F',
+              900: '#233876',
+              950: '#172554',
+            },
+            secondary: {
+              50: '#F5F7FA',
+              100: '#E4E7EB',
+              200: '#CBD2D9',
+              300: '#9AA5B1',
+              400: '#7B8794',
+              500: '#616E7C',
+              600: '#52606D',
+              700: '#3E4C59',
+              800: '#323F4B',
+              900: '#1F2933',
+              950: '#101820',
+            },
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Menlo', 'monospace'],
+          },
+        }
+      }
+    };
+  </script>
+  <style type="text/css">
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono&display=swap');
+    
+    .code-block {
+      position: relative;
+    }
+    
+    .copy-button {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      padding: 0.25rem 0.5rem;
+      background-color: rgba(209, 213, 219, 0.2);
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      transition: all 0.2s ease;
+    }
+    
+    .copy-button:hover {
+      background-color: rgba(209, 213, 219, 0.4);
+    }
+    
+    .copy-success {
+      background-color: rgba(16, 185, 129, 0.2) !important;
+    }
+
+    /* Fade-in animation */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .content-section {
+      animation: fadeIn 0.6s ease forwards;
+    }
+    
+    .content-section:nth-child(2) { animation-delay: 0.1s; }
+    .content-section:nth-child(3) { animation-delay: 0.2s; }
+    .content-section:nth-child(4) { animation-delay: 0.3s; }
+    .content-section:nth-child(5) { animation-delay: 0.4s; }
+  </style>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+  <div class="relative bg-gradient-to-b from-primary-600 to-primary-800 dark:from-primary-900 dark:to-primary-950">
+    <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxwYXRoIGQ9Ik0yNSAzMGw1LTUgMTUgMTUtNSA1LTE1LTE1ek0yMCAzMEwyMCA1IDUgNSA1IDIwIDIwIDIwek0zMCA0MEwzMCA1MCA0MCA1MCA0MCA0MCAzMCA0MHpNNDAgMjBMNDAgMTAgNTAgMTAgNTAgMjAgNDAgMjB6IiBmaWxsPSIjMTkzNTZEIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIG9wYWNpdHk9IjAuMiIvPgo8L3N2Zz4=')]"></div>
+    <div class="relative max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+      <div class="text-center">
+        <h1 class="text-4xl md:text-5xl font-bold text-white mb-4">vLLM 安裝與部署指南</h1>
+        <p class="text-xl text-primary-100 max-w-2xl mx-auto">高效能、記憶體優化的大型語言模型推理與服務引擎</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table of Contents -->
+  <div class="bg-gray-50 dark:bg-gray-800 py-6 sticky top-0 z-10 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+          <button id="themeToggle" class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+            <i class="fa-solid fa-sun hidden dark:block"></i>
+            <i class="fa-solid fa-moon block dark:hidden"></i>
+          </button>
+          <span class="text-lg font-medium">目錄</span>
+        </div>
+        <nav class="hidden md:flex space-x-8">
+          <a href="#overview" class="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 transition-colors">概述</a>
+          <a href="#introduction" class="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 transition-colors">簡介</a>
+          <a href="#installation" class="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 transition-colors">安裝</a>
+          <a href="#usage" class="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 transition-colors">使用</a>
+          <a href="#advanced" class="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 transition-colors">進階配置</a>
+          <a href="#hardware" class="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 transition-colors">硬體支援</a>
+          <a href="#deployment" class="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 transition-colors">部署</a>
+        </nav>
+        <div class="md:hidden">
+          <button id="mobileMenuBtn" class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+        </div>
+      </nav>
+      <div id="mobileMenu" class="hidden md:hidden mt-4 space-y-2">
+        <a href="#overview" class="block py-2 font-medium text-primary-600 dark:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded px-3">概述</a>
+        <a href="#introduction" class="block py-2 font-medium text-primary-600 dark:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded px-3">簡介</a>
+        <a href="#installation" class="block py-2 font-medium text-primary-600 dark:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded px-3">安裝</a>
+        <a href="#usage" class="block py-2 font-medium text-primary-600 dark:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded px-3">使用</a>
+        <a href="#advanced" class="block py-2 font-medium text-primary-600 dark:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded px-3">進階配置</a>
+        <a href="#hardware" class="block py-2 font-medium text-primary-600 dark:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded px-3">硬體支援</a>
+        <a href="#deployment" class="block py-2 font-medium text-primary-600 dark:text-primary-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded px-3">部署</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Overview Section -->
+    <section id="overview" class="content-section mb-16">
+      <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 md:p-8 border border-gray-200 dark:border-gray-700">
+        <h2 class="text-3xl font-bold mb-6 flex items-center">
+          <span class="material-icons mr-2 text-primary-600 dark:text-primary-400">info</span>
+          概述
+        </h2>
+        <p class="text-lg leading-relaxed text-gray-700 dark:text-gray-300">
+          vLLM 是一個為大型語言模型 (LLM) 設計的高效能、記憶體優化的推理和服務引擎。本報告將詳細介紹 vLLM 的安裝過程、必要的環境配置、關鍵設定選項以及基本使用方法，旨在協助使用者快速部署並利用 vLLM 進行 LLM 推理。報告內容涵蓋從環境準備、安裝步驟到進階配置，並提及硬體支援與常見部署情境。
+        </p>
+        <div class="mt-8">
+          <div id="overviewChart" class="h-72 w-full"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Introduction Section -->
+    <section id="introduction" class="content-section mb-16">
+      <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 md:p-8 border border-gray-200 dark:border-gray-700">
+        <h2 class="text-3xl font-bold mb-6 flex items-center">
+          <span class="material-icons mr-2 text-primary-600 dark:text-primary-400">book</span>
+          vLLM 簡介
+        </h2>
+        <p class="text-lg leading-relaxed text-gray-700 dark:text-gray-300 mb-4">
+          vLLM 是一個開源函式庫，專注於提升 LLM 的推理速度和服務吞吐量，同時有效管理記憶體。它最初由加州大學伯克利分校的 Sky Computing Lab 開發，現已發展成為一個由學術界和產業界共同貢獻的社群驅動專案。vLLM 的核心技術包括 PagedAttention，一種高效管理注意力鍵值記憶體的方法，以及連續批處理傳入請求、使用 CUDA/HIP 圖加速模型執行等。
+        </p>
+        <p class="text-lg leading-relaxed text-gray-700 dark:text-gray-300 mb-4">
+          此外，vLLM 支援多種量化技術（如 GPTQ、AWQ、INT4、INT8、FP8）、推測解碼 (Speculative Decoding) 和分塊預填充 (Chunked Prefill) 等功能以進一步優化效能。vLLM 可以無縫整合 Hugging Face 的熱門模型，並支援多種解碼演算法、分散式推理的張量平行和管線平行、流式輸出以及與 OpenAI 相容的 API 伺服器。
+        </p>
+        
+        <div class="mt-8 p-6 bg-gray-50 dark:bg-gray-700 rounded-lg">
+          <h3 class="text-xl font-semibold mb-4">主要特性</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="flex items-start">
+              <i class="fa-solid fa-bolt text-yellow-500 mt-1 mr-3 text-2xl"></i>
+              <div>
+                <h4 class="font-semibold">高效能吞吐量</h4>
+                <p class="text-gray-600 dark:text-gray-400">透過 PagedAttention 和連續批處理等技術實現</p>
+              </div>
+            </div>
+            <div class="flex items-start">
+              <i class="fa-solid fa-microchip text-green-500 mt-1 mr-3 text-2xl"></i>
+              <div>
+                <h4 class="font-semibold">記憶體效率</h4>
+                <p class="text-gray-600 dark:text-gray-400">顯著減少與傳統推理引擎相比的記憶體開銷</p>
+              </div>
+            </div>
+            <div class="flex items-start">
+              <i class="fa-solid fa-user-check text-blue-500 mt-1 mr-3 text-2xl"></i>
+              <div>
+                <h4 class="font-semibold">易用性</h4>
+                <p class="text-gray-600 dark:text-gray-400">提供 Python API，方便整合</p>
+              </div>
+            </div>
+            <div class="flex items-start">
+              <i class="fa-solid fa-server text-purple-500 mt-1 mr-3 text-2xl"></i>
+              <div>
+                <h4 class="font-semibold">廣泛的硬體支援</h4>
+                <p class="text-gray-600 dark:text-gray-400">支援 NVIDIA GPU、AMD CPU 和 GPU、Intel CPU 和 GPU、PowerPC CPU、TPU 及 AWS Neuron 等多種硬體平台</p>
+              </div>
+            </div>
+            <div class="flex items-start">
+              <i class="fa-solid fa-cube text-red-500 mt-1 mr-3 text-2xl"></i>
+              <div>
+                <h4 class="font-semibold">模型相容性</h4>
+                <p class="text-gray-600 dark:text-gray-400">支援大多數 HuggingFace 上的開源模型，包括 Transformer-like LLMs (如 Llama)、Mixture-of-Expert LLMs (如 Mixtral)、嵌入模型及多模態 LLMs (如 LLaVA)</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mt-10">
+          <div id="architectureChart" class="w-full">
+            <div class="text-center" id="architecture-diagram"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Installation Section -->
+    <section id="installation" class="content-section mb-16">
+      <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 md:p-8 border border-gray-200 dark:border-gray-700">
+        <h2 class="text-3xl font-bold mb-6 flex items-center">
+          <span class="material-icons mr-2 text-primary-600 dark:text-primary-400">download</span>
+          安裝準備與步驟
+        </h2>
+        
+        <div class="mb-10">
+          <h3 class="text-2xl font-semibold mb-4">系統要求</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+              <h4 class="font-semibold text-xl mb-4 flex items-center">
+                <i class="fa-solid fa-laptop-code mr-2 text-primary-500"></i>
+                基本環境
+              </h4>
+              <ul class="list-disc pl-5 space-y-3 text-gray-700 dark:text-gray-300">
+                <li><strong>作業系統</strong>：Linux</li>
+                <li><strong>Python 版本</strong>：建議使用 Python 3.9 至 3.12 版本</li>
+                <li><strong>CUDA 版本</strong>：若使用 NVIDIA GPU，通常需要 CUDA 11.0 或更高版本，vLLM 預編譯版本通常基於 CUDA 12.1</li>
+                <li><strong>磁碟空間</strong>：建議至少 10GB 的可用磁碟空間</li>
+                <li><strong>記憶體</strong>：至少 8GB 記憶體</li>
+              </ul>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+              <h4 class="font-semibold text-xl mb-4 flex items-center">
+                <i class="fa-solid fa-microchip mr-2 text-primary-500"></i>
+                硬體要求
+              </h4>
+              <ul class="list-disc pl-5 space-y-3 text-gray-700 dark:text-gray-300">
+                <li><strong>GPU</strong>：具有計算能力 (Compute Capability) 7.0 或更高的 NVIDIA GPU (例如 V100, T4, RTX20xx, A100, L4, H100 等)</li>
+                <li>推薦：NVIDIA A100 或 H100 用於處理較大模型</li>
+                <li>最低：NVIDIA T4 或 RTX 3090 可用於較小模型</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        
+        <div class="mb-10">
+          <h3 class="text-2xl font-semibold mb-4">安裝步驟</h3>
+          <div class="space-y-6">
+            <div class="p-6 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <h4 class="font-semibold text-xl mb-3">1. 安裝 Python 和 pip</h4>
+              <p class="text-gray-700 dark:text-gray-300 mb-4">確保系統已安裝符合要求的 Python 版本及 pip。若未安裝，可參考以下指令 (以 Ubuntu 為例)：</p>
+              <div class="code-block">
+                <pre class="bg-gray-800 text-gray-100 p-4 rounded-md overflow-x-auto"><code>sudo apt-get update
+sudo apt-get install python3.9 python3-pip</code></pre>
+                <button class="copy-button" onclick="copyCode(this)">複製</button>
+              </div>
+            </div>
+            
+            <div class="p-6 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <h4 class="font-semibold text-xl mb-3">2. 創建虛擬環境 (推薦)</h4>
+              <p class="text-gray-700 dark:text-gray-300 mb-3">可以使用 <code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">venv</code> 或 <code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">conda</code> 創建虛擬環境。</p>
+              
+              <p class="text-gray-700 dark:text-gray-300 mb-2">使用 <code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">venv</code>:</p>
+              <div class="code-block mb-4">
+                <pre class="bg-gray-800 text-gray-100 p-4 rounded-md overflow-x-auto"><code>python3 -m venv vllm_env
+source vllm_env/bin/activate</code></pre>
+                <button class="copy-button" onclick="copyCode(this)">複製</button>
+              </div>
+              
+              <p class="text-gray-700 dark:text-gray-300 mb-2">使用 <code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">conda</code>:</p>
+              <div class="code-block mb-4">
+                <pre class="bg-gray-800 text-gray-100 p-4 rounded-md overflow-x-auto"><code>conda create -n myenv python=3.9 -y
+conda activate myenv</code></pre>
+                <button class="copy-button" onclick="copyCode(this)">複製</button>
+              </div>
+              
+              <p class="text-gray-700 dark:text-gray-300 mb-2">使用 <code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">uv</code>:</p>
+              <div class="code-block">
+                <pre class="bg-gray-800 text-gray-100 p-4 rounded-md overflow-x-auto"><code>uv venv --python 3.12 --seed
+source .venv/bin/activate</code></pre>
+                <button class="copy-button" onclick="copyCode(this)">複製</button>
+              </div>
+            </div>
+            
+            <div class="p-6 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <h4 class="font-semibold text-xl mb-3">3. 安裝 vLLM</h4>
+              <p class="text-gray-700 dark:text-gray-300 mb-4">對於 NVIDIA GPU 環境，最簡單的安裝方式是使用 pip：</p>
+              <div class="code-block mb-4">
+                <pre class="bg-gray-800 text-gray-100 p-4 rounded-md overflow-x-auto"><code>pip install vllm</code></pre>
+                <button class="copy-button" onclick="copyCode(this)">複製</button>
+              </div>
+              <p class="text-gray-700 dark:text-gray-300 mb-4">若要安裝特定版本或包含額外功能 (如 FlashAttention)，可以參考官方文件或特定模型的要求。例如，安裝 flash-attn：</p>
+              <div class="code-block">
+                <pre class="bg-gray-800 text-gray-100 p-4 rounded-md overflow-x-auto"><code>pip install flash-attn</code></pre>
+                <button class="copy-button" onclick="copyCode(this)">複製</button>
+              </div>
+            </div>
+            
+            <div class="p-6 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <h4 class="font-semibold text-xl mb-3">4. 從源碼編譯安裝 (進階)</h4>
+              <p class="text-gray-700 dark:text-gray-300">如果您需要針對特定的 CUDA 版本、現有的 PyTorch 安裝進行客製化，或者使用的硬體平台沒有預編譯的 wheel 包 (例如某些 AMD GPU 或 Intel GPU)，則需要從源碼編譯安裝 vLLM。詳細步驟請參考 vLLM 官方文件。</p>
+            </div>
+            
+            <div class="p-6 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <h4 class="font-semibold text-xl mb-3">5. 驗證安裝</h4>
+              <p class="text-gray-700 dark:text-gray-300 mb-4">安裝完成後，可以透過執行 Python 指令來驗證 vLLM 是否成功安裝：</p>
+              <div class="code-block">
+                <pre class="bg-gray-800 text-gray-100 p-4 rounded-md overflow-x-auto"><code>python -c "import vllm; print(vllm.__version__)"</code></pre>
+                <button class="copy-button" onclick="copyCode(this)">複製</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Basic Usage Section -->
+    <section id="usage" class="content-section mb-16">
+      <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 md:p-8 border border-gray-200 dark:border-gray-700">
+        <h2 class="text-3xl font-bold mb-6 flex items-center">
+          <span class="material-icons mr-2 text-primary-600 dark:text-primary-400">code</span>
+          基本配置與使用
+        </h2>
+        
+        <p class="text-lg leading-relaxed text-gray-700 dark:text-gray-300 mb-6">
+          vLLM 提供了多種使用方式，包括離線批量推理和線上 API 服務。以下是常見的使用場景與範例：
+        </p>
+        
+        <div class="mb-10">
+          <h3 class="text-2xl font-semibold mb-4">離線批量推理 (Offline Batched Inference)</h3>
+          <p class="text-gray-700 dark:text-gray-300 mb-4">安裝 vLLM 後，您可以直接在 Python 腳本中載入模型並對輸入提示列表進行文本生成。</p>
+          <div class="code-block">
+            <pre class="bg-gray-800 text-gray-100 p-4 rounded-md overflow-x-auto"><code>from vllm import LLM, SamplingParams
+
+prompts = [
+    "Hello, my name is",
+    "The president of the United States is",
+    "The capital of France is",
+    "The future of AI is",
+]
+sampling_params = SamplingParams(temperature=0.8, top_p=0.95)
+
+# 預設從 Hugging Face 下載模型
+llm = LLM(model="facebook/opt-125m")
+# 若要從 ModelScope 下載模型，需先設定環境變數 VLLM_USE_MODELSCOPE=True
+# llm = LLM(model="qwen/Qwen-7B-Chat", trust_remote_code=True) # 範例
+
+outputs = llm.generate(prompts, sampling_params)
+
+# 列印輸出結果
+for output in outputs:
+    prompt = output.prompt
+    generated_text = output.outputs[0].text
+    print(f"Prompt: {prompt!r}, Generated text: {generated_text!r}")</code></pre>
+            <button class="copy-button" onclick="copyCode(this)">複製</button>
+          </div>
+          <p class="text-gray-700 dark:text-gray-300 mt-4">vLLM 會自動將輸入提示加入引擎的等待佇列，並以高吞吐量執行生成。支援的模型列表可以在官方文件中找到。</p>
+        </div>
+        
+        <div>
+          <h3 class="text-2xl font-semibold mb-4">OpenAI 相容的 API 伺服器</h3>
+          <p class="text-gray-700 dark:text-gray-300 mb-4">vLLM 可以部署為一個實作 OpenAI API 協定的伺服器，使其能夠作為使用 OpenAI API 的應用程式的直接替代品。</p>
+          
+          <div class="p-6 bg-gray-50 dark:bg-gray-700 rounded-lg mb-6">
+            <h4 class="font-semibold text-xl mb-3">啟動 API 伺服器</h4>
+            <div class="code-block">
+              <pre class="bg-gray-800 text-gray-100 p-4 rounded-md overflow-x-auto"><code>python -m vllm.entrypoints.openai.api_server --model facebook/opt-125m</code></pre>
+              <button class="copy-button" onclick="copyCode(this)">複製</button>
+            </div>
+            <p class="text-gray-600 dark:text-gray-400 mt-3">預設情況下，伺服器會在 <code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">http://localhost:8000</code> 啟動。您可以使用 <code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">--host</code> 和 <code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">--port</code> 參數指定不同的位址和埠號。</p>
+            <p class="text-gray-600 dark:text-gray-400 mt-2">若模型位於本地，可以使用 <code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">--model /path/to/your/model</code> 指定路徑。例如：</p>
+            <div class="code-block mt-2">
+              <pre class="bg-gray-800 text-gray-100 p-4 rounded-md overflow-x-auto"><code>python -m vllm.entrypoints.openai.api_server --model /data/nlp/models/llama3_8b_instruct --served-model-name llama3_8b_instruct --dtype half</code></pre>
+              <button class="copy-button" onclick="copyCode(this)">複製</button>
+            </div>
+          </div>
+          
+          <div class="p-6 bg-gray-50 dark:bg-gray-700 rounded-lg mb-6">
+            <h4 class="font-semibold text-xl mb-3">使用 curl 與 API 互動</h4>
+            <div class="code-block">
+              <pre class="bg-gray-800 text-gray-100 p-4 rounded-md overflow-x-auto"><code>curl http://localhost:8000/v1/completions \
+    -H "Content-Type: application/json" \
+    -d '{
+        "model": "facebook/opt-125m",
+        "prompt": "San Francisco is a",
+        "max_tokens": 7,
+        "temperature": 0
+    }'</code></pre>
+              <button class="copy-button" onclick="copyCode(this)">複製</button>
+            </div>
+          </div>
+          
+          <div class="p-6 bg-gray-50 dark:bg-gray-700 rounded-lg">
+            <h4 class="font-semibold text-xl mb-3">使用 OpenAI Python 客戶端</h4>
+            <div class="code-block">
+              <pre class="bg-gray-800 text-gray-100 p-4 rounded-md overflow-x-auto"><code>from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:8000/v1",
+    api_key="test", # vLLM 預設不需要 API 金鑰，但客戶端通常需要此參數
+)
+
+completion = client.completions.create(
+    model="facebook/opt-125m",
+    prompt="San Francisco is a",
+    max_tokens=7,
+    temperature=0
+)
+print(completion.choices[0].text)</code></pre>
+              <button class="copy-button" onclick="copyCode(this)">複製</button>
+            </div>
+            <p class="text-gray-600 dark:text-gray-400 mt-3">若要啟用 API 金鑰驗證，可以在啟動伺服器時傳入 <code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">--api-key YOUR_API_KEY</code> 參數或設定環境變數 <code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">VLLM_API_KEY</code>。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Advanced Configuration Section -->
+    <section id="advanced" class="content-section mb-16">
+      <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 md:p-8 border border-gray-200 dark:border-gray-700">
+        <h2 class="text-3xl font-bold mb-6 flex items-center">
+          <span class="material-icons mr-2 text-primary-600 dark:text-primary-400">settings</span>
+          進階配置選項
+        </h2>
+        
+        <p class="text-lg leading-relaxed text-gray-700 dark:text-gray-300 mb-6">
+          vLLM 提供了豐富的引擎參數 (Engine Arguments) 來控制其行為，這些參數可以在初始化 <code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">LLM</code> 類別 (用於離線推理) 或執行 <code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">vllm serve</code> (用於線上服務) 時設定。以下是一些關鍵的配置選項：
+        </p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4">模型與分詞器相關</h3>
+            <ul class="space-y-3 text-gray-700 dark:text-gray-300">
+              <li><code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">--model &lt;model_name_or_path&gt;</code>: 指定要使用的 Hugging Face 模型名稱或本地路徑</li>
+              <li><code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">--tokenizer &lt;tokenizer_name_or_path&gt;</code>: 指定分詞器，若未指定則使用模型名稱或路徑</li>
+              <li><code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">--trust-remote-code</code>: 是否信任遠端程式碼，某些模型需要設定為 True</li>
+              <li><code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">--dtype {auto,bfloat16,float,float16,float32,half}</code>: 指定模型載入的資料類型</li>
+              <li><code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">--max-model-len &lt;int&gt;</code>: 模型支援的最大序列長度</li>
+            </ul>
+          </div>
+          
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4">平行化與分散式推理</h3>
+            <ul class="space-y-3 text-gray-700 dark:text-gray-300">
+              <li><code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">--tensor-parallel-size &lt;int&gt;</code> (簡寫 <code>-tp</code>): 張量平行的大小</li>
+              <li><code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">--pipeline-parallel-size &lt;int&gt;</code>: 流水線平行的大小</li>
+              <li class="text-gray-500 dark:text-gray-400 text-sm">注意: tensor-parallel-size * pipeline-parallel-size 應等於跨節點的總 GPU 數量</li>
+            </ul>
+          </div>
+          
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4">記憶體與快取管理</h3>
+            <ul class="space-y-3 text-gray-700 dark:text-gray-300">
+              <li><code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">--gpu-memory-utilization &lt;float&gt;</code>: GPU 記憶體用於 KV 快取的比例，預設通常為 0.9 或 0.95</li>
+              <li><code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">--block-size {1,8,16,32,64,128}</code>: PagedAttention 中記憶體塊的大小</li>
+              <li><code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">--swap-space &lt;int&gt;</code>: CPU 交換空間的大小 (GB)</li>
+              <li><code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">--enable-prefix-caching | --no-enable-prefix-caching</code>: 是否啟用前綴快取</li>
+            </ul>
+          </div>
+          
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4">排程與批次處理</h3>
+            <ul class="space-y-3 text-gray-700 dark:text-gray-300">
+              <li><code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">--max-num-batched-tokens &lt;int&gt;</code>: 一個批次中允許的最大 token 總數</li>
+              <li><code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">--max-num-seqs &lt;int&gt;</code>: 一個批次中允許的最大序列數</li>
+              <li><code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">--enable-chunked-prefill | --no-enable-chunked-prefill</code>: 是否啟用分塊預填充，允許將長提示分塊處理</li>
+              <li><code class="bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded text-sm">--preemption-mode {recompute,swap,None}</code>: 搶佔模式</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="p-6 bg-gray-50 dark:bg-gray-700 rounded-lg mb-6">
+          <h3 class="text-xl font-semibold mb-4">量化選項</h3>
+          <p class="text-gray-700 dark:text-gray-300 mb-4">
+            量化可以顯著降低模型的記憶體佔用，但可能會略微影響模型的精確度。vLLM 支援多種量化方法：
+          </p>
+          <div class="code-block mb-4">
+            <pre class="bg-gray-800 text-gray-100 p-4 rounded-md overflow-x-auto"><code># 範例：使用 AWQ 量化模型
+llm = LLM(model="TheBloke/Llama-2-7b-Chat-AWQ", quantization="AWQ")
+# 範例：使用 GPTQ 量化模型
+llm = LLM(model="Qwen/Qwen2.5-7B-Instruct-GPTQ-Int4", quantization="GPTQ")</code></pre>
+            <button class="copy-button" onclick="copyCode(this)">複製</button>
+          </div>
+          <ul class="list-disc pl-5 space-y-1 text-gray-600 dark:text-gray-400">
+            <li>AWQ：適用於權重量化，通常可以達到 INT4 精度</li>
+            <li>GPTQ：另一種流行的量化方法，支援多種精度級別</li>
+            <li>SqueezeLLM：專注於權重壓縮</li>
+            <li>AQLM：自適應量化語言模型</li>
+            <li>FP8：半精度浮點量化</li>
+          </ul>
+        </div>
+        
+        <div id="configChart" class="h-96 w-full mb-6"></div>
+        
+        <p class="text-gray-700 dark:text-gray-300">
+          完整的引擎參數列表及其詳細說明，請參考 vLLM 官方文件。正確的參數配置可以顯著影響模型的效能、記憶體使用和推理速度。
+        </p>
+      </div>
+    </section>
+
+    <!-- Hardware Support Section -->
+    <section id="hardware" class="content-section mb-16">
+      <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 md:p-8 border border-gray-200 dark:border-gray-700">
+        <h2 class="text-3xl font-bold mb-6 flex items-center">
+          <span class="material-icons mr-2 text-primary-600 dark:text-primary-400">memory</span>
+          硬體與平台支援
+        </h2>
+        
+        <p class="text-lg leading-relaxed text-gray-700 dark:text-gray-300 mb-8">
+          vLLM 支援多種硬體平台，使其部署更具彈性。對於非 NVIDIA CUDA 平台，通常需要從源碼編譯 vLLM，或使用特定的 Docker 映像檔。
+        </p>
+        
+        <div id="hardwareChart" class="h-96 w-full mb-8"></div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 hover:shadow-lg transition-shadow transform hover:-translate-y-1 duration-300">
+            <div class="flex items-center justify-center mb-4 h-16">
+              <i class="fa-solid fa-microchip text-4xl text-green-500"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-center mb-3">NVIDIA GPU</h3>
+            <ul class="text-gray-700 dark:text-gray-300 space-y-1.5">
+              <li class="flex items-center"><i class="fa-solid fa-check text-green-500 mr-2"></i> 主要支援平台</li>
+              <li class="flex items-center"><i class="fa-solid fa-check text-green-500 mr-2"></i> CUDA 11.0+ 支援</li>
+              <li class="flex items-center"><i class="fa-solid fa-check text-green-500 mr-2"></i> 預編譯 wheel 可用</li>
+              <li class="flex items-center"><i class="fa-solid fa-check text-green-500 mr-2"></i> V100, T4, A100, H100 等</li>
+            </ul>
+          </div>
+          
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 hover:shadow-lg transition-shadow transform hover:-translate-y-1 duration-300">
+            <div class="flex items-center justify-center mb-4 h-16">
+              <i class="fa-solid fa-atom text-4xl text-red-500"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-center mb-3">AMD</h3>
+            <ul class="text-gray-700 dark:text-gray-300 space-y-1.5">
+              <li class="flex items-center"><i class="fa-solid fa-check text-green-500 mr-2"></i> ROCm 支援</li>
+              <li class="flex items-center"><i class="fa-solid fa-check text-green-500 mr-2"></i> MI100, MI250 GPU</li>
+              <li class="flex items-center"><i class="fa-solid fa-check text-green-500 mr-2"></i> x86 CPU 支援</li>
+              <li class="flex items-center"><i class="fa-solid fa-exclamation-triangle text-yellow-500 mr-2"></i> 需從源碼編譯</li>
+            </ul>
+          </div>
+          
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 hover:shadow-lg transition-shadow transform hover:-translate-y-1 duration-300">
+            <div class="flex items-center justify-center mb-4 h-16">
+              <i class="fa-solid fa-laptop-code text-4xl text-blue-500"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-center mb-3">Intel</h3>
+            <ul class="text-gray-700 dark:text-gray-300 space-y-1.5">
+              <li class="flex items-center"><i class="fa-solid fa-check text-green-500 mr-2"></i> x86 CPU 支援</li>
+              <li class="flex items-center"><i class="fa-solid fa-check text-green-500 mr-2"></i> XPU 支援 (初步)</li>
+              <li class="flex items-center"><i class="fa-solid fa-check text-green-500 mr-2"></i> Gaudi 加速器支援</li>
+              <li class="flex items-center"><i class="fa-solid fa-exclamation-triangle text-yellow-500 mr-2"></i> XPU 需從源碼編譯</li>
+            </ul>
+          </div>
+          
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 hover:shadow-lg transition-shadow transform hover:-translate-y-1 duration-300">
+            <div class="flex items-center justify-center mb-4 h-16">
+              <i class="fa-solid fa-cloud text-4xl text-purple-500"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-center mb-3">其他平台</h3>
+            <ul class="text-gray-700 dark:text-gray-300 space-y-1.5">
+              <li class="flex items-center"><i class="fa-solid fa-check text-green-500 mr-2"></i> Google TPU</li>
+              <li class="flex items-center"><i class="fa-solid fa-check text-green-500 mr-2"></i> AWS Neuron</li>
+              <li class="flex items-center"><i class="fa-solid fa-check text-green-500 mr-2"></i> ARM AArch64 / Apple Silicon</li>
+              <li class="flex items-center"><i class="fa-solid fa-check text-green-500 mr-2"></i> IBM Z (S390X)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Deployment Section -->
+    <section id="deployment" class="content-section mb-16">
+      <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 md:p-8 border border-gray-200 dark:border-gray-700">
+        <h2 class="text-3xl font-bold mb-6 flex items-center">
+          <span class="material-icons mr-2 text-primary-600 dark:text-primary-400">cloud_upload</span>
+          部署考量
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4">雲端部署 (AWS)</h3>
+            <p class="text-gray-700 dark:text-gray-300 mb-4">
+              vLLM 可以在 AWS 等雲端平台上部署，常見方式包括：
+            </p>
+            <ul class="list-disc pl-5 space-y-2 text-gray-700 dark:text-gray-300">
+              <li><strong>EC2 實例</strong>：適用於簡單部署或需要較少編排的場景。可以選擇帶有 GPU 的實例 (如 g5.xlarge) 或 CPU 實例</li>
+              <li><strong>EKS (Elastic Kubernetes Service)</strong>：適用於大規模、容器化部署，支援多副本和自動擴展</li>
+            </ul>
+            <p class="text-gray-700 dark:text-gray-300 mt-4">
+              部署時需注意選擇合適的實例類型、配置儲存 (如 EBS) 和網路 (如負載平衡器)。
+            </p>
+          </div>
+          
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4">Docker 部署</h3>
+            <p class="text-gray-700 dark:text-gray-300 mb-4">
+              vLLM 也支援使用 Docker 進行部署，這有助於環境一致性和快速部署。
+            </p>
+            <div class="code-block">
+              <pre class="bg-gray-800 text-gray-100 p-4 rounded-md overflow-x-auto"><code># 範例 Dockerfile 片段 (可能需要根據 vLLM 版本和基礎映像調整)
+FROM pytorch/pytorch:2.1.2-cuda12.1-cudnn8-devel
+
+WORKDIR /srv
+RUN pip install vllm==0.3.3 --no-cache-dir
+
+ENTRYPOINT ["python", "-m", "vllm.entrypoints.openai.api_server", \
+            "--host", "0.0.0.0", "--port", "80", \
+            "--model", "google/gemma-2b-it", \
+            "--dtype=half"]</code></pre>
+              <button class="copy-button" onclick="copyCode(this)">複製</button>
+            </div>
+            <p class="text-gray-700 dark:text-gray-300 mt-4">
+              在構建 Docker 映像時，需注意 PyTorch 和 CUDA 版本的相容性問題。
+            </p>
+          </div>
+        </div>
+        
+        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+          <h3 class="text-xl font-semibold mb-4">與 LangChain 整合</h3>
+          <p class="text-gray-700 dark:text-gray-300 mb-4">
+            vLLM 可以與 LangChain 等框架結合使用，以簡化和加速 LLM 應用程式的開發。LangChain 提供了圍繞 LLM 構建推理管線的便捷方式，並支援流式輸出。
+          </p>
+          <div class="code-block">
+            <pre class="bg-gray-800 text-gray-100 p-4 rounded-md overflow-x-auto"><code>from langchain.llms import OpenAI
+from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
+
+# 假設 vLLM API 伺服器運行在 localhost:8000
+llm = OpenAI(
+    temperature=0.7,
+    openai_api_base="http://localhost:8000/v1",
+    openai_api_key="YOUR_API_KEY_IF_CONFIGURED_ELSE_DUMMY", # vLLM 伺服器端若未配置 API 金鑰，此處可為任意值
+    model_name="your_deployed_model_name" # 對應 vLLM 伺服器上的模型
+)
+
+prompt = PromptTemplate(
+    input_variables=["text"],
+    template="Summarize the following text: {text}"
+)
+
+chain = LLMChain(llm=llm, prompt=prompt)
+response = chain.run("The Industrial Revolution was a period of major industrialization...")
+print(response)</code></pre>
+            <button class="copy-button" onclick="copyCode(this)">複製</button>
+          </div>
+        </div>
+        
+        <div class="mt-8">
+          <div id="deployment-diagram" class="w-full"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Conclusion Section -->
+    <section class="content-section mb-16">
+      <div class="bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6 md:p-8 border border-gray-200 dark:border-gray-700">
+        <h2 class="text-3xl font-bold mb-6 flex items-center">
+          <span class="material-icons mr-2 text-primary-600 dark:text-primary-400">done_all</span>
+          總結
+        </h2>
+        
+        <p class="text-lg leading-relaxed text-gray-700 dark:text-gray-300 mb-4">
+          vLLM 透過其創新的記憶體管理和排程技術，為大型語言模型的推理和服務提供了高效能解決方案。其安裝過程相對直接，尤其是在使用 pip 和 NVIDIA GPU 的情況下。
+        </p>
+        <p class="text-lg leading-relaxed text-gray-700 dark:text-gray-300 mb-4">
+          透過合理的參數配置，使用者可以根據具體的硬體環境和應用需求，進一步優化 vLLM 的效能，實現快速、經濟的 LLM 服務。支援多種硬體平台和與 OpenAI 相容的 API 使得 vLLM 成為一個靈活且強大的工具。
+        </p>
+        
+        <div class="mt-8 bg-gray-50 dark:bg-gray-700 rounded-lg p-6">
+          <h3 class="text-xl font-semibold mb-4 text-center">vLLM 核心優勢</h3>
+          <div id="conclusionChart" class="h-72 w-full"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-gray-100 dark:bg-gray-800 pt-12 pb-8 border-t border-gray-200 dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row justify-between items-center mb-8">
+        <div class="mb-6 md:mb-0">
+          <h3 class="text-2xl font-bold text-primary-600 dark:text-primary-400 mb-2">vLLM 安裝與部署指南</h3>
+          <p class="text-gray-600 dark:text-gray-400">高效能大型語言模型推理引擎</p>
+        </div>
+        <div class="flex space-x-4">
+          <a href="https://twitter.com/cltseng" class="text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors" aria-label="Twitter">
+            <i class="fab fa-twitter text-2xl"></i>
+          </a>
+          <a href="#" class="text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors" aria-label="GitHub">
+            <i class="fab fa-github text-2xl"></i>
+          </a>
+          <a href="#" class="text-gray-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors" aria-label="LinkedIn">
+            <i class="fab fa-linkedin text-2xl"></i>
+          </a>
+        </div>
+      </div>
+      <div class="border-t border-gray-200 dark:border-gray-700 pt-8">
+        <p class="text-center text-gray-500 dark:text-gray-400">
+          &copy; 2025 Cl Tseng. 保留所有權利。
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Mobile menu toggle
+    document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+      const mobileMenu = document.getElementById('mobileMenu');
+      if (mobileMenu.classList.contains('hidden')) {
+        mobileMenu.classList.remove('hidden');
+      } else {
+        mobileMenu.classList.add('hidden');
+      }
+    });
+    
+    // Dark mode toggle
+    document.getElementById('themeToggle').addEventListener('click', function() {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        localStorage.theme = 'light';
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.theme = 'dark';
+      }
+    });
+    
+    // Check for dark mode preference
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    
+    // Copy code functionality
+    function copyCode(button) {
+      const codeBlock = button.parentNode;
+      const code = codeBlock.querySelector('code').innerText;
+      
+      navigator.clipboard.writeText(code).then(() => {
+        button.textContent = '已複製!';
+        button.classList.add('copy-success');
+        
+        setTimeout(() => {
+          button.textContent = '複製';
+          button.classList.remove('copy-success');
+        }, 2000);
+      });
+    }
+    
+    // Initialize Mermaid
+    document.addEventListener('DOMContentLoaded', function() {
+      mermaid.initialize({
+        theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+        startOnLoad: true,
+        securityLevel: 'loose',
+      });
+      
+      // Architecture diagram using mermaid
+      const architectureDiagram = document.getElementById('architecture-diagram');
+      architectureDiagram.innerHTML = `
+        <div class="mermaid">
+        flowchart TB
+          subgraph Client
+            A[LLM Applications]
+          end
+          
+          subgraph vLLM["vLLM Engine"]
+            B[API Server]
+            C[Engine]
+            D["PagedAttention<br/>Memory Manager"]
+            E[Batch Scheduler]
+            F[Model Executor]
+          end
+          
+          subgraph GPU["Hardware"]
+            G[CUDA/ROCm/XPU]
+            H[CPU Memory]
+          end
+          
+          A -->|Requests| B
+          B -->|Process| C
+          C -->|Manage KV Cache| D
+          C -->|Schedule| E
+          E -->|Execute| F
+          F -->|Use| G
+          D -->|Swap if needed| H
+        </div>
+      `;
+      
+      mermaid.init(undefined, '.mermaid');
+      
+      // Deployment diagram using mermaid
+      const deploymentDiagram = document.getElementById('deployment-diagram');
+      deploymentDiagram.innerHTML = `
+        <div class="mermaid">
+        flowchart LR
+          subgraph Applications
+            A[Web UIs]
+            B[LangChain Apps]
+            C[Chat Clients]
+          end
+          
+          subgraph "vLLM Deployment Options"
+            D[Docker Container]
+            E[AWS EC2]
+            F[Kubernetes Cluster]
+            G[Bare Metal Server]
+          end
+          
+          subgraph "Integration"
+            H[OpenAI Compatible API]
+            I[Python Client]
+            J[RESTful API]
+          end
+          
+          A & B & C --> H & I & J
+          H & I & J --> D & E & F & G
+        </div>
+      `;
+      
+      mermaid.init(undefined, '.mermaid');
+      
+      // Initialize ECharts
+      // Overview chart
+      const overviewChart = echarts.init(document.getElementById('overviewChart'), 
+        document.documentElement.classList.contains('dark') ? 'dark' : null);
+      
+      const overviewOption = {
+        title: {
+          text: 'vLLM 性能提升統計',
+          left: 'center',
+          textStyle: {
+            color: document.documentElement.classList.contains('dark') ? '#eee' : '#333'
+          }
+        },
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow'
+          }
+        },
+        legend: {
+          data: ['傳統推理引擎', 'vLLM'],
+          bottom: '0%',
+          textStyle: {
+            color: document.documentElement.classList.contains('dark') ? '#ddd' : '#333'
+          }
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '15%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'category',
+          data: ['吞吐量', '記憶體使用', '延遲', '擴展性'],
+          axisLine: {
+            lineStyle: {
+              color: document.documentElement.classList.contains('dark') ? '#555' : '#999'
+            }
+          },
+          axisLabel: {
+            color: document.documentElement.classList.contains('dark') ? '#ddd' : '#333'
+          }
+        },
+        yAxis: {
+          type: 'value',
+          name: '相對效能 (基準 = 1)',
+          nameTextStyle: {
+            color: document.documentElement.classList.contains('dark') ? '#ddd' : '#333'
+          },
+          axisLine: {
+            lineStyle: {
+              color: document.documentElement.classList.contains('dark') ? '#555' : '#999'
+            }
+          },
+          axisLabel: {
+            color: document.documentElement.classList.contains('dark') ? '#ddd' : '#333'
+          }
+        },
+        series: [
+          {
+            name: '傳統推理引擎',
+            type: 'bar',
+            data: [1, 1, 1, 1],
+            emphasis: {
+              focus: 'series'
+            },
+            itemStyle: {
+              color: '#9CA3AF'
+            }
+          },
+          {
+            name: 'vLLM',
+            type: 'bar',
+            data: [2.5, 0.4, 0.6, 3],
+            emphasis: {
+              focus: 'series'
+            },
+            itemStyle: {
+              color: '#3F83F8'
+            }
+          }
+        ]
+      };
+      
+      overviewChart.setOption(overviewOption);
+      
+      // Hardware support chart
+      const hardwareChart = echarts.init(document.getElementById('hardwareChart'),
+        document.documentElement.classList.contains('dark') ? 'dark' : null);
+      
+      const hardwareOption = {
+        title: {
+          text: '硬體平台支援度',
+          left: 'center',
+          textStyle: {
+            color: document.documentElement.classList.contains('dark') ? '#eee' : '#333'
+          }
+        },
+        tooltip: {
+          trigger: 'item',
+          formatter: '{b}: {c} ({d}%)'
+        },
+        legend: {
+          orient: 'vertical',
+          left: 'left',
+          textStyle: {
+            color: document.documentElement.classList.contains('dark') ? '#ddd' : '#333'
+          }
+        },
+        series: [
+          {
+            name: '支援度',
+            type: 'pie',
+            radius: '65%',
+            center: ['50%', '50%'],
+            data: [
+              { value: 95, name: 'NVIDIA CUDA' },
+              { value: 70, name: 'AMD ROCm' },
+              { value: 60, name: 'Intel CPU/XPU' },
+              { value: 45, name: 'Google TPU' },
+              { value: 40, name: 'AWS Neuron' },
+              { value: 30, name: 'ARM/Apple Silicon' }
+            ],
+            emphasis: {
+              itemStyle: {
+                shadowBlur: 10,
+                shadowOffsetX: 0,
+                shadowColor: 'rgba(0, 0, 0, 0.5)'
+              }
+            },
+            labelLine: {
+              show: true
+            },
+            label: {
+              formatter: '{b}: {c}'
+            }
+          }
+        ]
+      };
+      
+      hardwareChart.setOption(hardwareOption);
+      
+      // Configuration options chart
+      const configChart = echarts.init(document.getElementById('configChart'),
+        document.documentElement.classList.contains('dark') ? 'dark' : null);
+      
+      const configOption = {
+        title: {
+          text: 'vLLM 性能影響因素',
+          left: 'center',
+          textStyle: {
+            color: document.documentElement.classList.contains('dark') ? '#eee' : '#333'
+          }
+        },
+        tooltip: {
+          trigger: 'item',
+          formatter: '{a} <br/>{b}: {c}'
+        },
+        radar: {
+          indicator: [
+            { name: '批次大小', max: 10 },
+            { name: '記憶體管理', max: 10 },
+            { name: '平行處理', max: 10 },
+            { name: '量化技術', max: 10 },
+            { name: '模型尺寸', max: 10 },
+            { name: '硬體類型', max: 10 }
+          ],
+          splitArea: {
+            areaStyle: {
+              color: document.documentElement.classList.contains('dark') ? 
+                ['rgba(50,50,50,0.3)', 'rgba(60,60,60,0.3)', 'rgba(70,70,70,0.3)'] : 
+                ['rgba(250,250,250,0.3)', 'rgba(240,240,240,0.3)', 'rgba(230,230,230,0.3)']
+            }
+          },
+          axisLine: {
+            lineStyle: {
+              color: document.documentElement.classList.contains('dark') ? '#555' : '#999'
+            }
+          },
+          splitLine: {
+            lineStyle: {
+              color: document.documentElement.classList.contains('dark') ? '#555' : '#999'
+            }
+          },
+          name: {
+            textStyle: {
+              color: document.documentElement.classList.contains('dark') ? '#ddd' : '#333'
+            }
+          }
+        },
+        series: [
+          {
+            name: '影響程度',
+            type: 'radar',
+            data: [
+              {
+                value: [8, 9, 7, 6, 8, 7],
+                name: '效能影響因素',
+                areaStyle: {
+                  opacity: 0.5,
+                  color: '#3F83F8'
+                },
+                lineStyle: {
+                  color: '#3F83F8'
+                },
+                itemStyle: {
+                  color: '#3F83F8'
+                }
+              },
+              {
+                value: [5, 4, 8, 8, 3, 5],
+                name: '記憶體使用影響因素',
+                areaStyle: {
+                  opacity: 0.5,
+                  color: '#F05252'
+                },
+                lineStyle: {
+                  color: '#F05252'
+                },
+                itemStyle: {
+                  color: '#F05252'
+                }
+              }
+            ]
+          }
+        ]
+      };
+      
+      configChart.setOption(configOption);
+      
+      // Conclusion chart
+      const conclusionChart = echarts.init(document.getElementById('conclusionChart'),
+        document.documentElement.classList.contains('dark') ? 'dark' : null);
+      
+      const conclusionOption = {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow'
+          }
+        },
+        legend: {
+          data: ['重要性評分'],
+          bottom: '0%',
+          textStyle: {
+            color: document.documentElement.classList.contains('dark') ? '#ddd' : '#333'
+          }
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '15%',
+          containLabel: true
+        },
+        xAxis: {
+          type: 'category',
+          data: ['PagedAttention', '批次處理', '量化支援', 'OpenAI API', '多硬體支援', '社群支援'],
+          axisLine: {
+            lineStyle: {
+              color: document.documentElement.classList.contains('dark') ? '#555' : '#999'
+            }
+          },
+          axisLabel: {
+            color: document.documentElement.classList.contains('dark') ? '#ddd' : '#333',
+            interval: 0,
+            rotate: 30
+          }
+        },
+        yAxis: {
+          type: 'value',
+          name: '重要性 (1-10)',
+          nameTextStyle: {
+            color: document.documentElement.classList.contains('dark') ? '#ddd' : '#333'
+          },
+          max: 10,
+          axisLine: {
+            lineStyle: {
+              color: document.documentElement.classList.contains('dark') ? '#555' : '#999'
+            }
+          },
+          axisLabel: {
+            color: document.documentElement.classList.contains('dark') ? '#ddd' : '#333'
+          }
+        },
+        series: [
+          {
+            name: '重要性評分',
+            type: 'bar',
+            data: [9.5, 8.7, 8.2, 7.8, 7.6, 7.2],
+            emphasis: {
+              focus: 'self',
+              itemStyle: {
+                shadowBlur: 10,
+                shadowColor: 'rgba(0,0,0,0.3)'
+              }
+            },
+            itemStyle: {
+              color: function(params) {
+                var colorList = ['#3F83F8', '#5850EC', '#6875F5', '#7F9CF5', '#9F7AEA', '#B794F4'];
+                return colorList[params.dataIndex];
+              }
+            },
+            label: {
+              show: true,
+              position: 'top',
+              color: document.documentElement.classList.contains('dark') ? '#ddd' : '#333'
+            }
+          }
+        ]
+      };
+      
+      conclusionChart.setOption(conclusionOption);
+      
+      // Handle window resize
+      window.addEventListener('resize', function() {
+        overviewChart.resize();
+        hardwareChart.resize();
+        configChart.resize();
+        conclusionChart.resize();
+      });
+      
+      // Handle theme change for charts
+      document.getElementById('themeToggle').addEventListener('click', function() {
+        setTimeout(function() {
+          overviewChart.dispose();
+          hardwareChart.dispose();
+          configChart.dispose();
+          conclusionChart.dispose();
+          const overviewChart = echarts.init(document.getElementById('overviewChart'), 
+            document.documentElement.classList.contains('dark') ? 'dark' : null);
+          const hardwareChart = echarts.init(document.getElementById('hardwareChart'),
+            document.documentElement.classList.contains('dark') ? 'dark' : null);
+          const configChart = echarts.init(document.getElementById('configChart'),
+            document.documentElement.classList.contains('dark') ? 'dark' : null);
+          const conclusionChart = echarts.init(document.getElementById('conclusionChart'),
+            document.documentElement.classList.contains('dark') ? 'dark' : null);
+          
+          // Update text colors based on theme
+          overviewOption.title.textStyle.color = document.documentElement.classList.contains('dark') ? '#eee' : '#333';
+          overviewOption.legend.textStyle.color = document.documentElement.classList.contains('dark') ? '#ddd' : '#333';
+          overviewOption.xAxis.axisLabel.color = document.documentElement.classList.contains('dark') ? '#ddd' : '#333';
+          overviewOption.yAxis.axisLabel.color = document.documentElement.classList.contains('dark') ? '#ddd' : '#333';
+          overviewOption.yAxis.nameTextStyle.color = document.documentElement.classList.contains('dark') ? '#ddd' : '#333';
+          overviewOption.xAxis.axisLine.lineStyle.color = document.documentElement.classList.contains('dark') ? '#555' : '#999';
+          overviewOption.yAxis.axisLine.lineStyle.color = document.documentElement.classList.contains('dark') ? '#555' : '#999';
+          
+          hardwareOption.title.textStyle.color = document.documentElement.classList.contains('dark') ? '#eee' : '#333';
+          hardwareOption.legend.textStyle.color = document.documentElement.classList.contains('dark') ? '#ddd' : '#333';
+          
+          configOption.title.textStyle.color = document.documentElement.classList.contains('dark') ? '#eee' : '#333';
+          configOption.radar.splitArea.areaStyle.color = document.documentElement.classList.contains('dark') ? 
+            ['rgba(50,50,50,0.3)', 'rgba(60,60,60,0.3)', 'rgba(70,70,70,0.3)'] : 
+            ['rgba(250,250,250,0.3)', 'rgba(240,240,240,0.3)', 'rgba(230,230,230,0.3)'];
+          configOption.radar.axisLine.lineStyle.color = document.documentElement.classList.contains('dark') ? '#555' : '#999';
+          configOption.radar.splitLine.lineStyle.color = document.documentElement.classList.contains('dark') ? '#555' : '#999';
+          configOption.radar.name.textStyle.color = document.documentElement.classList.contains('dark') ? '#ddd' : '#333';
+          
+          conclusionOption.legend.textStyle.color = document.documentElement.classList.contains('dark') ? '#ddd' : '#333';
+          conclusionOption.xAxis.axisLine.lineStyle.color = document.documentElement.classList.contains('dark') ? '#555' : '#999';
+          conclusionOption.yAxis.axisLine.lineStyle.color = document.documentElement.classList.contains('dark') ? '#555' : '#999';
+          conclusionOption.xAxis.axisLabel.color = document.documentElement.classList.contains('dark') ? '#ddd' : '#333';
+          conclusionOption.yAxis.axisLabel.color = document.documentElement.classList.contains('dark') ? '#ddd' : '#333';
+          conclusionOption.yAxis.nameTextStyle.color = document.documentElement.classList.contains('dark') ? '#ddd' : '#333';
+          conclusionOption.series[0].label.color = document.documentElement.classList.contains('dark') ? '#ddd' : '#333';
+          
+          overviewChart.setOption(overviewOption);
+          hardwareChart.setOption(hardwareOption);
+          configChart.setOption(configOption);
+          conclusionChart.setOption(conclusionOption);
+          
+          mermaid.initialize({
+            theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+            startOnLoad: true,
+            securityLevel: 'loose',
+          });
+          
+          mermaid.init(undefined, '.mermaid');
+        }, 100);
+      });
+    });
+  </script>
+</body>
+</html>
