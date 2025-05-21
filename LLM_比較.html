@@ -1,0 +1,1222 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM 工具比較：vLLM、Ollama 與 LM Studio</title>
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Material Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/material-icons@1.13.14/iconfont/material-icons.min.css">
+    <!-- Preline UI -->
+    <script src="https://cdn.jsdelivr.net/npm/preline@3.0.1/dist/preline.min.js"></script>
+    <!-- Mermaid -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        secondary: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans TC', 'sans-serif'],
+                        title: ['Noto Serif TC', 'serif']
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.8s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        
+        .dark ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+        
+        .dark ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-gray-800 dark:bg-gray-900 dark:text-gray-200 transition-colors duration-200">
+    <!-- 導航欄 -->
+    <header class="sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-sm">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <h1 class="text-xl font-bold font-title text-primary-700 dark:text-primary-300 flex items-center">
+                <i class="material-icons mr-2">trending_up</i>
+                <span>LLM 工具比較</span>
+            </h1>
+            <nav class="hidden md:flex space-x-6">
+                <a href="#overview" class="font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200">概述</a>
+                <a href="#vllm" class="font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200">vLLM</a>
+                <a href="#ollama" class="font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200">Ollama</a>
+                <a href="#lmstudio" class="font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200">LM Studio</a>
+                <a href="#comparison" class="font-medium hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200">比較</a>
+            </nav>
+            <div class="flex items-center space-x-4">
+                <button id="toggleTheme" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
+                    <i class="material-icons dark:hidden">dark_mode</i>
+                    <i class="material-icons hidden dark:block">light_mode</i>
+                </button>
+                <button id="mobileMenuBtn" class="md:hidden p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200">
+                    <i class="material-icons">menu</i>
+                </button>
+            </div>
+        </div>
+        <!-- 行動裝置選單 -->
+        <div id="mobileMenu" class="md:hidden hidden bg-white dark:bg-gray-800 shadow-md">
+            <div class="container mx-auto px-4 py-2 space-y-3">
+                <a href="#overview" class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">概述</a>
+                <a href="#vllm" class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">vLLM</a>
+                <a href="#ollama" class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">Ollama</a>
+                <a href="#lmstudio" class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">LM Studio</a>
+                <a href="#comparison" class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">比較</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要內容 -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- 英雄區 -->
+        <section class="my-12 fade-in">
+            <h1 class="text-4xl md:text-5xl font-bold font-title text-center mb-6">
+                本地 LLM 工具比較
+            </h1>
+            <p class="text-xl md:text-2xl text-center text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+                深入探討 vLLM、Ollama 與 LM Studio 的特點、優勢與適用場景
+            </p>
+            <div id="featuresChart" class="w-full h-[400px] mt-12"></div>
+        </section>
+
+        <!-- 概述部分 -->
+        <section id="overview" class="my-16 scroll-mt-20 fade-in">
+            <div class="flex items-center mb-6">
+                <i class="material-icons text-primary-600 dark:text-primary-400 text-3xl mr-3">summarize</i>
+                <h2 class="text-3xl font-bold font-title">概述</h2>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-8">
+                <p class="text-lg leading-relaxed mb-6">
+                    vLLM、Ollama 與 LM Studio 是目前在大型語言模型 (LLM) 領域中，用於推論、服務與本機運行的三個重要工具，各自擁有不同的設計理念與適用場景。vLLM 強調高效能與高吞吐量的 LLM 推論服務，專為生產環境設計，透過 PagedAttention 等技術優化記憶體管理與運算效率。Ollama 則著重於簡化在個人電腦上運行 LLM 的流程，提供易用的命令列介面與 API 服務，讓開發者與使用者能快速部署及管理模型。LM Studio 是一款圖形化桌面應用程式，旨在讓非技術背景的使用者也能輕鬆探索、下載並在本地端運行各種開源 LLM，並提供聊天互動介面與類似 OpenAI 的本地伺服器功能。
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden card-hover">
+                    <div class="h-2 bg-blue-600"></div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-3 flex items-center">
+                            <i class="fas fa-bolt text-blue-600 mr-2"></i> vLLM
+                        </h3>
+                        <p class="text-gray-600 dark:text-gray-400">
+                            高效能 LLM 推論引擎，專為生產環境設計，提供卓越的吞吐量與記憶體優化。
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden card-hover">
+                    <div class="h-2 bg-emerald-600"></div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-3 flex items-center">
+                            <i class="fas fa-terminal text-emerald-600 mr-2"></i> Ollama
+                        </h3>
+                        <p class="text-gray-600 dark:text-gray-400">
+                            簡便的 LLM 運行工具，透過簡單命令行指令快速部署與管理模型，易於使用與整合。
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden card-hover">
+                    <div class="h-2 bg-purple-600"></div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-3 flex items-center">
+                            <i class="fas fa-desktop text-purple-600 mr-2"></i> LM Studio
+                        </h3>
+                        <p class="text-gray-600 dark:text-gray-400">
+                            圖形化桌面應用，為初學者提供友善的界面探索與運行 LLM，無需程式設計知識。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- vLLM 部分 -->
+        <section id="vllm" class="my-16 scroll-mt-20 fade-in">
+            <div class="flex items-center mb-6">
+                <i class="material-icons text-blue-600 dark:text-blue-400 text-3xl mr-3">bolt</i>
+                <h2 class="text-3xl font-bold font-title">vLLM：高效能 LLM 推論與服務引擎</h2>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-8">
+                <div class="flex flex-col md:flex-row items-center md:items-start mb-6">
+                    <img src="https://docs.vllm.ai/_images/vllm-logo-text-light.png" alt="vLLM Logo" class="h-12 md:h-16 mb-4 md:mb-0 md:mr-6 dark:hidden">
+                    <img src="https://docs.vllm.ai/_images/vllm-logo-text-dark.png" alt="vLLM Logo" class="h-12 md:h-16 mb-4 md:mb-0 md:mr-6 hidden dark:block">
+                    <div>
+                        <p class="text-lg leading-relaxed mb-4">
+                            vLLM 是一個開源函式庫，專為實現大規模語言模型的高吞吐量、低延遲推論與服務而設計。它最初由加州大學柏克萊分校的 Sky Computing Lab 開發，現已發展成為一個由學術界和產業界共同貢獻的社群驅動專案。vLLM 的核心目標是解決現有 LLM 服務系統在記憶體管理和處理並行請求方面的效率瓶頸。
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-blue-700 dark:text-blue-400">核心技術與功能</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-blue-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">PagedAttention</span>：靈感來自作業系統的虛擬記憶體機制，有效管理注意力機制中的鍵值快取，減少記憶體浪費提升利用率
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-blue-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">連續批處理</span>：動態地將傳入請求組合成批次，最大化 GPU 利用率提高吞吐量
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-blue-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">優化 CUDA 核心</span>：整合 FlashAttention、FlashInfer 等優化核心，利用 CUDA/HIP 圖加速模型執行
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-blue-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">OpenAI 相容 API</span>：提供實作 OpenAI API 協定的伺服器，方便應用程式整合
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-blue-700 dark:text-blue-400">優勢</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-plus-circle text-blue-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">極高的推論吞吐量</span>：透過創新技術顯著提升服務效率
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-plus-circle text-blue-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">優異的記憶體管理</span>：有效減少記憶體碎片，提高 GPU 記憶體利用率
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-plus-circle text-blue-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">廣泛的模型與硬體支援</span>：相容 Hugging Face 上大多數熱門開源模型，支援多種硬體加速器
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-plus-circle text-blue-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">易於整合</span>：提供 OpenAI 相容的 API，方便現有應用程式遷移
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-plus-circle text-blue-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">活躍的社群</span>：擁有活躍開發者社群，持續推出新功能與效能改進
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-blue-700 dark:text-blue-400">限制</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-minus-circle text-red-500 mt-1 mr-2"></i>
+                                <div>
+                                    對於初學者而言，設定與部署可能較為複雜
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-minus-circle text-red-500 mt-1 mr-2"></i>
+                                <div>
+                                    運行大型模型仍需足夠的硬體資源
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-minus-circle text-red-500 mt-1 mr-2"></i>
+                                <div>
+                                    部分進階功能的配置可能需要較深入的了解
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-blue-700 dark:text-blue-400">適用場景</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                <div>
+                                    企業級 AI 應用程式後端
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                <div>
+                                    對話式 AI 聊天機器人服務
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                <div>
+                                    即時文本生成服務
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                <div>
+                                    大規模批次推論任務
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                <div>
+                                    追求極致推論效能的應用
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- vLLM 架構圖 -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                <h3 class="text-xl font-bold mb-6 text-center">vLLM 架構與 PagedAttention 技術</h3>
+                <div class="mermaid-diagram text-center">
+                    <pre class="mermaid">
+                        graph TD
+                            A[用戶請求] --> B[vLLM 服務器]
+                            B --> C{連續批處理引擎}
+                            C --> D[PagedAttention 記憶體管理]
+                            D --> E[KV Cache 頁表]
+                            D --> F[模型權重]
+                            D --> G[GPU 記憶體分配器]
+                            E & F & G --> H[推論執行器]
+                            H --> I[回應生成]
+                            I --> J[返回結果]
+                            
+                            style B fill:#b3e0ff,stroke:#0369a1
+                            style D fill:#b3e0ff,stroke:#0369a1
+                            style H fill:#b3e0ff,stroke:#0369a1
+                    </pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Ollama 部分 -->
+        <section id="ollama" class="my-16 scroll-mt-20 fade-in">
+            <div class="flex items-center mb-6">
+                <i class="material-icons text-emerald-600 dark:text-emerald-400 text-3xl mr-3">terminal</i>
+                <h2 class="text-3xl font-bold font-title">Ollama：簡便的本機 LLM 運行框架</h2>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-8">
+                <div class="flex flex-col md:flex-row items-center md:items-start mb-6">
+                    <img src="https://miro.medium.com/v2/resize:fit:640/format:webp/1*0Ct4UUkX8fm-PPuxKLhHFw.png" alt="Ollama Logo" class="h-20 mb-4 md:mb-0 md:mr-6">
+                    <div>
+                        <p class="text-lg leading-relaxed mb-4">
+                            Ollama 是一個開源工具，旨在讓使用者能夠輕鬆地在個人電腦上下载、設定並運行大型語言模型。它的核心理念是簡化 LLM 的本地部署與管理流程，降低使用門檻，使開發者和一般使用者都能快速體驗和利用 LLM 的能力。Ollama 被譽為「LLM 界的 Docker」，只需簡單指令即可完成模型的部署與 API 服務的架設。
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-emerald-700 dark:text-emerald-400">核心技術與功能</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-emerald-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">簡易的命令列介面 (CLI)</span>：直觀的 CLI 指令（如 `ollama run <model_name>`）管理模型
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-emerald-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">內建 API 服務</span>：自動啟動 OpenAI 相容 API 服務，方便整合
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-emerald-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">模型庫與自訂模型</span>：官方模型庫涵蓋熱門開源 LLM，支援自定義模型
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-emerald-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">跨平台支援</span>：支援 macOS、Windows、Linux 等多種作業系統，提供 Docker 映像檔
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-emerald-700 dark:text-emerald-400">優勢</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-plus-circle text-emerald-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">極易上手</span>：安裝與使用過程非常簡單，對初學者友善
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-plus-circle text-emerald-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">快速部署</span>：一行指令即可運行模型並啟動 API 服務
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-plus-circle text-emerald-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">跨平台</span>：支援主流作業系統，方便在不同環境使用
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-plus-circle text-emerald-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">隱私性高</span>：模型與資料完全在本地處理
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-plus-circle text-emerald-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">活躍的社群</span>：持續增加新模型支援，有豐富的社群開發周邊應用
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-emerald-700 dark:text-emerald-400">限制</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-minus-circle text-red-500 mt-1 mr-2"></i>
+                                <div>
+                                    在高並發或極致效能需求上，可能不如專用引擎最佳化
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-minus-circle text-red-500 mt-1 mr-2"></i>
+                                <div>
+                                    預設下載的量化模型可能導致精度略微下降
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-minus-circle text-red-500 mt-1 mr-2"></i>
+                                <div>
+                                    主要設計為單機本地運行，大規模分散式部署支援有限
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-minus-circle text-red-500 mt-1 mr-2"></i>
+                                <div>
+                                    部分早期版本可能存在安全性漏洞，需注意更新
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-emerald-700 dark:text-emerald-400">適用場景</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                <div>
+                                    開發者在本機進行 LLM 應用開發與測試
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                <div>
+                                    一般使用者在個人電腦上體驗與運行 LLM
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                <div>
+                                    需要資料隱私保護的應用
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                <div>
+                                    快速搭建 LLM API 服務進行原型驗證
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                <div>
+                                    教育與學習用途
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ollama 流程圖 -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                <h3 class="text-xl font-bold mb-6 text-center">Ollama 工作流程</h3>
+                <div class="mermaid-diagram text-center">
+                    <pre class="mermaid">
+                        graph LR
+                            A[安裝 Ollama] --> B[下載模型: ollama pull llama2]
+                            B --> C[運行模型: ollama run llama2]
+                            C --> D[互動對話]
+                            B --> E[啟動 API 服務]
+                            E --> F[外部應用整合]
+                            B --> G[創建自定義模型: Modelfile]
+                            G --> H[構建客製化模型: ollama create]
+                            H --> C
+                            
+                            style A fill:#d1fae5,stroke:#047857
+                            style B fill:#d1fae5,stroke:#047857
+                            style C fill:#d1fae5,stroke:#047857
+                            style E fill:#d1fae5,stroke:#047857
+                    </pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- LM Studio 部分 -->
+        <section id="lmstudio" class="my-16 scroll-mt-20 fade-in">
+            <div class="flex items-center mb-6">
+                <i class="material-icons text-purple-600 dark:text-purple-400 text-3xl mr-3">desktop_windows</i>
+                <h2 class="text-3xl font-bold font-title">LM Studio：友善的本機 LLM 圖形化工具</h2>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-8">
+                <div class="flex flex-col md:flex-row items-center md:items-start mb-6">
+                    <img src="https://lmstudio.ai/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fhero-windows.2a9fa20d.webp&w=640&q=75" alt="LM Studio 應用程式截圖" class="h-32 mb-4 md:mb-0 md:mr-6 rounded-lg">
+                    <div>
+                        <p class="text-lg leading-relaxed mb-4">
+                            LM Studio 是一款桌面應用程式，提供圖形化使用者介面 (GUI)，讓使用者可以輕鬆地在個人電腦（Mac、Windows、Linux）上探索、下載、設定並運行各種開源大型語言模型。它旨在降低使用 LLM 的技術門檻，即使是非開發者也能方便地與模型互動或將其作為本地伺服器使用。
+                        </p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-purple-700 dark:text-purple-400">核心技術與功能</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-purple-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">圖形化使用者介面 (GUI)</span>：提供直觀易用的界面進行模型搜索、下載、設定和聊天
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-purple-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">模型探索與下載</span>：整合 Hugging Face 模型庫，輕鬆搜索下載 GGUF、MLX 等格式模型
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-purple-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">內建聊天介面</span>：提供類似聊天機器人的互動視窗方便對話
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-purple-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">本地推論伺服器</span>：一鍵啟動 OpenAI 相容的本地 HTTP 伺服器
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-purple-700 dark:text-purple-400">優勢</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-plus-circle text-purple-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">極度友善的使用者介面</span>：圖形化操作，無需編寫程式碼即可上手
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-plus-circle text-purple-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">一站式模型管理</span>：方便搜索、下載、設定和運行模型
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-plus-circle text-purple-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">內建聊天與伺服器功能</span>：開箱即用，滿足基本互動與開發需求
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-plus-circle text-purple-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">跨平台支援</span>：可在 Windows, macOS, Linux 上運行
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-plus-circle text-purple-600 mt-1 mr-2"></i>
+                                <div>
+                                    <span class="font-semibold">保障隱私</span>：完全離線運行
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-purple-700 dark:text-purple-400">限制</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-minus-circle text-red-500 mt-1 mr-2"></i>
+                                <div>
+                                    GUI 應用程式非開源，部分核心元件開源
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-minus-circle text-red-500 mt-1 mr-2"></i>
+                                <div>
+                                    效能可能不及專用推論引擎
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-minus-circle text-red-500 mt-1 mr-2"></i>
+                                <div>
+                                    依賴若應用程式本身出問題或停止更新，使用者選擇受限
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-minus-circle text-red-500 mt-1 mr-2"></i>
+                                <div>
+                                    超大模型在消費級 GPU 的 VRAM 下運行可能受限
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-purple-700 dark:text-purple-400">適用場景</h3>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                <div>
+                                    AI 初學者或非技術背景人士的 LLM 體驗
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                <div>
+                                    快速設定本地 LLM 環境進行原型開發或測試
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                <div>
+                                    重視資料隱私的使用場景
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                <div>
+                                    不同模型間的比較或實驗
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                <div>
+                                    需要圖形化界面管理多個本地模型
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- LM Studio 功能圖 -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                <h3 class="text-xl font-bold mb-6 text-center">LM Studio 功能架構圖</h3>
+                <div class="mermaid-diagram text-center">
+                    <pre class="mermaid">
+                        graph TD
+                            A[LM Studio 桌面應用] --> B[模型管理]
+                            A --> C[聊天介面]
+                            A --> D[API 伺服器]
+                            A --> E[參數設定]
+                            
+                            B --> B1[模型搜索]
+                            B --> B2[模型下載]
+                            B --> B3[多模型管理]
+                            
+                            C --> C1[對話歷史]
+                            C --> C2[提示詞庫]
+                            
+                            D --> D1[OpenAI 相容 API]
+                            D --> D2[外部應用整合]
+                            
+                            E --> E1[推論參數調整]
+                            E --> E2[硬體資源監控]
+                            
+                            style A fill:#f3e8ff,stroke:#7e22ce
+                            style B fill:#f3e8ff,stroke:#7e22ce
+                            style C fill:#f3e8ff,stroke:#7e22ce
+                            style D fill:#f3e8ff,stroke:#7e22ce
+                    </pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- 比較部分 -->
+        <section id="comparison" class="my-16 scroll-mt-20 fade-in">
+            <div class="flex items-center mb-6">
+                <i class="material-icons text-gray-600 dark:text-gray-400 text-3xl mr-3">compare</i>
+                <h2 class="text-3xl font-bold font-title">三者比較</h2>
+            </div>
+            
+            <div class="overflow-x-auto bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-8">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b-2 border-gray-200 dark:border-gray-700">
+                            <th class="py-4 px-4 font-semibold text-gray-700 dark:text-gray-300">特性</th>
+                            <th class="py-4 px-4 font-semibold text-blue-700 dark:text-blue-400">vLLM</th>
+                            <th class="py-4 px-4 font-semibold text-emerald-700 dark:text-emerald-400">Ollama</th>
+                            <th class="py-4 px-4 font-semibold text-purple-700 dark:text-purple-400">LM Studio</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-750">
+                            <td class="py-4 px-4 font-medium">主要目標</td>
+                            <td class="py-4 px-4">高效能、高吞吐量 LLM 推論與服務</td>
+                            <td class="py-4 px-4">簡化在本機運行 LLM 的流程</td>
+                            <td class="py-4 px-4">圖形化介面，方便探索、下載、運行 LLM</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-750">
+                            <td class="py-4 px-4 font-medium">目標使用者</td>
+                            <td class="py-4 px-4">AI 開發者、研究人員、企業級應用</td>
+                            <td class="py-4 px-4">開發者、AI 愛好者、需要快速本機部署的使用者</td>
+                            <td class="py-4 px-4">AI 初學者、非技術使用者、開發者、重視隱私的使用者</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-750">
+                            <td class="py-4 px-4 font-medium">易用性</td>
+                            <td class="py-4 px-4">較高技術門檻，需程式設計知識</td>
+                            <td class="py-4 px-4">非常易用，主要透過 CLI</td>
+                            <td class="py-4 px-4">極易上手，圖形化介面</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-750">
+                            <td class="py-4 px-4 font-medium">介面</td>
+                            <td class="py-4 px-4">Python 函式庫、OpenAI 相容 API 伺服器</td>
+                            <td class="py-4 px-4">CLI、OpenAI 相容 API 伺服器</td>
+                            <td class="py-4 px-4">GUI、內建聊天、OpenAI 相容本地伺服器</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-750">
+                            <td class="py-4 px-4 font-medium">效能</td>
+                            <td class="py-4 px-4">極高，專為吞吐量與低延遲優化</td>
+                            <td class="py-4 px-4">良好，支援 GPU 加速，但可能不如 vLLM</td>
+                            <td class="py-4 px-4">良好，利用 llama.cpp 和 MLX，主要瓶頸在硬體</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-750">
+                            <td class="py-4 px-4 font-medium">擴展性</td>
+                            <td class="py-4 px-4">高，支援分散式推論</td>
+                            <td class="py-4 px-4">有限，主要為單機運行</td>
+                            <td class="py-4 px-4">有限，主要為單機運行</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-750">
+                            <td class="py-4 px-4 font-medium">開源狀態</td>
+                            <td class="py-4 px-4">完全開源 (Apache 2.0 License)</td>
+                            <td class="py-4 px-4">完全開源 (MIT License)</td>
+                            <td class="py-4 px-4">GUI 應用程式非開源，部分核心元件開源</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-750">
+                            <td class="py-4 px-4 font-medium">適用場景</td>
+                            <td class="py-4 px-4">生產環境 LLM 服務、高效批次推論</td>
+                            <td class="py-4 px-4">本機開發測試、個人 LLM 體驗</td>
+                            <td class="py-4 px-4">初學者入門、快速實驗、本地 AI 聊天</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 如何選擇 -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 mb-8">
+                <h3 class="text-xl font-bold mb-6">如何選擇適合的工具</h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-blue-50 dark:bg-blue-900/30 p-6 rounded-lg">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-server text-blue-600 dark:text-blue-400 text-xl mr-3"></i>
+                            <h4 class="text-lg font-bold text-blue-700 dark:text-blue-400">選擇 vLLM 的情境</h4>
+                        </div>
+                        <p class="text-gray-700 dark:text-gray-300 mb-4">
+                            若您需要在生產環境中部署 LLM 並追求極致的推論效能與吞吐量，或者需要處理大量並行請求，vLLM 是首選。它提供了最先進的效能優化技術，但需要一定的技術能力進行設定與維護。
+                        </p>
+                        <div class="mt-2">
+                            <span class="inline-block bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm mr-2 mb-2">企業級應用</span>
+                            <span class="inline-block bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm mr-2 mb-2">高負載服務</span>
+                            <span class="inline-block bg-blue-200 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm mr-2 mb-2">效能優先</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-emerald-50 dark:bg-emerald-900/30 p-6 rounded-lg">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-laptop-code text-emerald-600 dark:text-emerald-400 text-xl mr-3"></i>
+                            <h4 class="text-lg font-bold text-emerald-700 dark:text-emerald-400">選擇 Ollama 的情境</h4>
+                        </div>
+                        <p class="text-gray-700 dark:text-gray-300 mb-4">
+                            若您是開發者或 AI 愛好者，希望在個人電腦上快速、簡便地運行和管理 LLM，並需要一個易於整合的 API 服務，Ollama 會是一個非常好的選擇。它的易用性和跨平台特性使其非常適合本地開發和實驗。
+                        </p>
+                        <div class="mt-2">
+                            <span class="inline-block bg-emerald-200 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-200 px-3 py-1 rounded-full text-sm mr-2 mb-2">開發測試</span>
+                            <span class="inline-block bg-emerald-200 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-200 px-3 py-1 rounded-full text-sm mr-2 mb-2">命令列偏好</span>
+                            <span class="inline-block bg-emerald-200 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-200 px-3 py-1 rounded-full text-sm mr-2 mb-2">快速部署</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-purple-50 dark:bg-purple-900/30 p-6 rounded-lg">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-desktop text-purple-600 dark:text-purple-400 text-xl mr-3"></i>
+                            <h4 class="text-lg font-bold text-purple-700 dark:text-purple-400">選擇 LM Studio 的情境</h4>
+                        </div>
+                        <p class="text-gray-700 dark:text-gray-300 mb-4">
+                            若您是 AI 初學者，或者偏好使用圖形化介面來探索、下載和運行 LLM，並且非常重視操作的簡易性和資料隱私，LM Studio 將是理想的工具。它提供了一站式的解決方案，讓使用者無需編寫程式碼即可與 LLM 互動。
+                        </p>
+                        <div class="mt-2">
+                            <span class="inline-block bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200 px-3 py-1 rounded-full text-sm mr-2 mb-2">初學者友好</span>
+                            <span class="inline-block bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200 px-3 py-1 rounded-full text-sm mr-2 mb-2">圖形界面</span>
+                            <span class="inline-block bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200 px-3 py-1 rounded-full text-sm mr-2 mb-2">AI 體驗</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 效能與使用難度比較圖 -->
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                <h3 class="text-xl font-bold mb-6 text-center">效能與易用性比較</h3>
+                <div id="performanceChart" class="w-full h-[400px]"></div>
+            </div>
+        </section>
+        
+        <!-- 總結部分 -->
+        <section class="my-16 fade-in">
+            <div class="flex items-center mb-6">
+                <i class="material-icons text-gray-600 dark:text-gray-400 text-3xl mr-3">description</i>
+                <h2 class="text-3xl font-bold font-title">總結</h2>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                <p class="text-lg leading-relaxed mb-6">
+                    vLLM、Ollama 和 LM Studio 均為在本地環境運行大型語言模型的優秀工具，但它們各自的側重點和適用場景有所不同。vLLM 以其卓越的推論效能和高吞吐量，成為生產環境部署 LLM 服務的強力選擇，尤其適合需要處理高並發請求的應用。Ollama 則以其極簡的安裝部署流程和易用的命令列介面，大幅降低了在本機運行 LLM 的門檻，是開發者進行本地開發測試和 AI 愛好者快速體驗模型的理想選擇。LM Studio 憑藉其友善的圖形化使用者介面和一站式模型管理功能，為初學者和非技術用戶提供了便捷的本地 LLM 體驗途徑，同時也兼顧了資料隱私的需求。
+                </p>
+                <p class="text-lg leading-relaxed">
+                    選擇哪一個工具取決於使用者的具體需求：追求極致效能與擴展性的專業開發者和企業應考慮 vLLM；尋求簡便快速的本地部署與 API 整合的開發者可以選擇 Ollama；而偏好圖形化操作、易用性且重視隱私的初學者或一般使用者，LM Studio 則更為合適。這三者共同推動了大型語言模型在更廣泛場景下的應用與普及。
+                </p>
+            </div>
+        </section>
+    </main>
+    
+    <!-- 頁腳 -->
+    <footer class="bg-white dark:bg-gray-800 shadow-sm mt-12 py-12">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <h3 class="text-lg font-bold mb-2">LLM 工具比較</h3>
+                    <p class="text-gray-600 dark:text-gray-400">
+                        vLLM, Ollama, 與 LM Studio 的深入剖析
+                    </p>
+                </div>
+                <div class="flex flex-col items-center md:items-end">
+                    <div class="flex space-x-4 mb-2">
+                        <a href="https://twitter.com/ClTseng" target="_blank" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200">
+                            <i class="fab fa-twitter text-xl"></i>
+                        </a>
+                        <a href="https://github.com/ClTseng" target="_blank" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors duration-200">
+                            <i class="fab fa-github text-xl"></i>
+                        </a>
+                    </div>
+                    <p class="text-gray-600 dark:text-gray-400">
+                        作者: Cl Tseng
+                    </p>
+                    <p class="text-gray-600 dark:text-gray-400">
+                        &copy; 2025 版權所有
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <script>
+        // 深色模式切換
+        document.addEventListener('DOMContentLoaded', () => {
+            const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (isDarkMode) {
+                document.documentElement.classList.add('dark');
+            }
+            
+            const toggleTheme = document.getElementById('toggleTheme');
+            toggleTheme.addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+            });
+            
+            // 行動裝置選單
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mobileMenu = document.getElementById('mobileMenu');
+            
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            // 平滑滾動
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    
+                    if (this.getAttribute('href') === '#') return;
+                    
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        mobileMenu.classList.add('hidden');
+                        target.scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+            
+            // 初始化 Mermaid
+            mermaid.initialize({
+                theme: isDarkMode ? 'dark' : 'default',
+                securityLevel: 'loose',
+                startOnLoad: true
+            });
+            
+            // 功能比較雷達圖
+            const featuresChart = echarts.init(document.getElementById('featuresChart'));
+            
+            const featuresOption = {
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: ['vLLM', 'Ollama', 'LM Studio'],
+                    textStyle: {
+                        color: isDarkMode ? '#e2e8f0' : '#1e293b'
+                    }
+                },
+                radar: {
+                    indicator: [
+                        { name: '推論效能', max: 100 },
+                        { name: '易用性', max: 100 },
+                        { name: '隱私保護', max: 100 },
+                        { name: '記憶體優化', max: 100 },
+                        { name: '擴展性', max: 100 },
+                        { name: '社區支持', max: 100 },
+                        { name: '跨平台', max: 100 },
+                    ],
+                    axisName: {
+                        color: isDarkMode ? '#94a3b8' : '#64748b'
+                    }
+                },
+                series: [{
+                    name: 'LLM 工具比較',
+                    type: 'radar',
+                    data: [
+                        {
+                            value: [95, 60, 75, 95, 90, 85, 70],
+                            name: 'vLLM',
+                            areaStyle: {
+                                color: new echarts.graphic.RadialGradient(0.5, 0.5, 1, [
+                                    { color: 'rgba(56, 189, 248, 0.7)', offset: 0 },
+                                    { color: 'rgba(56, 189, 248, 0)', offset: 1 }
+                                ])
+                            },
+                            lineStyle: {
+                                width: 2
+                            }
+                        },
+                        {
+                            value: [75, 85, 90, 70, 60, 85, 85],
+                            name: 'Ollama',
+                            areaStyle: {
+                                color: new echarts.graphic.RadialGradient(0.5, 0.5, 1, [
+                                    { color: 'rgba(52, 211, 153, 0.7)', offset: 0 },
+                                    { color: 'rgba(52, 211, 153, 0)', offset: 1 }
+                                ])
+                            },
+                            lineStyle: {
+                                width: 2
+                            }
+                        },
+                        {
+                            value: [65, 95, 90, 65, 55, 75, 80],
+                            name: 'LM Studio',
+                            areaStyle: {
+                                color: new echarts.graphic.RadialGradient(0.5, 0.5, 1, [
+                                    { color: 'rgba(168, 85, 247, 0.7)', offset: 0 },
+                                    { color: 'rgba(168, 85, 247, 0)', offset: 1 }
+                                ])
+                            },
+                            lineStyle: {
+                                width: 2
+                            }
+                        }
+                    ]
+                }]
+            };
+            
+            featuresChart.setOption(featuresOption);
+            
+            // 效能與易用性比較圖
+            const performanceChart = echarts.init(document.getElementById('performanceChart'));
+            
+            const performanceOption = {
+                tooltip: {
+                    formatter: function (params) {
+                        return `${params.data.name}<br/>效能: ${params.data.value[0]}<br/>易用性: ${params.data.value[1]}<br/>${params.data.value[2] ? '適合初學者' : '適合專業用戶'}<br/>適用場景: ${params.data.scenario}`;
+                    }
+                },
+                xAxis: {
+                    type: 'value',
+                    name: '效能',
+                    nameLocation: 'middle',
+                    nameGap: 30,
+                    min: 0,
+                    max: 100,
+                    axisLabel: {
+                        color: isDarkMode ? '#e2e8f0' : '#1e293b'
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: isDarkMode ? '#475569' : '#cbd5e1'
+                        }
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: isDarkMode ? '#334155' : '#e2e8f0'
+                        }
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '易用性',
+                    nameLocation: 'middle',
+                    nameGap: 30,
+                    min: 0,
+                    max: 100,
+                    axisLabel: {
+                        color: isDarkMode ? '#e2e8f0' : '#1e293b'
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: isDarkMode ? '#475569' : '#cbd5e1'
+                        }
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: isDarkMode ? '#334155' : '#e2e8f0'
+                        }
+                    }
+                },
+                series: [{
+                    name: '工具比較',
+                    type: 'scatter',
+                    symbolSize: function (data) {
+                        return data[3] * 0.5; // 根據使用人數縮放圓圈大小
+                    },
+                    itemStyle: {
+                        opacity: 0.8
+                    },
+                    data: [
+                        {
+                            name: 'vLLM',
+                            value: [95, 55, false, 100],
+                            itemStyle: {
+                                color: '#0ea5e9'
+                            },
+                            scenario: '生產環境、高效能需求'
+                        },
+                        {
+                            name: 'Ollama',
+                            value: [70, 85, true, 120],
+                            itemStyle: {
+                                color: '#10b981'
+                            },
+                            scenario: '開發測試、快速部署'
+                        },
+                        {
+                            name: 'LM Studio',
+                            value: [65, 95, true, 110],
+                            itemStyle: {
+                                color: '#8b5cf6'
+                            },
+                            scenario: '初學者探索、圖形化操作'
+                        },
+                        {
+                            name: 'OpenAI API',
+                            value: [90, 85, false, 150],
+                            itemStyle: {
+                                color: '#6366f1'
+                            },
+                            scenario: '雲端服務、無需本地部署'
+                        },
+                        {
+                            name: 'llama.cpp',
+                            value: [75, 40, false, 80],
+                            itemStyle: {
+                                color: '#f59e0b'
+                            },
+                            scenario: '低資源環境、自定義需求'
+                        }
+                    ],
+                    label: {
+                        show: true,
+                        position: 'top',
+                        formatter: '{b}',
+                        color: isDarkMode ? '#e2e8f0' : '#1e293b'
+                    }
+                }]
+            };
+            
+            performanceChart.setOption(performanceOption);
+            
+            // 響應式圖表
+            window.addEventListener('resize', () => {
+                featuresChart.resize();
+                performanceChart.resize();
+            });
+            
+            // 深色模式變更時更新圖表
+            const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            darkModeQuery.addEventListener('change', (e) => {
+                if (e.matches) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+                
+                // 更新圖表樣式
+                updateChartTheme(e.matches);
+            });
+            
+            // 手動切換模式時也更新圖表
+            toggleTheme.addEventListener('click', () => {
+                const isDark = document.documentElement.classList.contains('dark');
+                updateChartTheme(isDark);
+            });
+            
+            function updateChartTheme(isDark) {
+                // 設置 mermaid 主題
+                mermaid.initialize({
+                    theme: isDark ? 'dark' : 'default',
+                    securityLevel: 'loose',
+                    startOnLoad: false
+                });
+                
+                mermaid.init(undefined, document.querySelectorAll('.mermaid'));
+                
+                // 更新 echarts 主題顏色
+                const textColor = isDark ? '#e2e8f0' : '#1e293b';
+                const axisColor = isDark ? '#475569' : '#cbd5e1';
+                const splitLineColor = isDark ? '#334155' : '#e2e8f0';
+                
+                featuresOption.legend.textStyle.color = textColor;
+                featuresOption.radar.axisName.color = isDark ? '#94a3b8' : '#64748b';
+                featuresChart.setOption(featuresOption);
+                
+                performanceOption.xAxis.axisLabel.color = textColor;
+                performanceOption.yAxis.axisLabel.color = textColor;
+                performanceOption.xAxis.axisLine.lineStyle.color = axisColor;
+                performanceOption.yAxis.axisLine.lineStyle.color = axisColor;
+                performanceOption.xAxis.splitLine.lineStyle.color = splitLineColor;
+                performanceOption.yAxis.splitLine.lineStyle.color = splitLineColor;
+                performanceOption.series[0].label.color = textColor;
+                performanceChart.setOption(performanceOption);
+            }
+        });
+    </script>
+</body>
+</html>
