@@ -1,0 +1,3049 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企業級本地LLM部署指南</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/preline@3.0.1/dist/preline.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/material-icons@1.13.14/iconfont/material-icons.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                            950: '#082f49',
+                        },
+                        secondary: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            950: '#020617',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans TC', 'sans-serif'],
+                        serif: ['Noto Serif TC', 'serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&family=Noto+Serif+TC:wght@200..900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..800&display=swap');
+        
+        .fade-in {
+            animation: fadeIn 0.6s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .mermaid {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        /* 深色模式下svg文字顏色調整 */
+        .dark .mermaid text {
+            fill: #e2e8f0 !important;
+        }
+        
+        .chart-container {
+            width: 100%;
+            height: 400px;
+        }
+        
+        .btn-hover:hover {
+            transform: scale(1.03);
+            transition: all 0.2s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200 font-sans">
+    <!-- 導航欄 -->
+    <header class="sticky top-0 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md shadow-sm">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-robot text-primary-600 dark:text-primary-400 text-2xl"></i>
+                <h1 class="text-xl font-bold text-gray-900 dark:text-white">企業級本地LLM部署指南</h1>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-sun dark:hidden text-yellow-500"></i>
+                    <i class="fas fa-moon hidden dark:inline text-blue-300"></i>
+                </button>
+                
+                <button type="button" class="hs-collapse-toggle p-2 inline-flex justify-center items-center gap-2 rounded-md border border-gray-200 dark:border-gray-700 font-medium bg-white text-gray-700 shadow-sm hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700" data-hs-collapse="#navbar-collapse-with-animation" aria-controls="navbar-collapse-with-animation" aria-label="Toggle navigation">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div id="navbar-collapse-with-animation" class="hs-collapse hidden overflow-hidden transition-all duration-300 basis-full grow md:hidden">
+            <div class="container mx-auto px-4 py-3 space-y-2">
+                <a href="#overview" class="block py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">概述</a>
+                <a href="#needs-goals" class="block py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">需求與目標</a>
+                <a href="#model-selection" class="block py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">模型選擇</a>
+                <a href="#infrastructure" class="block py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">基礎設施</a>
+                <a href="#data-management" class="block py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">數據管理</a>
+                <a href="#security" class="block py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">安全性</a>
+                <a href="#deployment" class="block py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">部署策略</a>
+                <a href="#cost" class="block py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">成本考量</a>
+                <a href="#llmops" class="block py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">運維與監控</a>
+                <a href="#team" class="block py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">團隊與技能</a>
+                <a href="#customization" class="block py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">客製化與整合</a>
+                <a href="#scalability" class="block py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">擴展性</a>
+                <a href="#implementation" class="block py-2 px-3 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700">建置流程</a>
+            </div>
+        </div>
+    </header>
+    
+    <!-- 主要內容 -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- 悬浮目录 -->
+        <div class="hidden lg:block fixed right-4 top-24 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 overflow-y-auto max-h-[calc(100vh-120px)]">
+            <h3 class="font-bold text-primary-700 dark:text-primary-400 mb-3">目錄</h3>
+            <ul class="space-y-1 text-sm">
+                <li><a href="#overview" class="block py-1 px-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">概述</a></li>
+                <li><a href="#needs-goals" class="block py-1 px-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">需求與目標</a></li>
+                <li><a href="#model-selection" class="block py-1 px-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">模型選擇</a></li>
+                <li><a href="#infrastructure" class="block py-1 px-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">基礎設施</a></li>
+                <li><a href="#data-management" class="block py-1 px-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">數據管理</a></li>
+                <li><a href="#security" class="block py-1 px-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">安全性</a></li>
+                <li><a href="#deployment" class="block py-1 px-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">部署策略</a></li>
+                <li><a href="#cost" class="block py-1 px-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">成本考量</a></li>
+                <li><a href="#llmops" class="block py-1 px-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">運維與監控</a></li>
+                <li><a href="#team" class="block py-1 px-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">團隊與技能</a></li>
+                <li><a href="#customization" class="block py-1 px-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">客製化與整合</a></li>
+                <li><a href="#scalability" class="block py-1 px-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">擴展性</a></li>
+                <li><a href="#implementation" class="block py-1 px-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">建置流程</a></li>
+            </ul>
+        </div>
+        
+        <div class="lg:pr-64">
+            <!-- 概述 -->
+            <section id="overview" class="mb-16 max-w-4xl fade-in">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-primary-600 dark:bg-primary-500 p-3 rounded-full">
+                        <i class="material-icons text-white">home</i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white">概述</h2>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
+                    <p class="text-lg leading-relaxed mb-4">
+                        建構一個企業級的本地部署 (on-premise) 大型語言模型 (LLM) 運行環境，是一項涉及多方面考量的複雜工程。企業必須謹慎評估其財務與技術資源、業務需求以及安全與營運限制。
+                    </p>
+                    <p class="text-lg leading-relaxed">
+                        成功的部署不僅需要強大的硬體基礎設施，還涵蓋模型選擇、數據管理、安全性、成本效益及持續維運等多個層面。透過周詳的規劃與分階段實施，企業能夠在確保數據隱私與合規的前提下，充分發揮 LLM 在提升生產力、自動化任務及客戶互動等方面的潛力。
+                    </p>
+                </div>
+                
+                <!-- 系統部署概覽圖 -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">企業級本地LLM系統架構</h3>
+                    <div class="mermaid">
+                        graph TB
+                            subgraph 用戶訪問層
+                                A[內部用戶] --> B[API接口]
+                                C[企業應用] --> B
+                            end
+                            
+                            subgraph 應用層
+                                B --> D[服務編排與路由]
+                                D --> E[RAG系統]
+                                D --> F[LLM推理服務]
+                            end
+                            
+                            subgraph 數據層
+                                E --> G[向量數據庫]
+                                G --> H[企業知識庫]
+                                F --> I[模型倉庫]
+                            end
+                            
+                            subgraph 基礎設施層
+                                I --> J[GPU伺服器]
+                                H --> K[儲存系統]
+                                G --> K
+                            end
+                            
+                            subgraph 監控與管理
+                                L[LLMOps工具] --> D
+                                L --> F
+                                L --> E
+                                L --> G
+                                L --> I
+                            end
+                            
+                            style 用戶訪問層 fill:#f9f9ff,stroke:#8899ff,stroke-width:2px
+                            style 應用層 fill:#f9fff9,stroke:#88ff99,stroke-width:2px
+                            style 數據層 fill:#fff9f9,stroke:#ff8899,stroke-width:2px
+                            style 基礎設施層 fill:#fffff9,stroke:#ffff88,stroke-width:2px
+                            style 監控與管理 fill:#f9ffff,stroke:#88ffff,stroke-width:2px
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 需求與目標定義 -->
+            <section id="needs-goals" class="mb-16 max-w-4xl fade-in">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-primary-600 dark:bg-primary-500 p-3 rounded-full">
+                        <i class="material-icons text-white">flag</i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white">需求與目標定義</h2>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
+                    <p class="text-lg leading-relaxed mb-6">
+                        在建構本地 LLM 環境之初，首要任務是明確企業的具體需求和預期達成的目標。這包括定義 LLM 的應用場景，例如是作為內部知識庫助手、客戶服務聊天機器人，還是用於數據分析與內容生成等。清晰的目標將指導後續的模型選擇、功能設計以及衡量成功的標準。建議從最小可行性產品 (MVP) 開始，逐步完善和優化。
+                    </p>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- 常見應用場景 -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 p-5 rounded-lg">
+                            <h4 class="font-semibold text-lg mb-3 flex items-center">
+                                <i class="material-icons text-primary-600 dark:text-primary-400 mr-2">apps</i>
+                                常見應用場景
+                            </h4>
+                            <ul class="space-y-2">
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                    <span>內部知識庫問答助手</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                    <span>客戶服務智能聊天機器人</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                    <span>代碼輔助與開發工具</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                    <span>市場研究與數據分析</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check-circle text-green-500 mt-1 mr-2"></i>
+                                    <span>自動化內容創建與編輯</span>
+                                </li>
+                            </ul>
+                        </div><!-- 目標設定指南 -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 p-5 rounded-lg">
+                            <h4 class="font-semibold text-lg mb-3 flex items-center">
+                                <i class="material-icons text-primary-600 dark:text-primary-400 mr-2">assignment</i>
+                                目標設定指南
+                            </h4>
+                            <ul class="space-y-2">
+                                <li class="flex items-start">
+                                    <i class="fas fa-bullseye text-blue-500 mt-1 mr-2"></i>
+                                    <span>明確定義問題範圍與解決方案</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-bullseye text-blue-500 mt-1 mr-2"></i>
+                                    <span>設定可衡量的關鍵績效指標(KPI)</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-bullseye text-blue-500 mt-1 mr-2"></i>
+                                    <span>確定主要用戶群體與使用場景</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-bullseye text-blue-500 mt-1 mr-2"></i>
+                                    <span>評估技術可行性與資源需求</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-bullseye text-blue-500 mt-1 mr-2"></i>
+                                    <span>從小規模POC開始，逐步擴展</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- KPI可視化 -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">LLM成效關鍵績效指標(KPIs)</h3>
+                    <div id="kpi-chart" class="chart-container"></div>
+                </div>
+            </section>
+            
+            <!-- 模型選擇與準備 -->
+            <section id="model-selection" class="mb-16 max-w-4xl fade-in">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-primary-600 dark:bg-primary-500 p-3 rounded-full">
+                        <i class="material-icons text-white">model_training</i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white">模型選擇與準備</h2>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
+                    <p class="text-lg leading-relaxed mb-6">
+                        選擇合適的 LLM 是核心環節。企業可以考慮使用現有的預訓練模型，或根據特定需求從頭開始訓練，亦或對預訓練模型進行微調。
+                    </p>
+                    
+                    <!-- 模型比較表格 -->
+                    <div class="overflow-x-auto mb-8">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-100 dark:bg-gray-700">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">模型類型</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">優勢</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">劣勢</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">適用場景</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                <tr><td class="px-6 py-4 whitespace-nowrap text-sm font-medium">開源大型模型<br/>(Llama 3, Mistral, Qwen2.5)</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <ul class="list-disc pl-5">
+                                            <li>完全控制權</li><li>無數據隱私疑慮</li>
+                                            <li>可深度客製化</li></ul>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <ul class="list-disc pl-5">
+                                            <li>資源需求高</li>
+                                            <li>部署複雜</li>
+                                            <li>需專業維護</li>
+                                        </ul></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">金融、醫療、政府等高安全要求行業</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">小型特化模型<br/>(Phi-4, DeepSeek-Coder)</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <ul class="list-disc pl-5">
+                                            <li>資源需求較低</li>
+                                            <li>響應速度快</li>
+                                            <li>部署簡便</li>
+                                        </ul></td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <ul class="list-disc pl-5">
+                                            <li>能力有限</li><li>通用性較差</li>
+                                            <li>知識範圍窄</li>
+                                        </ul>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">特定任務、邊緣設備、資源受限環境</td>
+                                </tr>
+                                <tr><td class="px-6 py-4 whitespace-nowrap text-sm font-medium">微調現有模型</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <ul class="list-disc pl-5">
+                                            <li>平衡效能與資源</li>
+                                            <li>領域專精性提升</li>
+                                            <li>成本效益中等</li>
+                                        </ul>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <ul class="list-disc pl-5">
+                                            <li>需高質量訓練數據</li>
+                                            <li>仍需一定運算資源</li>
+                                            <li>有過擬合風險</li>
+                                        </ul>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">需要專業領域知識的企業應用</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- 模型壓縮技術 -->
+                    <h3 class="text-xl font-semibold mb-4">模型壓縮技術</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                            <h4 class="font-medium text-lg mb-2 text-primary-700 dark:text-primary-300">量化 (Quantization)</h4>
+                            <p class="text-sm">
+                                將模型權重從32位浮點數降至8位整數甚至更低位數，可顯著減少模型大小與記憶體使用，同時保持合理效能。
+                            </p>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                            <h4 class="font-medium text-lg mb-2 text-primary-700 dark:text-primary-300">剪枝 (Pruning)</h4>
+                            <p class="text-sm">
+                                移除模型中不重要的參數和連接，減少模型規模，但需謹慎避免效能大幅下降。
+                            </p>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                            <h4 class="font-medium text-lg mb-2 text-primary-700 dark:text-primary-300">知識蒸餾 (Distillation)</h4>
+                            <p class="text-sm">
+                                訓練較小的「學生模型」模仿較大的「教師模型」行為，在規模大幅縮減的同時保持關鍵能力。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 模型參數與效能 -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">常見開源LLM參數與效能比較</h3>
+                    <div id="model-comparison-chart" class="chart-container"></div>
+                </div>
+            </section>
+            
+            <!-- 基礎設施建置 -->
+            <section id="infrastructure" class="mb-16 max-w-4xl fade-in">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-primary-600 dark:bg-primary-500 p-3 rounded-full">
+                        <i class="material-icons text-white">storage</i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white">基礎設施建置</h2>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
+                    <p class="text-lg leading-relaxed mb-6">
+                        本地部署 LLM 對基礎設施有較高要求，特別是在運算能力和儲存方面。適當的硬體與軟體平台選擇對於系統效能、可靠性和擴展性至關重要。
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- 硬體考量 -->
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-5">
+                            <h3 class="text-xl font-semibold mb-4 flex items-center">
+                                <i class="fas fa-microchip text-primary-600 dark:text-primary-400 mr-2"></i>
+                                硬體考量
+                            </h3>
+                            
+                            <div class="space-y-4">
+                                <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded">
+                                    <h4 class="font-medium mb-2 text-primary-700 dark:text-primary-300">GPU</h4>
+                                    <p class="text-sm">
+                                        NVIDIA A100、H100或L40等企業級GPU是常見選擇。企業需根據模型大小和預期吞吐量規劃GPU數量和記憶體。例如，一個包含八張Nvidia H100 GPU的叢集，在處理Llama2 70B模型時，每秒可處理高達762個token。
+                                    </p>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded">
+                                    <h4 class="font-medium mb-2 text-primary-700 dark:text-primary-300">伺服器</h4>
+                                    <p class="text-sm">
+                                        需要高效能伺服器來承載GPU及相關運算任務。NVIDIA DGX伺服器是專為企業AI設計的整合方案。
+                                    </p>
+                                </div>
+                <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded">
+                                    <h4 class="font-medium mb-2 text-primary-700 dark:text-primary-300">儲存</h4>
+                                    <p class="text-sm">
+                                        高速儲存（如SSD/NVMe）對於快速數據讀取和模型執行至關重要。同時需要考慮儲存容量以容納大量的訓練數據、模型檔案和日誌。
+                                    </p>
+                                </div>
+                <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded"><h4 class="font-medium mb-2 text-primary-700 dark:text-primary-300">網路與冷卻</h4>
+                                    <p class="text-sm">
+                                        高頻寬、低延遲的網路環境有助於分散式運算和數據傳輸。GPU叢集會產生大量熱能，需要適當的冷卻系統和充足的電力供應。
+                                    </p>
+                                </div>
+                            </div>
+                        </div><!-- 軟體與平台 -->
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-5">
+                            <h3 class="text-xl font-semibold mb-4 flex items-center">
+                                <i class="fas fa-code text-primary-600 dark:text-primary-400 mr-2"></i>
+                                軟體與平台
+                            </h3>
+                            
+                            <div class="space-y-4">
+                                <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded">
+                                    <h4 class="font-medium mb-2 text-primary-700 dark:text-primary-300">容器化與編排</h4><p class="text-sm">
+                                        使用Docker進行容器化，並透過Kubernetes進行部署、擴展和管理LLM工作負載，是現代化的主流方法。這有助於資源調度、負載平衡和故障轉移。
+                                    </p>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded">
+                                    <h4 class="font-medium mb-2 text-primary-700 dark:text-primary-300">推論引擎</h4>
+                                    <p class="text-sm">
+                                        vLLM、TensorRT Inference Server (TRTIS)或Text Generation Inference (TGI)等框架可以優化模型執行效率，支援token流式傳輸和批次處理請求，以最大化吞吐量。</p>
+                                </div>
+                <div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded"><h4 class="font-medium mb-2 text-primary-700 dark:text-primary-300">API層與路由</h4><p class="text-sm">
+                                        建立REST或與OpenAI相容的API層，以便內部應用程式調用LLM功能，並可包含多模型路由、使用者驗證和提示詞過濾等功能。
+                                    </p>
+                                </div><div class="bg-gray-50 dark:bg-gray-700/50 p-3 rounded">
+                                    <h4 class="font-medium mb-2 text-primary-700 dark:text-primary-300">向量資料庫</h4>
+                                    <p class="text-sm">
+                                        對於需要整合企業知識庫的應用（如RAG），向量資料庫（如Chroma, Epsilla, OpenSearch, Qdrant）用於儲存和檢索文本嵌入，實現高效的語義搜索。
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 技術架構圖 -->
+                    <h3 class="text-xl font-semibold mb-4">LLM部署技術架構</h3>
+                    <div class="mermaid">
+                        graph LR
+                            subgraph 用戶端
+                                A[Web介面] --> B[API閘道]
+                                C[內部應用] --> B
+                            end
+                            
+                            subgraph 服務層
+                                B --> D[API服務]
+                                D --> E[負載均衡器]
+                            end
+                            
+                            subgraph 推理層
+                                E --> F[vLLM1]
+                                E --> G[vLLM2]
+                                E --> H[vLLM3]
+                            end
+                            
+                            subgraph 儲存層
+                                F & G & H --> I[模型倉庫]
+                                J[向量資料庫] --> K[文檔儲存]
+                                D --> J
+                            end
+							style 用戶端 fill:#e6f7ff,stroke:#1890ff
+                            style 服務層 fill:#f6ffed,stroke:#52c41a
+                            style 推理層 fill:#fff7e6,stroke:#fa8c16
+                            style 儲存層 fill:#f9f0ff,stroke:#722ed1
+                    </div>
+                </div>
+                
+                <!-- GPU對比 -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">企業級GPU效能比較</h3>
+                    <div id="gpu-comparison-chart" class="chart-container"></div>
+                </div>
+            </section>
+            
+            <!-- 數據準備與管理 -->
+            <section id="data-management" class="mb-16 max-w-4xl fade-in">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-primary-600 dark:bg-primary-500 p-3 rounded-full">
+                        <i class="material-icons text-white">database</i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white">數據準備與管理</h2>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
+                    <p class="text-lg leading-relaxed mb-6">
+                        數據是 LLM 的核心驅動力，其品質和管理方式直接影響模型效能和應用價值。良好的數據管理流程確保企業能充分利用其知識資產，提升 LLM 回答的準確性和相關性。
+                    </p><!-- 數據流程與RAG -->
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold mb-4">數據處理流程與RAG架構</h3>
+                        <div class="mermaid">
+                            flowchart TD
+                                A[企業數據收集] --> B[數據清洗與預處理]
+                                B --> C[文本分割]
+                                C --> D[向量化嵌入]
+                                D --> E[向量資料庫存儲]
+                                
+                                F[用戶查詢] --> G[查詢向量化]
+                                G --> H[向量相似度搜索]
+                                E --> H
+                                H --> I[相關文本檢索]
+                                I --> J[LLM生成回答]
+                                F --> J
+                                J --> K[向使用者返回結果]
+                                
+                                style A fill:#d1e7ff,stroke:#2378de
+                                style B fill:#d1e7ff,stroke:#2378de
+                                style C fill:#d1e7ff,stroke:#2378de
+                                style D fill:#d1e7ff,stroke:#2378de
+                                style E fill:#d1e7ff,stroke:#2378de
+                                
+                                style F fill:#ffead1,stroke:#de7823
+                                style G fill:#ffead1,stroke:#de7823
+                                style H fill:#ffead1,stroke:#de7823
+                                style I fill:#ffead1,stroke:#de7823
+                                style J fill:#ffead1,stroke:#de7823
+                                style K fill:#ffead1,stroke:#de7823
+                        </div>
+                    </div>
+                    
+                    <!-- 執行步驟說明 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- 數據準備 -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-5">
+                            <h4 class="font-medium text-lg mb-3 flex items-center text-primary-700 dark:text-primary-300">
+                                <i class="fas fa-database mr-2"></i>
+                                數據準備階段
+                            </h4>
+                            <ol class="list-decimal pl-5 space-y-3">
+                                <li>
+                                    <p class="font-medium">數據收集與整合</p>
+                                    <p class="text-sm">收集企業內部數據，如文件、指南、FAQ、客戶互動記錄、市場研究報告等。數據可以來自內部資料庫、文件系統或公開數據集。</p>
+                                </li>
+                                <li>
+                                    <p class="font-medium">數據前處理與清洗</p>
+                                    <p class="text-sm">確保數據的正確性、一致性和完整性。包括將多種格式（PDF, Markdown, HTML, 音視頻）轉換為純文本，清洗錯誤、異常和髒數據。</p>
+                                </li>
+                                <li>
+                                    <p class="font-medium">文本分割</p>
+                                    <p class="text-sm">將長文本劃分為適當大小的文本區塊(chunks)，以便後續高效檢索。chunk大小需平衡上下文完整性與檢索精細度。</p>
+                                </li>
+                                <li>
+                                    <p class="font-medium">文本嵌入</p>
+                                    <p class="text-sm">使用嵌入模型(如OpenAI的text-embedding-3-small)將文本區塊轉換為向量表示，捕獲語義信息。</p>
+                                </li>
+                                <li>
+                                    <p class="font-medium">向量索引建立</p>
+                                    <p class="text-sm">將向量存入向量數據庫並建立索引，支持高效的相似性搜索操作。</p>
+                                </li>
+                            </ol>
+                        </div>
+                        
+                        <!-- RAG執行 -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-5">
+                            <h4 class="font-medium text-lg mb-3 flex items-center text-primary-700 dark:text-primary-300">
+                                <i class="fas fa-cogs mr-2"></i>
+                                RAG檢索執行
+                            </h4>
+                            <ol class="list-decimal pl-5 space-y-3">
+                                <li><p class="font-medium">用戶查詢處理</p>
+                                    <p class="text-sm">接收用戶問題，並進行必要的預處理（如改寫優化query）。</p>
+                                </li>
+                                <li>
+                                    <p class="font-medium">查詢向量化</p><p class="text-sm">使用與文檔相同的嵌入模型，將用戶查詢轉換為向量表示。</p>
+                                </li>
+                                <li>
+                                    <p class="font-medium">相似度搜索</p>
+                                    <p class="text-sm">在向量數據庫中搜索與查詢向量最相似的文本塊，通常使用余弦相似度或點積相似度。</p>
+                                </li>
+                                <li><p class="font-medium">檢索結果處理</p>
+                                    <p class="text-sm">對檢索出的文本塊進行後處理，如重排序、過濾或合併相關信息。</p>
+                                </li>
+                                <li>
+                                    <p class="font-medium">LLM輔助回答</p>
+                                    <p class="text-sm">將用戶查詢與檢索到的相關文本一起，通過精心設計的提示詞發送給LLM生成回答。</p>
+                                </li>
+                                <li>
+                                    <p class="font-medium">回應生成與引用</p>
+                                    <p class="text-sm">LLM基於檢索內容生成回答，並提供信息來源引用，增加可信度。</p>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <!-- 向量數據庫對比 -->
+                    <h3 class="text-xl font-semibold mb-4">向量數據庫對比</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-100 dark:bg-gray-700">
+                                <tr><th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">數據庫</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">類型</th>
+                                    <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">主要優勢</th><th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">適用場景</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                <tr>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">Chroma</td><td class="px-4 py-3 whitespace-nowrap text-sm">開源輕量級</td>
+                                    <td class="px-4 py-3 text-sm">簡單易用，快速部署，內嵌式</td>
+                                    <td class="px-4 py-3 text-sm">小型項目，原型開發，本地應用</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">Qdrant</td><td class="px-4 py-3 whitespace-nowrap text-sm">開源/雲服務</td>
+                                    <td class="px-4 py-3 text-sm">高性能，豐富的過濾條件，可擴展</td>
+                                    <td class="px-4 py-3 text-sm">生產環境，複雜查詢需求</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">Weaviate</td><td class="px-4 py-3 whitespace-nowrap text-sm">開源/雲服務</td>
+                                    <td class="px-4 py-3 text-sm">GraphQL支持，模組化，多模態</td>
+                                    <td class="px-4 py-3 text-sm">需處理複雜關係數據，多模態數據</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">OpenSearch</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm">開源分布式</td>
+                                    <td class="px-4 py-3 text-sm">全文搜索，企業級特性，彈性拓展</td>
+                                    <td class="px-4 py-3 text-sm">大型企業，已有ES基礎設施</td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">Pinecone</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm">專有雲服務</td>
+                                    <td class="px-4 py-3 text-sm">高擴展性，低延遲，無運維負擔</td><td class="px-4 py-3 text-sm">需高可用性，希望減少運維</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 安全性與合規性 -->
+            <section id="security" class="mb-16 max-w-4xl fade-in">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-primary-600 dark:bg-primary-500 p-3 rounded-full">
+                        <i class="material-icons text-white">security</i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white">安全性與合規性</h2>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
+                    <p class="text-lg leading-relaxed mb-6">
+                        在企業環境中部署 LLM，安全性和合規性是至關重要的考量因素。本地部署模型的主要優勢之一就是能夠對敏感數據保持完全控制，避免將其暴露於第三方服務。
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <!-- 數據安全 -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 p-5 rounded-lg">
+                            <div class="flex items-center text-primary-700 dark:text-primary-300 mb-3">
+                                <i class="fas fa-shield-alt text-2xl mr-2"></i>
+                                <h3 class="font-semibold text-lg">數據安全</h3>
+                            </div>
+                            
+                            <ul class="space-y-2">
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                                    <span class="text-sm">敏感數據保持在企業防火牆內</span>
+                                </li>
+                                <li class="flex items-start"><i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                                    <span class="text-sm">傳輸中和靜態數據加密</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i><span class="text-sm">數據分類與標籤管理</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                                    <span class="text-sm">數據生命周期監控</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                                    <span class="text-sm">數據外洩防護機制</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <!-- 存取控制 -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 p-5 rounded-lg">
+                            <div class="flex items-center text-primary-700 dark:text-primary-300 mb-3">
+                                <i class="fas fa-key text-2xl mr-2"></i>
+                                <h3 class="font-semibold text-lg">存取控制</h3>
+                            </div>
+                            
+                            <ul class="space-y-2">
+                                <li class="flex items-start"><i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                                    <span class="text-sm">強健的身份驗證機制</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i><span class="text-sm">基於角色的訪問控制(RBAC)</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                                    <span class="text-sm">最小權限原則實施</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i><span class="text-sm">API密鑰管理與輪替</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                                    <span class="text-sm">多因素認證支持</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <!-- 合規性 -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 p-5 rounded-lg">
+                            <div class="flex items-center text-primary-700 dark:text-primary-300 mb-3">
+                                <i class="fas fa-gavel text-2xl mr-2"></i>
+                                <h3 class="font-semibold text-lg">合規性</h3>
+                            </div>
+                            
+                            <ul class="space-y-2">
+                                <li class="flex items-start"><i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                                    <span class="text-sm">符合GDPR數據處理要求</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i><span class="text-sm">HIPAA醫療數據保護</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                                    <span class="text-sm">行業特定合規要求(如金融CCPA)</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                                    <span class="text-sm">數據駐留要求滿足</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                                    <span class="text-sm">定期合規審計與報告</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- 額外安全考量 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-5">
+                            <h3 class="text-xl font-semibold mb-4 flex items-center">
+                                <i class="fas fa-bug text-orange-500 mr-2"></i>
+                                模型安全考量
+                            </h3>
+                            <ul class="space-y-2">
+                                <li class="flex items-start"><i class="fas fa-exclamation-triangle text-orange-500 mt-1 mr-2"></i><div>
+                                        <p class="font-medium">提示詞注入防護</p>
+                                        <p class="text-sm">防止攻擊者通過精心設計的提示詞繞過安全限制或獲取敏感信息。實施提示詞過濾和檢測機制。</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-exclamation-triangle text-orange-500 mt-1 mr-2"></i>
+                                    <div><p class="font-medium">模型越獄偵測</p><p class="text-sm">監控並阻止嘗試使模型生成違反安全政策內容的請求。實施多層防護機制。</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-exclamation-triangle text-orange-500 mt-1 mr-2"></i>
+                                    <div>
+                                        <p class="font-medium">輸出內容審核</p>
+                                        <p class="text-sm">篩選和阻止可能含有有害、不當或敏感內容的模型輸出。</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-5">
+                            <h3 class="text-xl font-semibold mb-4 flex items-center">
+                                <i class="fas fa-clipboard-list text-blue-500 mr-2"></i>
+                                監控與審計
+                            </h3>
+                            <ul class="space-y-2">
+                                <li class="flex items-start">
+                                    <i class="fas fa-eye text-blue-500 mt-1 mr-2"></i>
+                                    <div>
+                                        <p class="font-medium">全面日誌記錄</p>
+                                        <p class="text-sm">記錄所有系統活動，包括用戶查詢、模型回應、管理操作等，便於審計和事件調查。</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-eye text-blue-500 mt-1 mr-2"></i>
+                                    <div>
+                                        <p class="font-medium">異常行為偵測</p>
+                                        <p class="text-sm">透過AI行為分析，識別可疑的使用模式或潛在的安全威脅。</p>
+                                    </div>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-eye text-blue-500 mt-1 mr-2"></i>
+                                    <div>
+                                        <p class="font-medium">定期安全評估</p>
+                                        <p class="text-sm">定期對整個LLM系統進行安全漏洞掃描和滲透測試，及時修復潛在風險。</p></div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 部署策略 -->
+            <section id="deployment" class="mb-16 max-w-4xl fade-in">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-primary-600 dark:bg-primary-500 p-3 rounded-full">
+                        <i class="material-icons text-white">rocket_launch</i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white">部署策略</h2>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
+                    <p class="text-lg leading-relaxed mb-6">
+                        選擇合適的部署策略可以確保 LLM 環境的穩定性和可擴展性。現代企業級部署通常採用容器化和微服務架構，提供更好的靈活性、可移植性和易於管理性。
+                    </p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- 部署模式 -->
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-5">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">部署模式對比</h3>
+                            <div class="space-y-4">
+                                <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg"><h4 class="font-medium text-primary-700 dark:text-primary-300">容器化部署</h4><div class="flex items-start mt-2">
+                                        <div class="flex-shrink-0"><i class="fas fa-plus text-green-500 mr-2"></i>
+                                        </div>
+                                        <p class="text-sm">環境一致性、可移植性、資源隔離、快速部署與更新</p></div>
+                                    <div class="flex items-start mt-1">
+                                        <div class="flex-shrink-0">
+                                            <i class="fas fa-minus text-red-500 mr-2"></i>
+                                        </div>
+                                        <p class="text-sm">額外的工程複雜性、容器監控管理成本</p>
+                                    </div>
+                                </div>                <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                                    <h4 class="font-medium text-primary-700 dark:text-primary-300">API即服務</h4>
+                                    <div class="flex items-start mt-2">
+                                        <div class="flex-shrink-0">
+                                            <i class="fas fa-plus text-green-500 mr-2"></i>
+                                        </div>
+                                        <p class="text-sm">易於整合到現有系統、集中管理與監控、按需擴展</p>
+                                    </div>
+                                    <div class="flex items-start mt-1">
+                                        <div class="flex-shrink-0">
+                                            <i class="fas fa-minus text-red-500 mr-2"></i>
+                                        </div>
+                                        <p class="text-sm">依賴網絡連接、可能的單點故障風險</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                                    <h4 class="font-medium text-primary-700 dark:text-primary-300">混合部署</h4><div class="flex items-start mt-2">
+                                        <div class="flex-shrink-0">
+                                            <i class="fas fa-plus text-green-500 mr-2"></i></div>
+                                        <p class="text-sm">結合本地與雲端優勢、敏感數據本地處理、靈活資源調度</p>
+                                    </div>
+                                    <div class="flex items-start mt-1">
+                                        <div class="flex-shrink-0">
+                                            <i class="fas fa-minus text-red-500 mr-2"></i></div>
+                                        <p class="text-sm">架構複雜性增加、需要更複雜的管理協調</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 分階段部署 -->
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-5">
+                            <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">分階段部署策略</h3>
+                            
+                            <div class="relative overflow-hidden">
+                                <!-- 階段指示器 -->
+                                <div class="absolute left-4 h-full w-0.5 bg-primary-200 dark:bg-primary-700"></div>
+                                
+                                <!-- 階段1 -->
+                                <div class="relative pl-8 pb-6">
+                                    <div class="absolute left-0 top-0 w-8 flex justify-center"><div class="w-6 h-6 rounded-full bg-primary-600 dark:bg-primary-500 text-white flex items-center justify-center text-sm">1</div>
+                                    </div>
+                                    <h4 class="font-medium text-primary-700 dark:text-primary-300">概念驗證 (POC)</h4>
+                                    <ul class="mt-2 space-y-1 text-sm">
+                                        <li>• 小規模試驗，驗證技術可行性</li>
+                                        <li>• 確定基本需求與限制</li>
+                                        <li>• 評估初步效能和使用者體驗</li>
+                                    </ul>
+                                </div><!-- 階段2 -->
+                                <div class="relative pl-8 pb-6">
+                                    <div class="absolute left-0 top-0 w-8 flex justify-center">
+                                        <div class="w-6 h-6 rounded-full bg-primary-600 dark:bg-primary-500 text-white flex items-center justify-center text-sm">2</div></div>
+                                    <h4 class="font-medium text-primary-700 dark:text-primary-300">測試環境部署</h4><ul class="mt-2 space-y-1 text-sm">
+                                        <li>• 建置與生產環境相似的測試環境</li>
+                                        <li>• 進行全面功能測試與壓力測試</li>
+                                        <li>• 識別並解決潛在問題</li>
+                                    </ul>
+                                </div>
+                                
+                                <!-- 階段3 -->
+                                <div class="relative pl-8 pb-6">
+                                    <div class="absolute left-0 top-0 w-8 flex justify-center">
+                                        <div class="w-6 h-6 rounded-full bg-primary-600 dark:bg-primary-500 text-white flex items-center justify-center text-sm">3</div>
+                                    </div><h4 class="font-medium text-primary-700 dark:text-primary-300">有限用戶試用 (Beta)</h4>
+                                    <ul class="mt-2 space-y-1 text-sm">
+                                        <li>• 向小部分企業內部用戶開放使用</li>
+                                        <li>• 收集真實用戶反饋</li>
+                                        <li>• 持續優化模型與系統</li>
+                                    </ul>
+                                </div>
+                                
+                                <!-- 階段4 -->
+                                <div class="relative pl-8">
+                                    <div class="absolute left-0 top-0 w-8 flex justify-center">
+                                        <div class="w-6 h-6 rounded-full bg-primary-600 dark:bg-primary-500 text-white flex items-center justify-center text-sm">4</div>
+                                    </div>
+                                    <h4 class="font-medium text-primary-700 dark:text-primary-300">全面生產部署</h4>
+                                    <ul class="mt-2 space-y-1 text-sm">
+                                        <li>• 系統全面上線並對所有目標用戶開放</li>
+                                        <li>• 實施全面監控與支援機制</li>
+                                        <li>• 執行持續改進計劃</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Kubernetes部署流程 -->
+                    <h3 class="text-xl font-semibold mb-4">Kubernetes LLM部署工作流</h3>
+                    <div class="mermaid">
+                        graph LR
+                            A[LLM模型] --> B[模型容器化]
+                            B --> C[創建K8s部署檔案]
+                            C --> D[建立K8s服務]
+                            D --> E[配置負載均衡]
+                            E --> F[設置水平自動擴展]
+                            F --> G[建立API網關]
+                            G --> H[監控與日誌設置]
+                            
+                            style A fill:#d0e8ff,stroke:#3182ce
+                            style B fill:#d0e8ff,stroke:#3182ce
+                            style C fill:#d0e8ff,stroke:#3182ce
+                            style D fill:#d0e8ff,stroke:#3182ce
+                            style E fill:#d0e8ff,stroke:#3182ce
+                            style F fill:#d0e8ff,stroke:#3182ce
+                            style G fill:#d0e8ff,stroke:#3182ce
+                            style H fill:#d0e8ff,stroke:#3182ce
+                    </div>
+                </div>
+                
+                <!-- 高可用性架構 -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">高可用性LLM部署架構</h3>
+                    <div class="mermaid">
+                        graph TD
+                            A[用戶請求] --> B[全局負載均衡]
+                            B --> C[區域1 API閘道]
+                            B --> D[區域2 API閘道]
+                            
+                            C --> E[區域1 K8s叢集]
+                            D --> F[區域2 K8s叢集]
+                            
+                            subgraph 區域1
+                                E --> G[服務A - Pod1]
+                                E --> H[服務A - Pod2]
+                                E --> I[服務B - Pod1]
+                                E --> J[服務B - Pod2]
+                            end
+                            
+                            subgraph 區域2
+                                F --> K[服務A - Pod1]
+                                F --> L[服務A - Pod2]
+                                F --> M[服務B - Pod1]
+                                F --> N[服務B - Pod2]
+                            end
+                            
+                            G & H & I & J --> O[共享存儲 - 區域1]
+                            K & L & M & N --> P[共享存儲 - 區域2]
+                            
+                            O <--> P[數據同步]
+							style 區域1 fill:#f0f8ff,stroke:#4c9aff
+                            style 區域2 fill:#fff8f0,stroke:#ff9a4c
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 成本考量 -->
+            <section id="cost" class="mb-16 max-w-4xl fade-in">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-primary-600 dark:bg-primary-500 p-3 rounded-full">
+                        <i class="material-icons text-white">monetization_on</i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white">成本考量</h2>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
+                    <p class="text-lg leading-relaxed mb-6">
+                        建構本地 LLM 環境涉及顯著的初期投資和持續的營運成本。企業需要全面評估總體擁有成本(TCO)，包括硬體、軟體、人力和持續維護費用。
+                    </p>
+                    
+                    <!-- 成本組成圖表 -->
+                    <div id="cost-breakdown-chart" class="chart-container mb-8"></div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- 主要成本因素 -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 p-5 rounded-lg">
+                            <h4 class="font-semibold text-lg mb-3 flex items-center">
+                                <i class="fas fa-dollar-sign text-green-600 dark:text-green-400 mr-2"></i>
+                                主要成本因素
+                            </h4>
+                            <ul class="space-y-3">
+                                <li class="flex"><div class="flex-shrink-0 w-8 h-8 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center text-red-600 dark:text-red-400 mr-3">
+                                        <i class="fas fa-server"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">硬體成本</p>
+                                        <p class="text-sm">GPU伺服器、儲存設備、網路設備等是主要的初期硬體支出。企業級GPU伺服器價格不菲，例如兩台配置8張H100 GPU的伺服器市價可能超過2400萬新台幣。</p>
+                                    </div>
+                                </li>
+                                <li class="flex">
+                                    <div class="flex-shrink-0 w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 mr-3"><i class="fas fa-code"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">軟體成本</p>
+                                        <p class="text-sm">可能涉及作業系統、虛擬化軟體、資料庫、LLMOps平台等的授權費用。依選擇的解決方案不同，可能需要支付訂閱費或一次性授權費。</p>
+                                    </div>
+                                </li><li class="flex">
+                                    <div class="flex-shrink-0 w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center text-purple-600 dark:text-purple-400 mr-3">
+                                        <i class="fas fa-users"></i>
+                                    </div><div>
+                                        <p class="font-medium">人力成本</p>
+                                        <p class="text-sm">需要專業的IT團隊、數據科學家、機器學習工程師和DevOps工程師來建置、維護和優化LLM環境。這些專業人才的薪資通常較高。</p>
+                                    </div>
+                                </li>
+                                
+                                <li class="flex">
+                                    <div class="flex-shrink-0 w-8 h-8 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center text-yellow-600 dark:text-yellow-400 mr-3">
+                                        <i class="fas fa-tools"></i>
+                                    </div>
+                                    <div><p class="font-medium">維護成本</p>
+                                        <p class="text-sm">包括硬體維護、電力、冷卻、軟體更新、模型重新訓練等持續性支出。大型GPU伺服器的電力和散熱需求可能相當可觀。</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <!-- 成本優化策略 -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 p-5 rounded-lg">
+                            <h4 class="font-semibold text-lg mb-3 flex items-center">
+                                <i class="fas fa-chart-line text-blue-600 dark:text-blue-400 mr-2"></i>
+                                成本優化策略
+                            </h4>
+                            
+                            <ul class="space-y-3">
+                                <li class="flex">
+                                    <div class="flex-shrink-0 w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center text-green-600 dark:text-green-400 mr-3">
+                                        <i class="fas fa-sitemap"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">分階段投資</p>
+                                        <p class="text-sm">從小規模POC開始，逐步擴展基礎設施，避免一次性大額投資風險。根據實際需求和效益調整投資計劃。</p></div>
+                                </li>
+                <li class="flex"><div class="flex-shrink-0 w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center text-green-600 dark:text-green-400 mr-3">
+                                        <i class="fas fa-compress-arrows-alt"></i>
+                                    </div>
+                                    <div><p class="font-medium">模型優化</p>
+                                        <p class="text-sm">使用量化、剪枝等技術優化模型，降低運算資源需求。選擇適合任務的小型模型而非過度部署大模型。</p>
+                                    </div>
+                                </li>
+                                
+                                <li class="flex">
+                                    <div class="flex-shrink-0 w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center text-green-600 dark:text-green-400 mr-3"><i class="fas fa-cloud"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">混合部署模式</p>
+                                        <p class="text-sm">結合本地和雲端部署，在保護敏感數據的同時利用雲服務的彈性。峰值需求時可臨時使用雲資源擴展。</p>
+                                    </div>
+                                </li>
+                                
+                                <li class="flex">
+                                    <div class="flex-shrink-0 w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center text-green-600 dark:text-green-400 mr-3">
+                                        <i class="fas fa-tachometer-alt"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">資源調度優化</p>
+                                        <p class="text-sm">實施智能資源調度，根據使用量自動擴展或縮減資源，避免閒置資源浪費。使用多租戶架構提高資源利用率。</p></div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- TCO分析 -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">本地部署vs雲服務TCO分析（3年期）</h3>
+                    <div id="tco-comparison-chart" class="chart-container"></div>
+                    <p class="mt-4 text-sm text-gray-500 dark:text-gray-400 italic">
+                        注意：實際TCO取決於企業規模、使用量、選用的模型與硬體配置等多種因素。上圖僅為示例，企業應根據自身情況進行詳細評估。
+                    </p>
+                </div>
+            </section>
+            
+            <!-- 維運與監控 -->
+            <section id="llmops" class="mb-16 max-w-4xl fade-in">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-primary-600 dark:bg-primary-500 p-3 rounded-full">
+                        <i class="material-icons text-white">monitoring</i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white">維運與監控 (LLMOps)</h2>
+                </div><div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
+                    <p class="text-lg leading-relaxed mb-6">
+                        LLMOps (Large Language Model Operations) 涵蓋了 LLM 從開發到生產部署、監控和維護的一系列實踐、流程和工具，旨在確保 LLM 在部署後能夠穩定、有效地運行。完善的 LLMOps 實踐有助於提高系統可靠性、優化效能並支持持續改進。
+                    </p>
+                    
+                    <!-- LLMOps流程圖 -->
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold mb-4">LLMOps生命週期</h3>
+                        <div class="mermaid">
+                            graph LR
+                                A[數據管理] --> B[模型訓練/微調]
+                                B --> C[模型評估]
+                                C -->|通過| D[模型註冊]
+                                C -->|不通過| B
+                                D --> E[模型部署]
+                                E --> F[監控與觀測]
+                                F --> G[模型更新]
+                                G --> A
+                                
+                                style A fill:#e1f5fe,stroke:#039be5
+                                style B fill:#e8f5e9,stroke:#43a047
+                                style C fill:#fffde7,stroke:#fbc02d
+                                style D fill:#f3e5f5,stroke:#8e24aa
+                                style E fill:#e3f2fd,stroke:#1976d2
+                                style F fill:#fff3e0,stroke:#fb8c00
+                                style G fill:#f1f8e9,stroke:#7cb342
+                        </div>
+                    </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- 監控指標 -->
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-5">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center text-gray-900 dark:text-white">
+                                <i class="fas fa-tachometer-alt text-primary-600 dark:text-primary-400 mr-2"></i>
+                                關鍵監控指標
+                            </h3><div class="space-y-3">
+                                <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded"><h4 class="font-medium text-primary-700 dark:text-primary-300 mb-1">效能指標</h4><ul class="space-y-1 text-sm">
+                                        <li>• 延遲 (Latency)：首個token生成時間、總體回應時間</li>
+                                        <li>• 吞吐量 (Throughput)：每秒處理的請求/token數量</li>
+                                        <li>• GPU利用率：CUDA核心、顯存使用情況</li>
+                                        <li>• 請求隊列長度與等待時間</li>
+                                    </ul>
+                                </div><div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded">
+                                    <h4 class="font-medium text-primary-700 dark:text-primary-300 mb-1">模型質量指標</h4>
+                                    <ul class="space-y-1 text-sm"><li>• 回答準確性與相關性評估</li>
+                                        <li>• 模型漂移檢測</li><li>• 使用者反饋統計</li>
+                                        <li>• 內容安全與合規性監測</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded">
+                                    <h4 class="font-medium text-primary-700 dark:text-primary-300 mb-1">系統健康度</h4>
+                                    <ul class="space-y-1 text-sm">
+                                        <li>• CPU、記憶體、磁碟利用率</li>
+                                        <li>• 錯誤率與類型分佈</li>
+                                        <li>• 系統可用性與服務質量</li>
+                                        <li>• 網絡連接性與數據傳輸速率</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="bg-gray-50 dark:bg-gray-700/50 p-4 rounded">
+                                    <h4 class="font-medium text-primary-700 dark:text-primary-300 mb-1">業務指標</h4>
+                                    <ul class="space-y-1 text-sm"><li>• 活躍用戶數與使用頻率</li><li>• 使用者保留率與滿意度</li>
+                                        <li>• 每次交互成本</li>
+                                        <li>• 支援自動化程度與效率提升</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 監控工具 -->
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-5">
+                            <h3 class="text-lg font-semibold mb-4 flex items-center text-gray-900 dark:text-white">
+                                <i class="fas fa-tools text-primary-600 dark:text-primary-400 mr-2"></i>
+                                LLMOps工具與實踐
+                            </h3>            <div class="space-y-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 mr-3">
+                                        <i class="fas fa-chart-line"></i></div>
+                                    <div>
+                                        <h4 class="font-medium text-primary-700 dark:text-primary-300">監控與可觀測性</h4>
+                                        <p class="text-sm mt-1">
+                                            Prometheus & Grafana用於指標收集與可視化，OpenTelemetry提供分散式追蹤，ElasticSearch + Kibana用於日誌管理，提供全方位系統可見性。
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex">
+                                    <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 mr-3">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium text-primary-700 dark:text-primary-300">模型管理與版本控制</h4>
+                                        <p class="text-sm mt-1">
+                                            MLflow提供模型版本控制、實驗tracking，支持A/B測試並管理模型部署流程。DVC支持大型模型文件版本控制，確保可重現性。</p>
+                                    </div>
+                                </div>                <div class="flex">
+                                    <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 mr-3">
+                                        <i class="fas fa-robot"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium text-primary-700 dark:text-primary-300">LLM特化工具</h4>
+                                        <p class="text-sm mt-1">
+                                            LangSmith提供LLM應用評估與監控，DeepEval支持語義評估，LlamaIndex簡化RAG應用開發，Weights & Biases協助追蹤實驗與模型效能。
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex">
+                                    <div class="flex-shrink-0 w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 mr-3">
+                                        <i class="fas fa-shield-alt"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium text-primary-700 dark:text-primary-300">安全與合規監控</h4><p class="text-sm mt-1">
+                                            實施提示詞注入偵測，定期漏洞掃描，監控模型輸出合規性，建立異常行為警報系統，確保合規性與數據安全。</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 疑難排解與典型問題 -->
+                    <h3 class="text-xl font-semibold mb-4">常見問題與疑難排解</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-100 dark:bg-gray-700">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">問題類型</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">可能原因</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">排解策略</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                <tr>
+                                    <td class="px-6 py-4 text-sm">高延遲/回應慢</td>
+                                    <td class="px-6 py-4 text-sm"><ul class="list-disc pl-5 space-y-1">
+                                            <li>GPU資源不足</li>
+                                            <li>請求隊列過長</li>
+                                            <li>模型過大</li>
+                                        </ul>
+                                    </td><td class="px-6 py-4 text-sm"><ul class="list-disc pl-5 space-y-1">
+                                            <li>增加GPU資源或優化分配</li>
+                                            <li>實施請求批處理</li>
+                                            <li>考慮模型量化或蒸餾</li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 text-sm">記憶體溢出</td><td class="px-6 py-4 text-sm"><ul class="list-disc pl-5 space-y-1">
+                                            <li>模型太大</li>
+                                            <li>批次大小過大</li>
+                                            <li>上下文長度設置過長</li>
+                                        </ul></td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <ul class="list-disc pl-5 space-y-1">
+                                            <li>啟用記憶體高效推理模式</li><li>減小批次大小</li>
+                                            <li>根據需求調整上下文長度</li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 text-sm">模型回答質量下降</td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <ul class="list-disc pl-5 space-y-1"><li>數據漂移</li><li>知識庫過時</li>
+                                            <li>RAG檢索效果差</li>
+                                        </ul></td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <ul class="list-disc pl-5 space-y-1">
+                                            <li>重新微調模型</li>
+                                            <li>更新知識庫內容</li>
+                                            <li>優化檢索算法與分詞方式</li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 text-sm">系統穩定性問題</td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <ul class="list-disc pl-5 space-y-1"><li>資源過度分配</li>
+                                            <li>缺乏自動擴展</li>
+                                            <li>網絡連接不穩定</li>
+                                        </ul></td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <ul class="list-disc pl-5 space-y-1">
+                                            <li>實施容器資源限制</li>
+                                            <li>配置自動擴展策略</li>
+                                            <li>增強網絡冗餘與備份</li>
+                                        </ul></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 儀表板示例 -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">LLM監控儀表板示例</h3>
+                    <div id="monitoring-dashboard" class="chart-container"></div>
+                </div>
+            </section>
+            
+            <!-- 團隊與技能 -->
+            <section id="team" class="mb-16 max-w-4xl fade-in">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-primary-600 dark:bg-primary-500 p-3 rounded-full">
+                        <i class="material-icons text-white">people</i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white">團隊與技能</h2>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
+                    <p class="text-lg leading-relaxed mb-6">
+                        成功部署和運營本地 LLM 環境需要一個多學科團隊，涵蓋數據科學、基礎設施、軟體開發、安全和領域專業知識。適當的團隊結構和清晰的責任分工是項目成功的關鍵因素。
+                    </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- 核心團隊角色 -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4 text-primary-700 dark:text-primary-300">核心團隊角色</h3>
+                            
+                            <div class="space-y-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0 w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 mr-3">
+                                        <i class="fas fa-brain"></i>
+                                    </div><div>
+                                        <h4 class="font-medium">數據科學家/機器學習工程師</h4><p class="text-sm mt-1">
+                                            負責模型選擇、訓練、微調、評估和優化，確保模型輸出質量與性能。
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex">
+                                    <div class="flex-shrink-0 w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 mr-3">
+                                        <i class="fas fa-server"></i>
+                                    </div><div>
+                                        <h4 class="font-medium">DevOps/MLOps 工程師</h4><p class="text-sm mt-1">
+                                            負責基礎設施的建置、部署、自動化、監控和維護，確保系統穩定運行。</p>
+                                    </div>
+                                </div>                <div class="flex">
+                                    <div class="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 mr-3">
+                                        <i class="fas fa-network-wired"></i>
+                                    </div>
+                                    <div><h4 class="font-medium">IT基礎設施專家</h4><p class="text-sm mt-1">
+                                            負責伺服器、網路、儲存等硬體的管理和維護，確保資源有效分配與利用。
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex">
+                                    <div class="flex-shrink-0 w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 mr-3">
+                                        <i class="fas fa-code"></i>
+                                    </div><div>
+                                        <h4 class="font-medium">軟體工程師</h4>
+                                        <p class="text-sm mt-1">
+                                            負責開發與LLM整合的應用程式和API，實現用戶界面與功能。
+                                        </p></div>
+                                </div>
+                <div class="flex"><div class="flex-shrink-0 w-12 h-12 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-600 dark:text-yellow-400 mr-3">
+                                        <i class="fas fa-user-tie"></i>
+                                    </div><div>
+                                        <h4 class="font-medium">領域專家</h4>
+                                        <p class="text-sm mt-1">
+                                            提供特定業務領域的知識，協助數據準備、模型評估與業務需求定義。
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex">
+                                    <div class="flex-shrink-0 w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mr-3">
+                                        <i class="fas fa-tasks"></i>
+                                    </div><div>
+                                        <h4 class="font-medium">專案經理</h4>
+                                        <p class="text-sm mt-1">
+                                            協調各方資源，管理時程與預算，確保專案按時按質完成。
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 核心技能需求 -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6">
+                            <h3 class="text-xl font-semibold mb-4 text-primary-700 dark:text-primary-300">核心技能需求</h3>
+                <div class="space-y-4">
+                                <div><h4 class="font-medium flex items-center"><i class="fas fa-graduation-cap text-blue-600 dark:text-blue-400 mr-2"></i>
+                                        機器學習專業知識
+                                    </h4><ul class="mt-2 pl-6 list-disc text-sm space-y-1"><li>深度學習與Transformer模型架構理解</li>
+                                        <li>NLP領域知識與最新研究動態</li>
+                                        <li>模型評估與微調技術</li>
+                                        <li>RAG架構設計與實現</li>
+                                    </ul>
+                                </div>                <div>
+                                    <h4 class="font-medium flex items-center">
+                                        <i class="fas fa-cogs text-green-600 dark:text-green-400 mr-2"></i>
+                                        基礎設施與DevOps技能
+                                    </h4>
+                                    <ul class="mt-2 pl-6 list-disc text-sm space-y-1">
+                                        <li>容器化與Kubernetes專業知識</li>
+                                        <li>GPU/高效能運算環境管理</li>
+                                        <li>CI/CD流程設計與維護</li>
+                                        <li>分散式系統設計與管理</li>
+                                    </ul>
+                                </div>                <div>
+                                    <h4 class="font-medium flex items-center">
+                                        <i class="fas fa-shield-alt text-red-600 dark:text-red-400 mr-2"></i>
+                                        安全與合規知識
+                                    </h4>
+                                    <ul class="mt-2 pl-6 list-disc text-sm space-y-1">
+                                        <li>資訊安全最佳實踐</li>
+                                        <li>數據隱私與合規法規理解</li>
+                                        <li>身份驗證與授權機制</li>
+                                        <li>漏洞評估與風險管理</li>
+                                    </ul>
+                                </div><div>
+                                    <h4 class="font-medium flex items-center">
+                                        <i class="fas fa-code-branch text-purple-600 dark:text-purple-400 mr-2"></i>
+                                        軟體開發能力
+                                    </h4>
+                                    <ul class="mt-2 pl-6 list-disc text-sm space-y-1">
+                                        <li>Python與相關機器學習庫熟練度</li>
+                                        <li>API設計與集成經驗</li>
+                                        <li>前端與UI/UX開發能力</li>
+                                        <li>可擴展系統架構設計</li>
+                                    </ul>
+                                </div>
+                                
+                                <div><h4 class="font-medium flex items-center">
+                                        <i class="fas fa-chart-line text-yellow-600 dark:text-yellow-400 mr-2"></i>
+                                        數據管理技能
+                                    </h4>
+                                    <ul class="mt-2 pl-6 list-disc text-sm space-y-1">
+                                        <li>大規模數據處理經驗</li><li>數據清洗與預處理</li><li>向量數據庫經驗</li>
+                                        <li>資料結構與搜尋算法</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 組織結構 -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">LLM團隊組織架構</h3>
+                    <div class="mermaid">
+                        graph TD
+                            A[專案負責人] --> B[技術架構師]
+                            A --> C[專案經理]
+                            B --> D[LLM研發團隊]
+                            B --> E[基礎設施團隊]
+                            B --> F[應用開發團隊]
+                            
+                            D --> G[數據科學家]
+                            D --> H[機器學習工程師]
+                            D --> I[NLP專家]
+							E --> J[DevOps工程師]
+                            E --> K[IT基礎設施專家]
+                            E --> L[安全工程師]
+                            
+                            F --> M[前端開發者]
+                            F --> N[後端開發者]
+                            F --> O[API集成專家]
+							A --> P[領域專家]
+                            C --> Q[QA團隊]
+                            
+                            style A fill:#d1e6ff,stroke:#3080e8
+                            style B fill:#d1ffd1,stroke:#30e830
+                            style C fill:#ffd1d1,stroke:#e83030
+                            style D fill:#ebd1ff,stroke:#a430e8
+                            style E fill:#d1ffeb,stroke:#30e8a4
+                            style F fill:#fff9d1,stroke:#e8d730
+                            style P fill:#ffd1eb,stroke:#e830a4
+                            style Q fill:#d1ebff,stroke:#30a4e8
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 客製化與整合 -->
+            <section id="customization" class="mb-16 max-w-4xl fade-in">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-primary-600 dark:bg-primary-500 p-3 rounded-full">
+                        <i class="material-icons text-white">settings_suggest</i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white">客製化與整合</h2>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
+                    <p class="text-lg leading-relaxed mb-6">
+                        本地部署 LLM 的主要優勢之一是高度的客製化能力和與現有企業系統的深度整合。透過將 LLM 無縫融入企業工作流程和應用程式，能夠最大化其業務價值並提升用戶體驗。
+                    </p>    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <!-- 模型客製化 -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 p-5 rounded-lg">
+                            <div class="flex items-center mb-3">
+                                <div class="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 dark:text-primary-400 mr-2">
+                                    <i class="fas fa-wrench"></i>
+                                </div>
+                                <h3 class="font-semibold text-lg text-primary-700 dark:text-primary-300">模型客製化</h3>
+                            </div>
+                            
+                            <ul class="space-y-2 text-sm">
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-primary-500 mt-1 mr-2"></i>
+                                    <span>使用企業數據微調預訓練模型</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-primary-500 mt-1 mr-2"></i>
+                                    <span>領域專業知識注入與增強</span>
+                                </li>
+                                <li class="flex items-start"><i class="fas fa-arrow-right text-primary-500 mt-1 mr-2"></i><span>行業特定術語與語義理解優化</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-primary-500 mt-1 mr-2"></i>
+                                    <span>企業風格與語調一致性調整</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-primary-500 mt-1 mr-2"></i>
+                                    <span>根據用戶反饋迭代改進模型</span>
+                                </li>
+                            </ul>
+                        </div><!-- 檢索增強生成 -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 p-5 rounded-lg">
+                            <div class="flex items-center mb-3">
+                                <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 mr-2">
+                                    <i class="fas fa-search"></i>
+                                </div>
+                                <h3 class="font-semibold text-lg text-primary-700 dark:text-primary-300">企業知識庫集成</h3>
+                            </div>
+                            
+                            <ul class="space-y-2 text-sm">
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-green-500 mt-1 mr-2"></i>
+                                    <span>將內部文檔、政策轉化為向量知識庫</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-green-500 mt-1 mr-2"></i>
+                                    <span>整合ERP、CRM與其他企業系統數據</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-green-500 mt-1 mr-2"></i>
+                                    <span>支持多模態數據（文本、圖表、PDF）</span>
+                                </li>
+                                <li class="flex items-start"><i class="fas fa-arrow-right text-green-500 mt-1 mr-2"></i><span>自動化知識更新與同步機制</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-green-500 mt-1 mr-2"></i>
+                                    <span>領域特定的檢索優化調整</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <!-- API整合 -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 p-5 rounded-lg">
+                            <div class="flex items-center mb-3">
+                                <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 mr-2">
+                                    <i class="fas fa-plug"></i>
+                                </div>
+                                <h3 class="font-semibold text-lg text-primary-700 dark:text-primary-300">API與系統整合</h3>
+                            </div>
+                <ul class="space-y-2 text-sm">
+                                <li class="flex items-start"><i class="fas fa-arrow-right text-blue-500 mt-1 mr-2"></i><span>打造OpenAI兼容API接口</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-blue-500 mt-1 mr-2"></i>
+                                    <span>與現有員工工作流程無縫集成</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-blue-500 mt-1 mr-2"></i>
+                                    <span>SSO與企業身份認證系統對接</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-blue-500 mt-1 mr-2"></i>
+                                    <span>內部工具（如Slack、MS Teams）集成</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-blue-500 mt-1 mr-2"></i>
+                                    <span>提供二次開發SDK與插件系統</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- 使用者介面開發 -->
+                    <h3 class="text-xl font-semibold mb-4">使用者介面與體驗設計</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
+                            <h4 class="font-medium text-lg mb-3 flex items-center text-primary-700 dark:text-primary-300">
+                                <i class="fas fa-paint-brush mr-2"></i>
+                                UI設計原則
+                            </h4>
+                            
+                            <ul class="space-y-3">
+                                <li class="flex">
+                                    <span class="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center text-purple-600 dark:text-purple-400 mr-3">1</span>
+                                    <div>
+                                        <p class="font-medium">簡潔直觀</p>
+                                        <p class="text-sm">設計簡潔的界面，突出核心功能，減少認知負擔，讓用戶能夠輕鬆理解和使用LLM功能。</p>
+                                    </div>
+                                </li>
+                                
+                                <li class="flex">
+                                    <span class="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center text-purple-600 dark:text-purple-400 mr-3">2</span>
+                                    <div>
+                                        <p class="font-medium">一致性體驗</p><p class="text-sm">確保LLM界面與企業其他系統風格保持一致，遵循企業設計規範，提供熟悉的使用體驗。</p>
+                                    </div>
+                                </li>
+                                
+                                <li class="flex">
+                                    <span class="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center text-purple-600 dark:text-purple-400 mr-3">3</span>
+                                    <div>
+                                        <p class="font-medium">透明與可控</p>
+                                        <p class="text-sm">明確顯示LLM的信息來源和置信度，讓用戶了解系統如何工作，並提供適當的控制選項。</p></div>
+                                </li>
+                <li class="flex"><span class="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center text-purple-600 dark:text-purple-400 mr-3">4</span>
+                                    <div>
+                                        <p class="font-medium">適應各種設備</p>
+                                        <p class="text-sm">採用響應式設計，確保在桌面、平板和移動設備上均提供出色的使用體驗。</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
+                            <h4 class="font-medium text-lg mb-3 flex items-center text-primary-700 dark:text-primary-300">
+                                <i class="fas fa-user-cog mr-2"></i>
+                                交互設計考量
+                            </h4>
+                <ul class="space-y-3">
+                                <li class="flex">
+                                    <span class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 mr-3">
+                                        <i class="fas fa-comment-dots"></i>
+                                    </span><div>
+                                        <p class="font-medium">對話流暢性</p>
+                                        <p class="text-sm">設計自然、連貫的對話流程，提供適當的提示和引導，實現流暢的多輪對話體驗。</p>
+                                    </div>
+                                </li><li class="flex">
+                                    <span class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 mr-3"><i class="fas fa-stream"></i>
+                                    </span><div>
+                                        <p class="font-medium">實時反饋</p>
+                                        <p class="text-sm">實現流式輸出功能，讓用戶無需等待完整回答即可開始閱讀，提供打字動畫和進度指示。</p>
+                                    </div>
+                                </li>
+                                
+                                <li class="flex">
+                                    <span class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 mr-3">
+                                        <i class="fas fa-history"></i>
+                                    </span>
+                                    <div>
+                                        <p class="font-medium">上下文保持</p>
+                                        <p class="text-sm">維持對話歷史和上下文連續性，讓用戶可以參考和回溯之前的交流內容，支持對話分支管理。</p></div>
+                                </li>
+                <li class="flex"><span class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-400 mr-3">
+                                        <i class="fas fa-edit"></i>
+                                    </span>
+                                    <div>
+                                        <p class="font-medium">編輯與反饋</p><p class="text-sm">允許用戶編輯、保存和評價LLM回答，收集反饋以持續改進模型和界面體驗。</p>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <!-- 常見整合案例 -->
+                    <h3 class="text-xl font-semibold mb-4">企業常見整合案例</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                            <thead class="bg-gray-100 dark:bg-gray-700">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">應用場景</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">整合系統</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">價值點</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                <tr><td class="px-6 py-4 text-sm">客戶服務助手</td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <ul class="list-disc pl-4">
+                                            <li>CRM系統</li>
+                                            <li>客服聊天平台</li>
+                                            <li>知識管理系統</li>
+                                        </ul>
+                                    </td><td class="px-6 py-4 text-sm"><ul class="list-disc pl-4"><li>自動回答常見問題</li>
+                                            <li>客服人員實時輔助</li>
+                                            <li>客戶歷史交易分析</li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                                <tr><td class="px-6 py-4 text-sm">HR人才管理</td><td class="px-6 py-4 text-sm"><ul class="list-disc pl-4"><li>HR管理系統</li>
+                                            <li>招聘平台</li>
+                                            <li>培訓系統</li>
+                                        </ul>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <ul class="list-disc pl-4">
+                                            <li>簡歷篩選與分析</li>
+                                            <li>自動生成工作描述</li>
+                                            <li>員工培訓內容個性化</li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 text-sm">法律合同分析</td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <ul class="list-disc pl-4">
+                                            <li>文檔管理系統</li>
+                                            <li>合同管理平台</li>
+                                            <li>法律知識庫</li>
+                                        </ul>
+                                    </td><td class="px-6 py-4 text-sm"><ul class="list-disc pl-4"><li>自動識別關鍵條款</li>
+                                            <li>合同風險評估</li>
+                                            <li>法律條款解釋與建議</li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                                <tr><td class="px-6 py-4 text-sm">IT支持強化</td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <ul class="list-disc pl-4">
+                                            <li>服務台系統</li>
+                                            <li>IT知識庫</li>
+                                            <li>內部通訊工具</li>
+                                        </ul>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <ul class="list-disc pl-4">
+                                            <li>自動問題診斷與解決</li><li>技術文檔生成</li>
+                                            <li>常見問題即時回答</li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-6 py-4 text-sm">研發與創新</td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <ul class="list-disc pl-4">
+                                            <li>代碼管理系統</li>
+                                            <li>專利數據庫</li>
+                                            <li>科研文獻庫</li>
+                                        </ul>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <ul class="list-disc pl-4">
+                                            <li>代碼生成與優化</li>
+                                            <li>專利分析與趨勢洞察</li><li>技術資料智能檢索</li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 使用者介面示例 -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">UI整合示例</h3>
+                    <div class="mermaid">
+                        graph TD
+                            subgraph 企業入口網站
+                                A[內部知識庫] --> B{LLM集成接口}
+                                C[文檔系統] --> B
+                                D[工單系統] --> B
+                                E[企業社交] --> B
+                                
+                                B --> F[統一搜索與問答]
+                                B --> G[智能助手側欄]
+                                B --> H[內容生成工具]
+                                
+                                style 企業入口網站 fill:#fafafa,stroke:#d9d9d9,stroke-width:2px
+                            end
+                            
+                            subgraph 移動應用
+                                I[移動端API] --> J[員工移動助手]
+                                I --> K[現場服務支持]
+                                
+                                style 移動應用 fill:#e6f7ff,stroke:#1890ff,stroke-width:2px
+                            end
+                            
+                            subgraph 開發資源
+                                L[API文檔] --> M[集成示例]
+                                L --> N[SDK包]
+                                L --> O[插件開發]
+                                
+                                style 開發資源 fill:#f9f0ff,stroke:#722ed1,stroke-width:2px
+                            end
+                            
+                            B <--> I
+                            B <--> L
+                    </div>
+                </div>
+            </section>
+            
+            <!-- 擴展性與未來規劃 -->
+            <section id="scalability" class="mb-16 max-w-4xl fade-in">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-primary-600 dark:bg-primary-500 p-3 rounded-full">
+                        <i class="material-icons text-white">trending_up</i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white">擴展性與未來規劃</h2>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
+                    <p class="text-lg leading-relaxed mb-6">
+                        企業在規劃本地 LLM 環境時，應考慮長期的擴展性和未來的發展需求。靈活的架構設計使系統能夠適應業務擴展、用戶增長和新興技術發展的需要。
+                    </p>    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- 擴展策略 -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 p-5 rounded-lg">
+                            <h3 class="text-xl font-semibold mb-4 text-primary-700 dark:text-primary-300">擴展策略</h3>
+                            
+                            <div class="space-y-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0 w-10 h-10 bg-sky-100 dark:bg-sky-900/30 rounded-lg flex items-center justify-center text-sky-600 dark:text-sky-400 mr-3">
+                                        <i class="fas fa-arrows-alt-v"></i>
+                                    </div><div>
+                                        <h4 class="font-medium">垂直擴展 (Vertical Scaling)</h4>
+                                        <p class="text-sm mt-1">
+                                            增加單個伺服器的運算能力，例如升級GPU、增加記憶體等。適合需求增長較緩慢的情況，實施簡單但擴展上限受硬體限制。
+                                        </p></div>
+                                </div>
+                <div class="flex"><div class="flex-shrink-0 w-10 h-10 bg-sky-100 dark:bg-sky-900/30 rounded-lg flex items-center justify-center text-sky-600 dark:text-sky-400 mr-3">
+                                        <i class="fas fa-arrows-alt-h"></i></div>
+                                    <div>
+                                        <h4 class="font-medium">水平擴展 (Horizontal Scaling)</h4>
+                                        <p class="text-sm mt-1">
+                                            增加更多伺服器或節點，並在多台機器上分配負載。適合高並發場景，提供更好的彈性和容錯能力，但需要更複雜的協調和管理機制。
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex">
+                                    <div class="flex-shrink-0 w-10 h-10 bg-sky-100 dark:bg-sky-900/30 rounded-lg flex items-center justify-center text-sky-600 dark:text-sky-400 mr-3">
+                                        <i class="fas fa-cubes"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-medium">模組化架構</h4><p class="text-sm mt-1">
+                                            設計模組化的系統架構，將不同功能組件（如模型服務、API層、向量存儲等）解耦，使其能夠獨立擴展和替換，提高系統彈性和適應性。
+                                        </p></div>
+                                </div>
+                <div class="flex"><div class="flex-shrink-0 w-10 h-10 bg-sky-100 dark:bg-sky-900/30 rounded-lg flex items-center justify-center text-sky-600 dark:text-sky-400 mr-3">
+                                        <i class="fas fa-project-diagram"></i></div>
+                                    <div>
+                                        <h4 class="font-medium">逐步建置</h4><p class="text-sm mt-1">
+                                            企業可以從單節點部署開始，隨著需求的增長逐步擴展基礎設施，以最小化初期風險和投資。實現漸進式擴展，確保資源利用效率。
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 未來規劃 -->
+                        <div class="bg-gray-50 dark:bg-gray-700/50 p-5 rounded-lg">
+                            <h3 class="text-xl font-semibold mb-4 text-primary-700 dark:text-primary-300">未來發展規劃</h3>
+                            
+                            <div class="relative overflow-hidden">
+                                <!-- 階段指示器 -->
+                                <div class="absolute left-4 h-full w-0.5 bg-primary-200 dark:bg-primary-700"></div>
+                                
+                                <!-- 階段1 -->
+                                <div class="relative pl-10 pb-6">
+                                    <div class="absolute left-0 top-0 w-9 flex justify-center">
+                                        <div class="w-9 h-9 rounded-full bg-primary-600 dark:bg-primary-500 text-white flex items-center justify-center">
+                                            <i class="fas fa-seedling"></i>
+                                        </div>
+                                    </div>
+                                    <h4 class="font-medium">近期（6-12個月）</h4>
+                                    <ul class="mt-2 space-y-1 text-sm"><li>• 優化現有模型效能與穩定性</li>
+                                        <li>• 擴展內部知識庫覆蓋範圍</li><li>• 針對高優先級業務場景深度整合</li>
+                                        <li>• 建立用戶反饋收集與改進機制</li>
+                                    </ul>
+                                </div><!-- 階段2 -->
+                                <div class="relative pl-10 pb-6"><div class="absolute left-0 top-0 w-9 flex justify-center">
+                                        <div class="w-9 h-9 rounded-full bg-primary-600 dark:bg-primary-500 text-white flex items-center justify-center"><i class="fas fa-tree"></i>
+                                        </div></div>
+                                    <h4 class="font-medium">中期（1-2年）</h4>
+                                    <ul class="mt-2 space-y-1 text-sm"><li>• 導入多模態能力（圖像、音頻處理）</li><li>• 實現更複雜的業務流程自動化</li>
+                                        <li>• 開發專用的垂直領域模型</li>
+                                        <li>• 建立內部LLM應用開發平台</li>
+                                    </ul>
+                                </div>
+                                
+                                <!-- 階段3 -->
+                                <div class="relative pl-10">
+                                    <div class="absolute left-0 top-0 w-9 flex justify-center">
+                                        <div class="w-9 h-9 rounded-full bg-primary-600 dark:bg-primary-500 text-white flex items-center justify-center"><i class="fas fa-mountain"></i>
+                                        </div></div>
+                                    <h4 class="font-medium">長期（2-5年）</h4>
+                                    <ul class="mt-2 space-y-1 text-sm"><li>• 探索自主預訓練模型的可能性</li>
+                                        <li>• 建立多模型協同與專家系統</li>
+                                        <li>• 擴展至企業生態系統與合作夥伴</li>
+                                        <li>• 深度整合下一代AI技術（如AGI發展）</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 技術演進考量 -->
+                    <h3 class="text-xl font-semibold mb-4">技術演進考量</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                            <div class="flex items-center mb-3">
+                                <span class="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-600 dark:text-yellow-400 mr-2">
+                                    <i class="fas fa-microchip"></i>
+                                </span>
+                                <h4 class="font-medium text-primary-700 dark:text-primary-300">硬體技術發展</h4>
+                            </div>
+                            <ul class="text-sm space-y-2">
+                                <li class="flex items-start">
+                                    <i class="fas fa-angle-right text-yellow-500 mt-1 mr-2"></i>
+                                    <span>關注新一代AI專用硬體</span>
+                                </li>
+                                <li class="flex items-start"><i class="fas fa-angle-right text-yellow-500 mt-1 mr-2"></i><span>評估量子計算潛力</span>
+                                </li>
+                                <li class="flex items-start"><i class="fas fa-angle-right text-yellow-500 mt-1 mr-2"></i><span>邊緣AI設備整合</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                            <div class="flex items-center mb-3">
+                                <span class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 mr-2">
+                                    <i class="fas fa-brain"></i>
+                                </span>
+                                <h4 class="font-medium text-primary-700 dark:text-primary-300">模型架構演進</h4>
+                            </div>
+                            <ul class="text-sm space-y-2">
+                                <li class="flex items-start">
+                                    <i class="fas fa-angle-right text-green-500 mt-1 mr-2"></i>
+                                    <span>混合式架構（MoE）</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-angle-right text-green-500 mt-1 mr-2"></i>
+                                    <span>更高效的注意力機制</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-angle-right text-green-500 mt-1 mr-2"></i>
+                                    <span>長上下文模型整合</span>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                            <div class="flex items-center mb-3">
+                                <span class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 mr-2">
+                                    <i class="fas fa-cogs"></i>
+                                </span>
+                                <h4 class="font-medium text-primary-700 dark:text-primary-300">系統整合趨勢</h4>
+                            </div>
+                            <ul class="text-sm space-y-2">
+                                <li class="flex items-start">
+                                    <i class="fas fa-angle-right text-purple-500 mt-1 mr-2"></i>
+                                    <span>AI即服務內部平台</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-angle-right text-purple-500 mt-1 mr-2"></i>
+                                    <span>低代碼AI應用開發</span>
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-angle-right text-purple-500 mt-1 mr-2"></i><span>AI自主代理系統</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 擴展架構圖 -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">可擴展LLM部署架構</h3>
+                    <div class="mermaid">
+                        graph TB
+                            subgraph 外部接入層
+                                A[負載均衡器] --> B[API閘道]
+                                B --> C[認證與授權]
+                            end
+                            
+                            subgraph 核心服務層
+                                C --> D[服務註冊與發現]
+                                D --> E[模型服務A集群]
+                                D --> F[模型服務B集群]
+                                D --> G[RAG服務集群]
+                                D --> H[多模態處理集群]
+                            end
+                            
+                            subgraph 數據存儲層
+                                I[分布式向量數據庫] --- J[分布式文件存儲]
+                                K[元數據服務] --- L[緩存服務]
+								E & F & G & H --> I & J & K & L
+                            end
+							
+							subgraph 監控與管理
+                                M[指標收集] --> N[監控警報]
+                                O[日誌聚合] --> P[可視化儀表板]
+                                Q[配置管理] --> R[部署自動化]
+                                
+                                M & O & Q --> S[運維管理平台]
+                            end
+                            
+                            S --> A & B & C & D & E & F & G & H & I & J & K & L
+                            
+                            style 外部接入層 fill:#f0f8ff,stroke:#4c9aff,stroke-width:2px
+                            style 核心服務層 fill:#f0fff8,stroke:#4cff9a,stroke-width:2px
+                            style 數據存儲層 fill:#fff8f0,stroke:#ffc04c,stroke-width:2px
+                            style 監控與管理 fill:#f8f0ff,stroke:#c04cff,stroke-width:2px
+					</div>
+                </div>
+            </section>
+            
+            <!-- 建置流程 -->
+            <section id="implementation" class="mb-16 max-w-4xl fade-in">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="bg-primary-600 dark:bg-primary-500 p-3 rounded-full">
+                        <i class="material-icons text-white">engineering</i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white">建置規劃流程</h2>
+                </div><div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-8">
+                    <p class="text-lg leading-relaxed mb-6">
+                        一個結構化的建置規劃流程有助於企業系統性地推動本地 LLM 環境的建構。以下流程提供了從需求分析到持續優化的完整路徑，確保項目的成功實施。
+                    </p>    <!-- 建置流程圖 -->
+                    <div class="mb-8">
+                        <div class="mermaid">
+                            graph TD
+                                A[需求分析與目標設定] --> B[模型評估與選擇]
+                                B --> C[基礎設施規劃與建置]
+                                C --> D[數據準備與知識庫建構]
+                                D --> E[系統開發與整合]
+                                E --> F[安全性設計與合規性檢查]
+                                F --> G[測試與驗證]
+                                G --> H[部署與上線]
+                                H --> I[監控、維護與迭代優化]
+                                I --> J{效能/質量評估}
+                                J -->|需改進| K[識別優化點]
+                                K --> L[實施改進]
+                                L --> I
+                                J -->|符合預期| M[擴展應用場景]
+                                M --> A
+                                
+                                style A fill:#e3f2fd,stroke:#1976d2
+                                style B fill:#e8f5e9,stroke:#388e3c
+                                style C fill:#fff8e1,stroke:#ffa000
+                                style D fill:#f3e5f5,stroke:#7b1fa2
+                                style E fill:#e8eaf6,stroke:#3949ab
+                                style F fill:#ffebee,stroke:#d32f2f
+                                style G fill:#e0f2f1,stroke:#00897b
+                                style H fill:#f9fbe7,stroke:#9e9d24
+                                style I fill:#fce4ec,stroke:#c2185b
+                                style J fill:#ede7f6,stroke:#512da8
+                                style K fill:#e1f5fe,stroke:#0288d1
+                                style L fill:#f1f8e9,stroke:#689f38
+                                style M fill:#fff3e0,stroke:#ef6c00
+                        </div>
+                    </div>
+                    
+                    <!-- 建置階段詳細描述 -->
+                    <div class="space-y-6">
+                        <!-- 階段1-4 -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5 shadow-sm">
+                                <div class="flex items-center mb-3"><span class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 mr-2 font-bold">1</span><h4 class="font-semibold text-lg">需求分析與目標設定</h4>
+                                </div>
+                                <ul class="space-y-2 pl-10 text-sm"><li class="list-disc">明確LLM的應用場景、目標用戶和核心價值</li>
+                                    <li class="list-disc">定義成功的關鍵績效指標 (KPIs)</li>
+                                    <li class="list-disc">收集所有利益相關者的需求</li>
+                                    <li class="list-disc">評估投資回報與業務價值</li>
+                                    <li class="list-disc">制定初步的項目規劃與時間表</li>
+                                </ul>
+                            </div>
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5 shadow-sm">
+                                <div class="flex items-center mb-3"><span class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400 mr-2 font-bold">2</span>
+                                    <h4 class="font-semibold text-lg">模型評估與選擇</h4>
+                                </div>
+                                <ul class="space-y-2 pl-10 text-sm">
+                                    <li class="list-disc">根據定義的目標和使用案例，評估不同 LLM 選項</li>
+                                    <li class="list-disc">考慮模型的效能、資源需求、授權條款和社群支援</li>
+                                    <li class="list-disc">選擇開源、商業或自建模型路線</li>
+                                    <li class="list-disc">評估微調需求與數據準備工作</li>
+                                    <li class="list-disc">確認模型與應用場景適配度</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- 階段3-4 -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5 shadow-sm">
+                                <div class="flex items-center mb-3">
+                                    <span class="w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-600 dark:text-yellow-400 mr-2 font-bold">3</span>
+                                    <h4 class="font-semibold text-lg">基礎設施規劃與建置</h4>
+                                </div>
+                                <ul class="space-y-2 pl-10 text-sm">
+                                    <li class="list-disc">根據所選模型和預期負載，規劃所需的硬體資源</li>
+                                    <li class="list-disc">選擇合適的軟體堆疊（OS、容器化平台、推論引擎等）</li>
+                                    <li class="list-disc">設計系統架構，包括高可用性和災難恢復機制</li>
+                                    <li class="list-disc">採購並安裝硬體，設定軟體環境</li>
+                                    <li class="list-disc">設計擴展性方案以應對未來需求增長</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5 shadow-sm">
+                                <div class="flex items-center mb-3">
+                                    <span class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 mr-2 font-bold">4</span>
+                                    <h4 class="font-semibold text-lg">數據準備與知識庫建構</h4>
+                                </div>
+                                <ul class="space-y-2 pl-10 text-sm">
+                                    <li class="list-disc">收集、清理和預處理用於模型訓練/微調或 RAG 的數據</li><li class="list-disc">將文檔向量化並存入向量資料庫，建立知識庫索引</li>
+                                    <li class="list-disc">建立數據更新和維護流程</li>
+                                    <li class="list-disc">確保數據處理過程符合安全和隱私規範</li>
+                                    <li class="list-disc">評估和優化知識庫的檢索效果</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- 階段5-6 -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5 shadow-sm">
+                                <div class="flex items-center mb-3">
+                                    <span class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 dark:text-indigo-400 mr-2 font-bold">5</span><h4 class="font-semibold text-lg">系統開發與整合</h4>
+                                </div>
+                                <ul class="space-y-2 pl-10 text-sm">
+                                    <li class="list-disc">開發LLM應用程式的核心功能，設計關鍵提示詞模板</li>
+                                    <li class="list-disc">將LLM與企業現有系統（如資料庫、API）進行整合</li>
+                                    <li class="list-disc">開發使用者介面和必要的API接口</li>
+                                    <li class="list-disc">建立認證與授權機制</li>
+                                    <li class="list-disc">實施監控和日誌記錄功能</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5 shadow-sm">
+                                <div class="flex items-center mb-3">
+                                    <span class="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400 mr-2 font-bold">6</span>
+                                    <h4 class="font-semibold text-lg">安全性設計與合規性檢查</h4>
+                                </div>
+                                <ul class="space-y-2 pl-10 text-sm">
+                                    <li class="list-disc">實施數據加密、存取控制、網路安全等措施</li>
+                                    <li class="list-disc">確保系統設計符合相關法律法規和行業標準</li>
+                                    <li class="list-disc">進行安全漏洞掃描和滲透測試</li>
+                                    <li class="list-disc">實施提示詞注入防護和內容審核機制</li><li class="list-disc">建立安全事件響應流程</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <!-- 階段7-8 -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5 shadow-sm">
+                                <div class="flex items-center mb-3">
+                                    <span class="w-8 h-8 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center text-teal-600 dark:text-teal-400 mr-2 font-bold">7</span><h4 class="font-semibold text-lg">測試與驗證</h4>
+                                </div>
+                                <ul class="space-y-2 pl-10 text-sm">
+                                    <li class="list-disc">進行全面的功能測試、效能測試和壓力測試</li>
+                                    <li class="list-disc">驗證模型輸出的準確性、相關性和一致性</li><li class="list-disc">識別並修復系統缺陷和模型問題</li>
+                                    <li class="list-disc">邀請目標用戶進行使用者驗收測試，收集反饋</li>
+                                    <li class="list-disc">驗證系統是否滿足最初設定的目標和KPI</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5 shadow-sm">
+                                <div class="flex items-center mb-3">
+                                    <span class="w-8 h-8 rounded-full bg-lime-100 dark:bg-lime-900/30 flex items-center justify-center text-lime-600 dark:text-lime-400 mr-2 font-bold">8</span>
+                                    <h4 class="font-semibold text-lg">部署與上線</h4>
+                                </div>
+                                <ul class="space-y-2 pl-10 text-sm">
+                                    <li class="list-disc">將LLM應用程式部署到生產環境</li>
+                                    <li class="list-disc">實施監控和告警機制</li>
+                                    <li class="list-disc">制定上線計劃和回滾方案</li>
+                                    <li class="list-disc">提供用戶培訓和支持文檔</li>
+                                    <li class="list-disc">分階段向目標用戶群推出</li>
+                                </ul>
+                            </div>
+                        </div>        <!-- 階段9 -->
+                        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5 shadow-sm">
+                            <div class="flex items-center mb-3">
+                                <span class="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center text-pink-600 dark:text-pink-400 mr-2 font-bold">9</span>
+                                <h4 class="font-semibold text-lg">監控、維護與迭代優化</h4>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pl-10">
+                                <ul class="space-y-2 text-sm">
+                                    <li class="list-disc">持續監控系統效能、資源使用情況和模型表現</li>
+                                    <li class="list-disc">定期進行系統維護、軟體更新和安全補丁</li>
+                                    <li class="list-disc">建立模型更新和版本控制流程</li>
+                                </ul>
+                                <ul class="space-y-2 text-sm">
+                                    <li class="list-disc">收集用戶反饋和問題案例，針對性地改進系統</li>
+                                    <li class="list-disc">優化提示詞工程和模型參數，提升輸出質量</li>
+                                    <li class="list-disc">根據業務發展和技術進步，規劃系統的升級和擴展</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 關鍵成功因素 -->
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">專案成功關鍵因素</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                            <div class="flex items-center mb-3">
+                                <span class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-300 mr-2">
+                                    <i class="fas fa-users-cog"></i>
+                                </span>
+                                <h4 class="font-medium">管理層支持</h4>
+                            </div>
+                            <p class="text-sm">
+                                獲取高層管理者的支持與投入，確保資源充足且各部門協作暢順，設定合理期望並保持長期投入承諾。
+                            </p>
+                        </div>
+                        
+                        <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                            <div class="flex items-center mb-3">
+                                <span class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-800 flex items-center justify-center text-green-600 dark:text-green-300 mr-2">
+                                    <i class="fas fa-graduation-cap"></i>
+                                </span>
+                                <h4 class="font-medium">技能培養</h4>
+                            </div>
+                            <p class="text-sm">
+                                投資AI人才培養與專業技能提升，建立跨學科團隊並鼓勵知識分享，與技術社群保持聯繫並吸收最新發展。
+                            </p>
+                        </div><div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                            <div class="flex items-center mb-3">
+                                <span class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-800 flex items-center justify-center text-purple-600 dark:text-purple-300 mr-2">
+                                    <i class="fas fa-user-check"></i>
+                                </span>
+                                <h4 class="font-medium">用戶中心設計</h4>
+                            </div>
+                            <p class="text-sm">
+                                深入理解用戶需求與工作流程，提供直觀易用的界面體驗，持續收集反饋並迭代改進，確保系統真正解決實際問題。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+    
+    <!-- 頁腳 -->
+    <footer class="bg-white dark:bg-gray-800 py-8 border-t border-gray-200 dark:border-gray-700">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row items-center justify-between">
+                <div class="mb-4 md:mb-0">
+                    <p class="text-gray-600 dark:text-gray-400">© 2025 企業級本地LLM部署指南. All rights reserved.</p>
+                </div>
+                
+                <div class="flex space-x-4">
+                    <p class="text-gray-600 dark:text-gray-400">作者: Cl Tseng</p>
+                <a href="https://twitter.com/ClTseng" class="text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- 返回頂部按鈕 -->
+    <button id="back-to-top" class="fixed bottom-6 right-6 p-3 rounded-full bg-primary-600 dark:bg-primary-700 text-white shadow-lg opacity-0 invisible transition-all duration-300 hover:bg-primary-700 dark:hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- 腳本 -->
+    <script>
+        // 主題切換
+        document.addEventListener('DOMContentLoaded', function() {
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            
+            // 檢查系統配置或用戶偏好
+            if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            
+            // 主題切換按鈕事件
+            themeToggleBtn.addEventListener('click', function() {
+                document.documentElement.classList.toggle('dark');
+                
+                // 保存偏好
+                if (document.documentElement.classList.contains('dark')) {
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    localStorage.setItem('theme', 'light');
+                }
+                
+                // 更新圖表主題
+                updateChartsTheme();
+            });
+            
+            // 初始化返回頂部按鈕
+            const backToTopButton = document.getElementById('back-to-top');
+            
+            window.addEventListener('scroll', function() {
+                if (window.pageYOffset > 300) {
+                    backToTopButton.classList.remove('opacity-0', 'invisible');
+                    backToTopButton.classList.add('opacity-100', 'visible');
+                } else {
+                    backToTopButton.classList.remove('opacity-100', 'visible');
+                    backToTopButton.classList.add('opacity-0', 'invisible');
+                }
+            });
+            
+            backToTopButton.addEventListener('click', function() {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            });
+            
+            // 初始化 Mermaid 圖表
+            mermaid.initialize({
+                theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+                securityLevel: 'loose',
+                htmlLabels: true
+            });
+        });
+        
+        // 初始化圖表
+        function initializeCharts() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#e2e8f0' : '#1e293b';
+            const borderColor = isDark ? '#4b5563' : '#e2e8f0';
+            const backgroundColor = isDark ? '#1e293b' : '#ffffff';
+            
+            // KPI圖表
+            const kpiChart = echarts.init(document.getElementById('kpi-chart'));
+            kpiChart.setOption({
+                backgroundColor: 'transparent',
+                title: {
+                    text: 'LLM部署關鍵績效指標',
+                    left: 'center',
+                    textStyle: {
+                        color: textColor
+                    }
+                },
+                tooltip: {
+                    trigger: 'item'
+                },
+                legend: {
+                    orient: 'vertical',
+                    left: 'left',
+                    textStyle: {
+                        color: textColor
+                    }
+                },
+                radar: {
+                    indicator: [
+                        { name: '回答準確性', max: 100 },
+                        { name: '系統響應時間', max: 100 },
+                        { name: '用戶滿意度', max: 100 },
+                        { name: '服務可用性', max: 100 },
+                        { name: '數據隱私合規', max: 100 },
+                        { name: '成本效益', max: 100 }
+                    ],
+                    splitLine: {
+                        lineStyle: {
+                            color: borderColor
+                        }
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: borderColor
+                        }
+                    },
+                    name: {
+                        textStyle: {
+                            color: textColor
+                        }
+                    }
+                },
+                series: [{
+                    name: '指標評分',
+                    type: 'radar',
+                    data: [
+                        {
+                            value: [85, 80, 90, 95, 98, 75],
+                            name: '目標值',
+                            areaStyle: {
+                                color: 'rgba(14, 165, 233, 0.2)'
+                            },
+                            lineStyle: {
+                                color: '#0ea5e9'
+                            },
+                            itemStyle: {
+                                color: '#0ea5e9'
+                            }
+                        },
+                        {
+                            value: [70, 60, 75, 85, 90, 65],
+                            name: '當前值',
+                            areaStyle: {
+                                color: 'rgba(100, 116, 139, 0.2)'
+                            },
+                            lineStyle: {
+                                color: '#64748b'
+                            },
+                            itemStyle: {
+                                color: '#64748b'
+                            }
+                        }
+                    ]
+                }]
+            });
+            
+            // 模型比較圖表
+            const modelChart = echarts.init(document.getElementById('model-comparison-chart'));
+            modelChart.setOption({
+                backgroundColor: 'transparent',
+                title: {
+                    text: '模型參數與推理效能對比',
+                    left: 'center',
+                    textStyle: {
+                        color: textColor
+                    }
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'cross'
+                    }
+                },
+                legend: {
+                    data: ['模型大小', '推理速度'],
+                    textStyle: {
+                        color: textColor
+                    },
+                    bottom: 10
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '15%',
+                    containLabel: true
+                },
+                xAxis: [
+                    {
+                        type: 'category',
+                        data: ['Phi-3 Mini', 'Mistral 7B', 'Llama 3 8B', 'Qwen2 7B', 'Llama 3 70B'],
+                        axisLabel: {
+                            color: textColor
+                        },
+                        axisLine: {
+                            lineStyle: {
+                                color: borderColor
+                            }
+                        }
+                    }
+                ],
+                yAxis: [
+                    {
+                        type: 'value',
+                        name: '參數量（十億）',
+                        axisLabel: {
+                            color: textColor,
+                            formatter: '{value} B'
+                        },
+                        axisLine: {
+                            lineStyle: {
+                                color: borderColor
+                            }
+                        },
+                        splitLine: {
+                            lineStyle: {
+                                color: borderColor,
+                                opacity: 0.3
+                            }
+                        }
+                    },
+                    {
+                        type: 'value',
+                        name: '相對速度',
+                        axisLabel: {
+                            color: textColor,
+                            formatter: '{value}x'
+                        },
+                        axisLine: {
+                            lineStyle: {
+                                color: borderColor
+                            }
+                        },
+                        splitLine: {
+                            show: false
+                        }
+                    }
+                ],
+                series: [
+                    {
+                        name: '模型大小',
+                        type: 'bar',
+                        data: [3.8, 7, 8, 7, 70],
+                        itemStyle: {
+                            color: '#0ea5e9'
+                        }
+                    },
+                    {
+                        name: '推理速度',
+                        type: 'line',
+                        yAxisIndex: 1,
+                        data: [8.2, 4.5, 3.9, 4.2, 1],
+                        lineStyle: {
+                            color: '#f97316'
+                        },
+                        itemStyle: {
+                            color: '#f97316'
+                        }
+                    }
+                ]
+            });
+            
+            // GPU對比圖表
+            const gpuChart = echarts.init(document.getElementById('gpu-comparison-chart'));
+            gpuChart.setOption({
+                backgroundColor: 'transparent',
+                title: {
+                    text: '企業級GPU效能對比',
+                    subtext: '數值為相對性能指標，非精確測量值',
+                    left: 'center',
+                    textStyle: {
+                        color: textColor
+                    },
+                    subtextStyle: {
+                        color: textColor
+                    }
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                legend: {
+                    data: ['計算性能', '記憶體容量', '功耗'],
+                    textStyle: {
+                        color: textColor
+                    },
+                    bottom: 10
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '15%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'value',
+                    axisLabel: {
+                        color: textColor
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: borderColor
+                        }
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: borderColor,
+                            opacity: 0.3
+                        }
+                    }
+                },
+                yAxis: {
+                    type: 'category',
+                    data: ['RTX 4090', 'RTX 6000 Ada', 'A100 40GB', 'A100 80GB', 'H100 80GB'],
+                    axisLabel: {
+                        color: textColor
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: borderColor
+                        }
+                    }
+                },
+                series: [
+                    {
+                        name: '計算性能',
+                        type: 'bar',
+                        data: [35, 45, 60, 65, 100],
+                        itemStyle: {
+                            color: '#0ea5e9'
+                        }
+                    },
+                    {
+                        name: '記憶體容量',
+                        type: 'bar',
+                        data: [24, 48, 40, 80, 80],
+                        itemStyle: {
+                            color: '#10b981'
+                        }
+                    },
+                    {
+                        name: '功耗',
+                        type: 'bar',
+                        data: [45, 60, 75, 80, 100],
+                        itemStyle: {
+                            color: '#f97316'
+                        }
+                    }
+                ]
+            });
+            
+            // 成本分佈圖表
+            const costChart = echarts.init(document.getElementById('cost-breakdown-chart'));
+            costChart.setOption({
+                backgroundColor: 'transparent',
+                title: {
+                    text: 'LLM部署成本分佈',
+                    left: 'center',
+                    textStyle: {
+                        color: textColor
+                    }
+                },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: '{a} <br/>{b}: {c}%'
+                },
+                legend: {
+                    orient: 'vertical',
+                    left: 'left',
+                    textStyle: {
+                        color: textColor
+                    }
+                },
+                series: [
+                    {
+                        name: '成本占比',
+                        type: 'pie',
+                        radius: ['40%', '70%'],
+                        avoidLabelOverlap: false,
+                        itemStyle: {
+                            borderRadius: 10,
+                            borderColor: backgroundColor,
+                            borderWidth: 2
+                        },
+                        label: {
+                            show: false,
+                            position: 'center'
+                        },
+                        emphasis: {
+                            label: {
+                                show: true,
+                                fontSize: 20,
+                                fontWeight: 'bold',
+                                color: textColor
+                            }
+                        },
+                        labelLine: {
+                            show: false
+                        },
+                        data: [
+                            { value: 38, name: '硬體成本' },
+                            { value: 12, name: '軟體成本' },
+                            { value: 25, name: '人力成本' },
+                            { value: 15, name: '維護成本' },
+                            { value: 10, name: '其他成本' }
+                        ],
+                        color: ['#0ea5e9', '#f97316', '#10b981', '#8b5cf6', '#64748b']
+                    }
+                ]
+            });
+            
+            // TCO對比圖表
+            const tcoChart = echarts.init(document.getElementById('tco-comparison-chart'));
+            tcoChart.setOption({
+                backgroundColor: 'transparent',
+                title: {
+                    text: '3年TCO比較（百萬元）',
+                    left: 'center',
+                    textStyle: {
+                        color: textColor
+                    }
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    },
+                    formatter: function(params) {
+                        let tooltip = params[0].axisValue + '<br/>';
+                        params.forEach(param => {
+                            tooltip += param.marker + param.seriesName + ': ' + param.value + '百萬元<br/>';
+                        });
+                        return tooltip;
+                    }
+                },
+                legend: {
+                    data: ['初期投資', '運維成本', '雲服務API費用'],
+                    textStyle: {
+                        color: textColor
+                    },
+                    bottom: 10
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '15%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['低使用量', '中等使用量', '高使用量'],
+                    axisLabel: {
+                        color: textColor
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: borderColor
+                        }
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '百萬元',
+                    axisLabel: {
+                        color: textColor
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: borderColor
+                        }
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: borderColor,
+                            opacity: 0.3
+                        }
+                    }
+                },
+                series: [
+                    {
+                        name: '初期投資',
+                        type: 'bar',
+                        stack: '本地部署',
+                        emphasis: {
+                            focus: 'series'
+                        },
+                        data: [8, 15, 25],
+                        itemStyle: {
+                            color: '#0ea5e9'
+                        }
+                    },
+                    {
+                        name: '運維成本',
+                        type: 'bar',
+                        stack: '本地部署',
+                        emphasis: {
+                            focus: 'series'
+                        },
+                        data: [5, 10, 15],
+                        itemStyle: {
+                            color: '#0c96d2'
+                        }
+                    },
+                    {
+                        name: '雲服務API費用',
+                        type: 'bar',
+                        barWidth: 30,
+                        emphasis: {
+                            focus: 'series'
+                        },
+                        data: [6, 18, 60],
+                        itemStyle: {
+                            color: '#f97316'
+                        }
+                    }
+                ]
+            });
+            
+            // 監控儀表板
+            const monitoringChart = echarts.init(document.getElementById('monitoring-dashboard'));
+            monitoringChart.setOption({
+                backgroundColor: 'transparent',
+                title: {
+                    text: 'LLM系統監控儀表盤模擬',
+                    left: 'center',
+                    textStyle: {
+                        color: textColor
+                    }
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'cross',
+                        label: {
+                            backgroundColor: '#6a7985'
+                        }
+                    }
+                },
+                legend: {
+                    data: ['GPU利用率', '記憶體使用率', '請求量', '平均回應時間'],
+                    textStyle: {
+                        color: textColor
+                    },
+                    bottom: 10
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '15%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00', '00:00'],
+                    axisLabel: {
+                        color: textColor
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: borderColor
+                        }
+                    }
+                },
+                yAxis: [
+                    {
+                        type: 'value',
+                        name: '百分比',
+                        min: 0,
+                        max: 100,
+                        axisLabel: {
+                            color: textColor,
+                            formatter: '{value}%'
+                        },
+                        axisLine: {
+                            lineStyle: {
+                                color: borderColor
+                            }
+                        },
+                        splitLine: {
+                            lineStyle: {
+                                color: borderColor,
+                                opacity: 0.3
+                            }
+                        }
+                    },
+                    {
+                        type: 'value',
+                        name: '請求/時間',
+                        axisLabel: {
+                            color: textColor
+                        },
+                        axisLine: {
+                            lineStyle: {
+                                color: borderColor
+                            }
+                        },
+                        splitLine: {
+                            show: false
+                        }
+                    }
+                ],
+                series: [
+                    {
+                        name: 'GPU利用率',
+                        type: 'line',
+                        data: [30, 25, 20, 45, 75, 85, 70, 60, 40],
+                        smooth: true,
+                        lineStyle: {
+                            width: 3,
+                            color: '#0ea5e9'
+                        },
+                        itemStyle: {
+                            color: '#0ea5e9'
+                        }
+                    },
+                    {
+                        name: '記憶體使用率',
+                        type: 'line',
+                        data: [45, 40, 35, 60, 80, 90, 85, 75, 55],
+                        smooth: true,
+                        lineStyle: {
+                            width: 3,
+                            color: '#f97316'
+                        },
+                        itemStyle: {
+                            color: '#f97316'
+                        }
+                    },
+                    {
+                        name: '請求量',
+                        type: 'bar',
+                        yAxisIndex: 1,
+                        data: [120, 80, 50, 250, 400, 380, 340, 280, 150],
+                        itemStyle: {
+                            color: 'rgba(16, 185, 129, 0.6)'
+                        }
+                    },
+                    {
+                        name: '平均回應時間',
+                        type: 'line',
+                        yAxisIndex: 1,
+                        data: [250, 230, 220, 280, 350, 380, 320, 300, 270],
+                        smooth: true,
+                        lineStyle: {
+                            width: 3,
+                            type: 'dashed',
+                            color: '#8b5cf6'
+                        },
+                        itemStyle: {
+                            color: '#8b5cf6'
+                        }
+                    }
+                ]
+            });
+            
+            // 保存圖表實例以便後續更新
+            window.chartInstances = {
+                kpiChart,
+                modelChart,
+                gpuChart,
+                costChart,
+                tcoChart,
+                monitoringChart
+            };
+        }
+        
+        // 更新圖表主題
+        function updateChartsTheme() {
+            if (!window.chartInstances) return;
+            
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#e2e8f0' : '#1e293b';
+            const borderColor = isDark ? '#4b5563' : '#e2e8f0';
+            
+            // 更新每個圖表的主題配置
+            for (const chartKey in window.chartInstances) {
+                const chart = window.chartInstances[chartKey];
+                const option = chart.getOption();
+                
+                if (option.title) {
+                    option.title.forEach(title => {
+                        title.textStyle = { ...title.textStyle, color: textColor };
+                        if (title.subtextStyle) {
+                            title.subtextStyle = { ...title.subtextStyle, color: textColor };
+                        }
+                    });
+                }
+                
+                if (option.legend) {
+                    option.legend.forEach(legend => {
+                        legend.textStyle = { ...legend.textStyle, color: textColor };
+                    });
+                }
+                
+                if (option.xAxis) {
+                    option.xAxis.forEach(axis => {
+                        axis.axisLabel = { ...axis.axisLabel, color: textColor };
+                        axis.axisLine = { 
+                            lineStyle: { ...axis.axisLine?.lineStyle, color: borderColor } 
+                        };
+                        if (axis.splitLine) {
+                            axis.splitLine.lineStyle = { 
+                                ...axis.splitLine.lineStyle, 
+                                color: borderColor,
+                                opacity: 0.3
+                            };
+                        }
+                    });
+                }
+                
+                if (option.yAxis) {
+                    option.yAxis.forEach(axis => {
+                        axis.axisLabel = { ...axis.axisLabel, color: textColor };
+                        axis.axisLine = { 
+                            lineStyle: { ...axis.axisLine?.lineStyle, color: borderColor } 
+                        };
+                        if (axis.splitLine) {
+                            axis.splitLine.lineStyle = { 
+                                ...axis.splitLine.lineStyle, 
+                                color: borderColor,
+                                opacity: 0.3
+                            };
+                        }
+                    });
+                }
+                
+                if (option.radar) {
+                    option.radar.forEach(radar => {
+                        radar.splitLine = {
+                            lineStyle: { color: borderColor }
+                        };
+                        radar.axisLine = {
+                            lineStyle: { color: borderColor }
+                        };
+                        radar.name = {
+                            textStyle: { color: textColor }
+                        };
+                    });
+                }
+                
+                chart.setOption(option);
+            }
+            
+            // 更新 Mermaid 圖表
+            mermaid.initialize({
+                theme: isDark ? 'dark' : 'default'
+            });
+        }
+        
+        // 當頁面加載完成後初始化圖表
+        window.addEventListener('load', function() {
+            initializeCharts();
+            
+            // 淡入效果
+            const fadeElements = document.querySelectorAll('.fade-in');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = 1;
+                        entry.target.style.transform = 'translateY(0)';
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            fadeElements.forEach(element => {
+                element.style.opacity = 0;
+                element.style.transform = 'translateY(20px)';
+                element.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+                observer.observe(element);
+            });
+        });
+    </script>
+</body>
+</html>
