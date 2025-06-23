@@ -1,0 +1,831 @@
+
+<!DOCTYPE html>
+<html lang="zh-Hant" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Langchain中Docling的使用方法與相關範例">
+    <title>Docling在Langchain中的應用</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/preline@3.0.1/dist/preline.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/material-icons@1.13.14/iconfont/material-icons.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                            950: '#082f49',
+                        },
+                        secondary: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            300: '#c4b5fd',
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            800: '#5b21b6',
+                            900: '#4c1d95',
+                            950: '#2e1065',
+                        },neutral: {
+                            50: '#fafafa',
+                            100: '#f5f5f5',
+                            200: '#e5e5e5',
+                            300: '#d4d4d4',
+                            400: '#a3a3a3',
+                            500: '#737373',
+                            600: '#525252',
+                            700: '#404040',
+                            800: '#262626',
+                            900: '#171717',
+                            950: '#0a0a0a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Noto Sans TC"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    }
+                }
+            }
+        };
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap');
+        .code-block {
+            position: relative;
+            background: #f8fafc;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .dark .code-block {
+            background: #1e293b;
+        }
+        
+        .code-block pre {
+            padding: 1.25rem;
+            overflow-x: auto;
+        }
+        
+        .code-block .copy-button {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+            opacity: 0;
+        }
+        
+        .code-block:hover .copy-button {
+            opacity: 1;
+        }
+        
+        /* 動畫效果 */
+        .fade-in {
+            animation: fadeIn 0.6s ease-in forwards;
+            opacity: 0;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 延遲動畫效果 */
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+    </style>
+</head>
+<body class="bg-neutral-50 text-neutral-900 dark:bg-neutral-900 dark:text-neutral-100 font-sans antialiased transition-colors duration-300">
+    <!-- 導航欄 -->
+    <header class="sticky top-0 z-50 backdrop-blur-md bg-white/90 dark:bg-neutral-900/90 border-b border-neutral-200 dark:border-neutral-800">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-2 text-primary-700 dark:text-primary-400">
+                <i class="material-icons text-2xl">article</i>
+                <h1 class="text-xl font-bold">Docling 技術分析</h1>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors duration-200">
+                    <i id="theme-icon" class="material-icons text-neutral-600 dark:text-neutral-300">dark_mode</i>
+                </button></div>
+        </div>
+    </header>
+
+    <!-- 主要內容區域 -->
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- 頂部橫幅 -->
+        <div class="relative mb-10 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 overflow-hidden fade-in">
+            <div class="absolute inset-0 bg-grid-white/10 bg-[size:20px_20px] opacity-20"></div>
+            <div class="relative p-8 sm:p-10 md:p-12">
+                <div class="max-w-3xl">
+                    <h1 class="text-3xl sm:text-4xl font-bold text-white mb-4">Langchain 中的 Docling</h1>
+                    <p class="text-primary-100 text-lg">強大的文件處理工具，用於解析多種文件格式並轉換為易於 RAG 應用的統一表示形式</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 內容區塊 -->
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <!-- 側邊導航 -->
+            <aside class="lg:col-span-1">
+                <div class="sticky top-24 p-6 bg-white dark:bg-neutral-800 rounded-xl shadow-sm border border-neutral-200 dark:border-neutral-700 fade-in delay-1">
+                    <h2 class="text-xl font-semibold mb-4 border-b pb-2 border-neutral-200 dark:border-neutral-700">目錄</h2>
+                    <nav class="space-y-1">
+                        <a href="#overview" class="block py-2 px-3 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-md transition-colors">概述</a>
+                        <a href="#introduction" class="block py-2 px-3 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-md transition-colors">Docling 簡介</a><a href="#docling-loader" class="block py-2 px-3 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-md transition-colors">DoclingLoader 使用</a>
+                        <a href="#rag-example" class="block py-2 px-3 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-md transition-colors">RAG 應用範例</a>
+                        <a href="#use-cases" class="block py-2 px-3 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-md transition-colors">應用場景</a>
+                    </nav>
+                </div>
+            </aside>
+
+            <!-- 主要內容 -->
+            <div class="lg:col-span-3 space-y-8">
+                <!-- 概述 -->
+                <section id="overview" class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-sm border border-neutral-200 dark:border-neutral-700 fade-in delay-2">
+                    <h2 class="text-2xl font-bold mb-4 text-primary-700 dark:text-primary-400">概述</h2>
+                    <p class="text-neutral-700 dark:text-neutral-300 leading-relaxed">
+                        本報告旨在說明 Langchain 中 Docling 的使用方法並提供相關範例。Docling 是一個強大的文件處理工具，能夠解析多種文件格式（如 PDF、DOCX、PPTX、HTML 等），並將其轉換為包含文件佈局、表格等資訊的豐富統一表示形式，以便在如檢索增強生成（RAG）等生成式 AI 工作流程中使用。Langchain 透過 `DoclingLoader` 文件加載器整合了 Docling 的功能，讓開發者能輕易地在大型語言模型（LLM）應用程式中使用各種類型的文件，並利用 Docling 豐富的格式進行進階的、文件原生的基礎支撐。
+                    </p>
+                </section>
+
+                <!-- Docling 簡介 -->
+                <section id="introduction" class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-sm border border-neutral-200 dark:border-neutral-700 fade-in delay-3">
+                    <h2 class="text-2xl font-bold mb-4 text-primary-700 dark:text-primary-400">Docling 簡介</h2>
+                    <p class="text-neutral-700 dark:text-neutral-300 leading-relaxed mb-4">
+                        Docling 由 IBM Research 開發，現由 LF AI & Data Foundation 託管，是一個開源的文件處理工具包。其核心目標是簡化多種格式文件的處理流程，將其轉換為適合生成式 AI 應用的格式。
+                    </p>
+                    <div id="docling-features-chart" class="h-80 w-full mb-6"></div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                        <div class="p-4 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:shadow-md transition-shadow duration-300">
+                            <h3 class="font-semibold mb-2 flex items-center">
+                                <i class="material-icons text-primary-600 dark:text-primary-400 mr-2">file_copy</i>
+                                多格式支援
+                            </h3>
+                            <p class="text-neutral-600 dark:text-neutral-400">
+                                能夠處理 PDF、DOCX、XLSX、PPTX、HTML、圖片等多種文件格式。
+                            </p>
+                        </div>
+                        <div class="p-4 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:shadow-md transition-shadow duration-300">
+                            <h3 class="font-semibold mb-2 flex items-center">
+                                <i class="material-icons text-primary-600 dark:text-primary-400 mr-2">picture_as_pdf</i>
+                                進階 PDF 解析
+                            </h3>
+                            <p class="text-neutral-600 dark:text-neutral-400">
+                                具備先進的 PDF 理解能力，包括頁面佈局分析、閱讀順序、表格結構識別等。
+                            </p>
+                        </div>
+                        <div class="p-4 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:shadow-md transition-shadow duration-300">
+                            <h3 class="font-semibold mb-2 flex items-center">
+                                <i class="material-icons text-primary-600 dark:text-primary-400 mr-2">transform</i>
+                                統一文件表示
+                            </h3>
+                            <p class="text-neutral-600 dark:text-neutral-400">
+                                使用 `DoclingDocument` 格式，提供結構化且表達豐富的統一表示。
+                            </p>
+                        </div>
+                        <div class="p-4 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:shadow-md transition-shadow duration-300">
+                            <h3 class="font-semibold mb-2 flex items-center">
+                                <i class="material-icons text-primary-600 dark:text-primary-400 mr-2">cloud_download</i>
+                                多種導出選項
+                            </h3>
+                            <p class="text-neutral-600 dark:text-neutral-400">
+                                支援將文件導出為 Markdown、HTML 和無損 JSON 格式。
+                            </p>
+                        </div>
+                        <div class="p-4 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:shadow-md transition-shadow duration-300">
+                            <h3 class="font-semibold mb-2 flex items-center">
+                                <i class="material-icons text-primary-600 dark:text-primary-400 mr-2">document_scanner</i>
+                                OCR 支援
+                            </h3>
+                            <p class="text-neutral-600 dark:text-neutral-400">
+                                針對掃描 PDF 和圖片提供光學字符識別（OCR）支援。
+                            </p>
+                        </div>
+                        <div class="p-4 bg-neutral-50 dark:bg-neutral-700/50 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:shadow-md transition-shadow duration-300">
+                            <h3 class="font-semibold mb-2 flex items-center">
+                                <i class="material-icons text-primary-600 dark:text-primary-400 mr-2">integration_instructions</i>
+                                AI 框架整合
+                            </h3>
+                            <p class="text-neutral-600 dark:text-neutral-400">
+                                與 LangChain、LlamaIndex 等框架提供即插即用的整合。
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- DoclingLoader 使用 -->
+                <section id="docling-loader" class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-sm border border-neutral-200 dark:border-neutral-700">
+                    <h2 class="text-2xl font-bold mb-4 text-primary-700 dark:text-primary-400">Langchain 中的 DoclingLoader</h2>
+                    <p class="text-neutral-700 dark:text-neutral-300 leading-relaxed mb-4">
+                        Langchain 透過 <code class="bg-neutral-100 dark:bg-neutral-700 px-1 py-0.5 rounded">langchain-docling</code> 套件中的 <code class="bg-neutral-100 dark:bg-neutral-700 px-1 py-0.5 rounded">DoclingLoader</code> 組件來使用 Docling的功能。
+                    </p>
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold mb-3 flex items-center">
+                            <i class="material-icons text-primary-600 dark:text-primary-400 mr-2">download</i>
+                            安裝
+                        </h3>
+                        <div class="code-block">
+                            <pre class="text-neutral-800 dark:text-neutral-200 font-mono text-sm"><code>pip install langchain-docling</code></pre>
+                            <button class="copy-button text-xs text-white dark:text-white bg-primary-500/80 hover:bg-primary-600/80">複製</button>
+                        </div>
+                        <p class="text-neutral-600 dark:text-neutral-400 mt-2 text-sm">
+                            這個指令適用於 macOS、Linux 和 Windows 環境。
+                        </p>
+                    </div>
+
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold mb-3 flex items-center">
+                            <i class="material-icons text-primary-600 dark:text-primary-400 mr-2">code</i>
+                            基本用法
+                        </h3>
+                        <div class="code-block">
+                            <pre class="text-neutral-800 dark:text-neutral-200 font-mono text-sm"><code>from langchain_docling import DoclingLoader
+
+FILE_PATH = ["https://arxiv.org/pdf/2408.09869"]  # Docling 技術報告的 URL
+loader = DoclingLoader(file_path=FILE_PATH)
+docs = loader.load()
+
+#檢視載入的文件內容範例
+for d in docs[:3]:
+    print(f"- {d.page_content=}")</code></pre>
+                            <button class="copy-button text-xs text-white dark:text-white bg-primary-500/80 hover:bg-primary-600/80">複製</button>
+                        </div>
+                        <p class="text-neutral-600 dark:text-neutral-400 mt-2 text-sm">
+                            上述代碼會從指定的 URL 下載 PDF 文件，並將其內容載入為 Langchain 的 Document 對象。
+                        </p>
+                    </div>
+
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold mb-3 flex items-center">
+                            <i class="material-icons text-primary-600 dark:text-primary-400 mr-2">settings</i>
+                            導出模式 (Export Modes)
+                        </h3>
+                        <div class="p-4 bg-primary-50 dark:bg-primary-900/30 rounded-lg border border-primary-200 dark:border-primary-800">
+                            <p class="text-neutral-700 dark:text-neutral-300">
+                                <code class="bg-neutral-100 dark:bg-neutral-700 px-1 py-0.5 rounded">DoclingLoader</code> 支援兩種主要的導出模式，可以通過 <code class="bg-neutral-100 dark:bg-neutral-700 px-1 py-0.5 rounded">export_type</code> 參數設定：
+                            </p>
+                            <ul class="list-disc pl-5 mt-2 space-y-2 text-neutral-700 dark:text-neutral-300">
+                                <li><strong>ExportType.DOC_CHUNKS</strong> (預設)：將每個輸入文件進行分塊，然後將每個獨立的塊作為一個單獨的 LangChain Document 對象。這是進行 RAG 時常用的模式，因為可以針對小塊文本進行精確檢索。
+                                </li>
+                                <li><strong>ExportType.MARKDOWN</strong>：將每個輸入文件完整地轉換為一個 Markdown 格式的 LangChain Document 對象。
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold mb-3 flex items-center">
+                            <i class="material-icons text-primary-600 dark:text-primary-400 mr-2">tune</i>
+                            進階用法
+                        </h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full border border-neutral-200 dark:border-neutral-700 rounded-lg">
+                                <thead class="bg-neutral-50 dark:bg-neutral-800">
+                                    <tr><th class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700 text-left text-neutral-700 dark:text-neutral-300">參數</th>
+                                        <th class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700 text-left text-neutral-700 dark:text-neutral-300">描述</th>
+                                        <th class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700 text-left text-neutral-700 dark:text-neutral-300">必需</th></tr>
+                                </thead>
+                                <tbody><tr class="bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700/50">
+                                        <td class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700 font-mono text-sm">file_path</td><td class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700">來源文件路徑或 URL，可以是單個字串或字串的可迭代對象</td>
+                                        <td class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700 text-center"><i class="fa fa-check text-green-500"></i></td>
+                                    </tr>
+                                    <tr class="bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700/50">
+                                        <td class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700 font-mono text-sm">converter</td>
+                                        <td class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700">指定要使用的 Docling <code>DocumentConverter</code> 實例</td><td class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700 text-center">-</td>
+                                    </tr><tr class="bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700/50">
+                                        <td class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700 font-mono text-sm">convert_kwargs</td><td class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700">傳遞給 Docling 轉換執行的特定參數</td>
+                                        <td class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700 text-center">-</td></tr>
+                                    <tr class="bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700/50">
+                                        <td class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700 font-mono text-sm">export_type</td>
+                                        <td class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700">導出模式，可選 <code>ExportType.DOC_CHUNKS</code> (預設) 或 <code>ExportType.MARKDOWN</code></td><td class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700 text-center">-</td>
+                                    </tr>
+                                    <tr class="bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700/50">
+                                        <td class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700 font-mono text-sm">md_export_kwargs</td><td class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700">在使用 Markdown 導出模式時，傳遞給 Markdown 導出的特定參數</td>
+                                        <td class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700 text-center">-</td>
+                                    </tr><tr class="bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700/50">
+                                        <td class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700 font-mono text-sm">chunker</td>
+                                        <td class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700">在使用 <code>DOC_CHUNKS</code> 模式時，指定要使用的 Docling 分塊器實例 (例如 <code>HybridChunker</code>)</td>
+                                        <td class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700 text-center">-</td>
+                                    </tr>
+                                    <tr class="bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700/50"><td class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700 font-mono text-sm">meta_extractor</td>
+                                        <td class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700">指定要使用的元數據提取器</td>
+                                        <td class="py-2 px-4 border-b border-neutral-200 dark:border-neutral-700 text-center">-</td>
+                                    </tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold mb-3 flex items-center">
+                            <i class="material-icons text-primary-600 dark:text-primary-400 mr-2">memory</i>
+                            延遲載入 (Lazy Load)
+                        </h3>
+                        <div class="code-block">
+                            <pre class="text-neutral-800 dark:text-neutral-200 font-mono text-sm"><code>doc_iter = loader.lazy_load()
+for doc in doc_iter:
+    # 在這裡操作 'doc'
+    pass</code></pre>
+                            <button class="copy-button text-xs text-white dark:text-white bg-primary-500/80 hover:bg-primary-600/80">複製</button>
+                        </div>
+                        <p class="text-neutral-600 dark:text-neutral-400 mt-2 text-sm">
+                            除了立即載入所有文件 (<code>load()</code>)，<code>DoclingLoader</code> 也支援延遲載入 (<code>lazy_load()</code>)，這在處理大量文件時可以更有效地管理記憶體。
+                        </p>
+                    </div>
+                </section>
+
+                <!-- RAG 應用範例 -->
+                <section id="rag-example" class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-sm border border-neutral-200 dark:border-neutral-700">
+                    <h2 class="text-2xl font-bold mb-4 text-primary-700 dark:text-primary-400">使用範例：端到端 RAG 應用</h2>
+                    <p class="text-neutral-700 dark:text-neutral-300 leading-relaxed mb-6">
+                        以下是一個使用 Langchain 和 Docling 建立 RAG 應用的完整範例。此範例將使用 Hugging Face 的 Sentence Transformers 進行文本嵌入，Milvus 作為向量資料庫，以及 Hugging Face Inference API 進行文本生成。
+                    </p>
+                    
+                    <!-- RAG 流程圖 -->
+                    <div class="mb-8 bg-neutral-50 dark:bg-neutral-700/30 p-4 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-3 text-center">RAG 流程圖</h3>
+                        <div class="mermaid">
+                            
+flowchart LR
+    A["文件載入"] --> B["文件分割"]
+    B --> C["向量化"]
+    C --> D["存儲到向量庫"]
+    E["用戶問題"] --> F["問題向量化"]
+    F --> G["相關文本檢索"]
+    D -.-> G
+    G --> H["上下文增強提示"]
+    H --> I["LLM生成回答"]
+                            
+                        </div>
+                    </div><div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3 flex items-baseline">
+                                <span class="inline-block w-6 h-6 rounded-full bg-primary-600 text-white text-center text-sm mr-2">1</span>
+                                環境設定與參數定義
+                            </h3>
+                            <div class="code-block">
+                                <pre class="text-neutral-800 dark:text-neutral-200 font-mono text-sm"><code># 安裝相關套件 (在 Colab 或 Jupyter 環境中執行)
+# %pip install -q --progress-bar off --no-warn-conflicts langchain-docling langchain-core langchain-huggingface langchain_milvus langchain python-dotenv
+
+import os
+from pathlib import Path
+from tempfile import mkdtemp
+from dotenv import load_dotenv
+from langchain_core.prompts import PromptTemplate
+from langchain_docling.loader import ExportType
+from docling.chunking import HybridChunker # 用於 DOC_CHUNKS 模式
+from langchain_text_splitters import MarkdownHeaderTextSplitter # 用於 MARKDOWN 模式
+from langchain_huggingface.embeddings import HuggingFaceEmbeddings
+from langchain_milvus import Milvus
+from langchain.chains import create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_huggingface import HuggingFaceEndpoint
+import json
+
+# 載入環境變數 (例如 Hugging Face API Token)
+load_dotenv()
+HF_TOKEN = os.getenv("HF_TOKEN") # 或者直接設定你的 Hugging Face Token
+
+# 設定 Hugging Face Tokenizers 並行處理以避免警告
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+# 定義管線參數
+FILE_PATH = ["https://arxiv.org/pdf/2408.09869"]  # Docling 技術報告
+EMBED_MODEL_ID = "sentence-transformers/all-MiniLM-L6-v2"
+GEN_MODEL_ID = "mistralai/Mixtral-8x7B-Instruct-v0.1"
+EXPORT_TYPE = ExportType.DOC_CHUNKS  # 或 ExportType.MARKDOWN
+QUESTION = "Which are the main AI models in Docling?"
+PROMPT_TEMPLATE = PromptTemplate.from_template(
+    "Context information is below.\n"
+    "---------------------\n"
+    "{context}\n"
+    "---------------------\n"
+    "Given the context information and not prior knowledge, answer the query.\n"
+    "Query: {input}\n"
+    "Answer:\n"
+)
+TOP_K = 3
+MILVUS_URI = str(Path(mkdtemp()) / "docling.db") # 暫存 Milvus 資料庫路徑</code></pre>
+                                <button class="copy-button text-xs text-white dark:text-white bg-primary-500/80 hover:bg-primary-600/80">複製</button>
+                            </div>
+                            <p class="text-neutral-600 dark:text-neutral-400 mt-2 text-sm">
+                                此步驟設定了 Hugging Face API Token、文件來源、嵌入模型 ID、生成模型 ID、導出類型、提問、提示模板、檢索數量上限以及 Milvus 資料庫的本地路徑。
+                            </p>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3 flex items-baseline">
+                                <span class="inline-block w-6 h-6 rounded-full bg-primary-600 text-white text-center text-sm mr-2">2</span>
+                                文件載入與分割
+                            </h3>
+                            <div class="code-block">
+                                <pre class="text-neutral-800 dark:text-neutral-200 font-mono text-sm"><code>loader = DoclingLoader(
+    file_path=FILE_PATH,
+    export_type=EXPORT_TYPE,
+    chunker=HybridChunker(tokenizer=EMBED_MODEL_ID),  # 僅在 EXPORT_TYPE 為 DOC_CHUNKS 時相關
+)
+docs = loader.load()
+
+# 根據導出類型確定分割方式
+if EXPORT_TYPE == ExportType.DOC_CHUNKS:
+    splits = docs
+elif EXPORT_TYPE == ExportType.MARKDOWN:
+    splitter = MarkdownHeaderTextSplitter(
+        headers_to_split_on=[("#", "Header_1"), ("##", "Header_2"), ("###", "Header_3")],
+    )
+    splits = [split for doc in docs for split in splitter.split_text(doc.page_content)]
+else:
+    raise ValueError(f"Unexpected export type: {EXPORT_TYPE}")
+
+# 檢視分割後的部分內容
+for d in splits[:3]:
+    print(f"- {d.page_content=}")
+print("...")</code></pre>
+                                <button class="copy-button text-xs text-white dark:text-white bg-primary-500/80 hover:bg-primary-600/80">複製</button>
+                            </div>
+                            <p class="text-neutral-600 dark:text-neutral-400 mt-2 text-sm">
+                                如果 <code>EXPORT_TYPE</code> 是 <code>DOC_CHUNKS</code>，<code>DoclingLoader</code> 內部會使用 <code>HybridChunker</code> 進行分塊。如果是 <code>MARKDOWN</code>，則會使用 <code>MarkdownHeaderTextSplitter</code> 對載入的 Markdown 文本進行分割。
+                            </p>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3 flex items-baseline">
+                                <span class="inline-block w-6 h-6 rounded-full bg-primary-600 text-white text-center text-sm mr-2">3</span>
+                                數據擷取/向量化 (Ingestion)
+                            </h3>
+                            <div class="code-block">
+                                <pre class="text-neutral-800 dark:text-neutral-200 font-mono text-sm"><code>embedding = HuggingFaceEmbeddings(model_name=EMBED_MODEL_ID)
+
+vectorstore = Milvus.from_documents(
+    documents=splits,
+    embedding=embedding,
+    collection_name="docling_demo",
+    connection_args={"uri": MILVUS_URI},
+    index_params={"index_type": "FLAT"}, # Milvus 索引參數
+    drop_old=True, # 如果集合已存在，則刪除舊集合
+)</code></pre>
+                                <button class="copy-button text-xs text-white dark:text-white bg-primary-500/80 hover:bg-primary-600/80">複製</button>
+                            </div>
+                            <p class="text-neutral-600 dark:text-neutral-400 mt-2 text-sm">
+                                這一步驟將文本塊轉換為數值向量，以便進行相似性搜索。
+                            </p>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3 flex items-baseline">
+                                <span class="inline-block w-6 h-6 rounded-full bg-primary-600 text-white text-center text-sm mr-2">4</span>
+                                RAG 鏈的建立與執行
+                            </h3>
+                            <div class="code-block">
+                                <pre class="text-neutral-800 dark:text-neutral-200 font-mono text-sm"><code>retriever = vectorstore.as_retriever(search_kwargs={"k": TOP_K})
+llm = HuggingFaceEndpoint(
+    repo_id=GEN_MODEL_ID,
+    huggingfacehub_api_token=HF_TOKEN,
+    task="text-generation", # 指定任務類型
+)
+
+# 輔助函數，用於截斷過長的文本以方便顯示
+def clip_text(text, threshold=100):
+    return f"{text[:threshold]}..." if len(text) > threshold else text
+
+# 建立問答鏈和 RAG 鏈
+question_answer_chain = create_stuff_documents_chain(llm, PROMPT_TEMPLATE)
+rag_chain = create_retrieval_chain(retriever, question_answer_chain)
+
+# 執行 RAG 鏈
+resp_dict = rag_chain.invoke({"input": QUESTION})</code></pre>
+                                <button class="copy-button text-xs text-white dark:text-white bg-primary-500/80 hover:bg-primary-600/80">複製</button>
+                            </div>
+                            <p class="text-neutral-600 dark:text-neutral-400 mt-2 text-sm">
+                                檢索器會根據問題從 Milvus 中檢索最相關的 <code>TOP_K</code> 個文本塊，然後這些文本塊與原始問題一起傳遞給大型語言模型（透過 <code>HuggingFaceEndpoint</code>）以生成答案。
+                            </p>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold mb-3 flex items-baseline">
+                                <span class="inline-block w-6 h-6 rounded-full bg-primary-600 text-white text-center text-sm mr-2">5</span>
+                                展示結果
+                            </h3>
+                            <div class="code-block">
+                                <pre class="text-neutral-800 dark:text-neutral-200 font-mono text-sm"><code>clipped_answer = clip_text(resp_dict["answer"], threshold=350)
+print(f"Question:\n{resp_dict['input']}\n\nAnswer:\n{clipped_answer}")
+
+print("\nSources:")
+for i, doc in enumerate(resp_dict["context"]):
+    print()
+    print(f"Source {i+1}:")
+    print(f"  text: {json.dumps(clip_text(doc.page_content, threshold=350))}")
+    # 打印元數據 (如果存在且不為 'pk')
+    for key in doc.metadata:
+        if key != "pk":
+            val = doc.metadata.get(key)
+            clipped_val = clip_text(val) if isinstance(val, str) else val
+            print(f"  {key}: {clipped_val}")</code></pre>
+                                <button class="copy-button text-xs text-white dark:text-white bg-primary-500/80 hover:bg-primary-600/80">複製</button>
+                            </div>
+                            <p class="text-neutral-600 dark:text-neutral-400 mt-2 text-sm">
+                                回應中會包含模型生成的答案，以及用於生成該答案的上下文來源，這些來源通常包含豐富的元數據，如頁碼、邊界框等，有助於追溯資訊來源。
+                            </p>
+                        </div>
+                    </div>
+                    <!-- 演示結果範例 -->
+                    <div class="mt-8 p-4 bg-neutral-50 dark:bg-neutral-700/30 rounded-lg border border-neutral-200 dark:border-neutral-700">
+                        <h3 class="text-lg font-semibold mb-3 flex items-center">
+                            <i class="material-icons text-primary-600 dark:text-primary-400 mr-2">chat</i>
+                            演示結果範例
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="font-semibold text-neutral-800 dark:text-neutral-200">問題：</div>
+                                <div class="bg-white dark:bg-neutral-800 p-3 rounded-md border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300">
+                                    Which are the main AI models in Docling?
+                                </div>
+                            </div>
+                            <div>
+                                <div class="font-semibold text-neutral-800 dark:text-neutral-200">回答：</div>
+                                <div class="bg-white dark:bg-neutral-800 p-3 rounded-md border border-neutral-200 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300">
+                                    Based on the provided context, Docling incorporates several AI models for various document processing tasks. The main AI models mentioned include:
+                                1. OCR (Optical Character Recognition) models for processing scanned PDFs and images
+                                    2. Models for page layout analysis
+                                    3. Models for table structure identification
+                                    The context also mentions integration with major AI frameworks like LangChain and LlamaIndex, which suggests Docling is designed to work with various LLMs (Large Language Models) through these frameworks.
+                                </div>
+                            </div></div>
+                    </div></section>
+
+                <!-- 應用場景 -->
+                <section id="use-cases" class="bg-white dark:bg-neutral-800 rounded-xl p-6 shadow-sm border border-neutral-200 dark:border-neutral-700">
+                    <h2 class="text-2xl font-bold mb-4 text-primary-700 dark:text-primary-400">Docling 的應用場景</h2>
+                    <p class="text-neutral-700 dark:text-neutral-300 leading-relaxed mb-6">
+                        Docling 的強大功能使其適用於多種企業級場景，特別是需要從複雜文件中提取結構化數據並用於 AI 訓練或推理的場景：
+                    </p>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="relative group overflow-hidden rounded-xl bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 border border-primary-200 dark:border-primary-800/50 hover:shadow-md hover:border-primary-300 dark:hover:border-primary-700 transition-all duration-300">
+                            <div class="absolute inset-0 bg-primary-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            <div class="p-6">
+                                <div class="w-12 h-12 mb-4 rounded-full bg-primary-100 dark:bg-primary-800/40 flex items-center justify-center">
+                                    <i class="material-icons text-2xl text-primary-600 dark:text-primary-400">search</i>
+                                </div>
+                                <h3 class="text-lg font-bold mb-2 text-primary-700 dark:text-primary-500">RAG 系統</h3>
+                                <p class="text-neutral-700 dark:text-neutral-300">
+                                    將 PDF、報告或企業文件轉換為 LLM 可用的格式，提升檢索和生成質量。
+                                </p>
+                            </div>
+                            <div class="h-1 w-full bg-gradient-to-r from-primary-400 to-primary-600 transform translate-y-0 group-hover:translate-y-0 transition-transform duration-300"></div>
+                        </div>
+                        
+                        <div class="relative group overflow-hidden rounded-xl bg-gradient-to-br from-secondary-50 to-secondary-100 dark:from-secondary-900/20 dark:to-secondary-800/20 border border-secondary-200 dark:border-secondary-800/50 hover:shadow-md hover:border-secondary-300 dark:hover:border-secondary-700 transition-all duration-300">
+                            <div class="absolute inset-0 bg-secondary-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            <div class="p-6">
+                                <div class="w-12 h-12 mb-4 rounded-full bg-secondary-100 dark:bg-secondary-800/40 flex items-center justify-center"><i class="material-icons text-2xl text-secondary-600 dark:text-secondary-400">insights</i>
+                                </div>
+                                <h3 class="text-lg font-bold mb-2 text-secondary-700 dark:text-secondary-500">數據提取</h3>
+                                <p class="text-neutral-700 dark:text-neutral-300">
+                                    從法律文件、技術手冊或企業政策中提取洞察，支援決策和自動化。
+                                </p>
+                            </div>
+                            <div class="h-1 w-full bg-gradient-to-r from-secondary-400 to-secondary-600 transform translate-y-0 group-hover:translate-y-0 transition-transform duration-300"></div>
+                        </div>        <div class="relative group overflow-hidden rounded-xl bg-gradient-to-br from-neutral-50 to-neutral-100 dark:from-neutral-800/40 dark:to-neutral-700/40 border border-neutral-200 dark:border-neutral-700 hover:shadow-md hover:border-neutral-300 dark:hover:border-neutral-600 transition-all duration-300">
+                            <div class="absolute inset-0 bg-neutral-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            <div class="p-6">
+                                <div class="w-12 h-12 mb-4 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+                                    <i class="material-icons text-2xl text-neutral-700 dark:text-neutral-400">model_training</i>
+                                </div>
+                                <h3 class="text-lg font-bold mb-2 text-neutral-700 dark:text-neutral-300">模型訓練</h3>
+                                <p class="text-neutral-700 dark:text-neutral-300">
+                                    處理大量文件以生成 AI 訓練數據，提升模型效能。
+                                </p>
+                            </div>
+                            <div class="h-1 w-full bg-gradient-to-r from-neutral-400 to-neutral-600 transform translate-y-0 group-hover:translate-y-0 transition-transform duration-300"></div>
+                        </div>
+                    </div>
+                <div class="mt-6 p-4 bg-neutral-50 dark:bg-neutral-700/30 rounded-lg border border-neutral-200 dark:border-neutral-700">
+                        <p class="text-neutral-700 dark:text-neutral-300 italic">
+                            透過 <code class="bg-neutral-100 dark:bg-neutral-700 px-1 py-0.5 rounded">DoclingLoader</code>，Langchain 開發者可以無縫地將這些高級文件處理能力整合到他們的應用中，從而構建更強大、更具上下文感知能力的 AI 系統。
+                        </p>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- 頁腳 -->
+    <footer class="bg-white dark:bg-neutral-800 border-t border-neutral-200 dark:border-neutral-700 py-8 mt-12">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <p class="text-neutral-600 dark:text-neutral-400">
+                        &copy; 2025 Gary Tseng. All rights reserved.
+                    </p>
+                </div>
+                <div class="flex space-x-4">
+                    <a href="https://twitter.com/ClTseng" class="text-neutral-600 hover:text-primary-600 dark:text-neutral-400 dark:hover:text-primary-400 transition-colors" target="_blank" rel="noopener noreferrer">
+                        <i class="fab fa-twitter text-xl"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 主題切換
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const htmlElement = document.documentElement;
+        
+        function setTheme(isDark) {
+            if (isDark) {
+                htmlElement.classList.add('dark');
+                themeIcon.textContent = 'light_mode';
+            } else {
+                htmlElement.classList.remove('dark');
+                themeIcon.textContent = 'dark_mode';
+            }
+        }
+        
+        // 初始化主題（依據系統設定）
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            setTheme(true);
+        } else {
+            setTheme(false);
+        }
+        
+        // 處理主題切換
+        themeToggle.addEventListener('click', () => {
+            if (htmlElement.classList.contains('dark')) {
+                localStorage.theme = 'light';
+                setTheme(false);
+            } else {
+                localStorage.theme = 'dark';
+                setTheme(true);
+            }
+        });
+        
+        // 初始化 Mermaid
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default',
+            flowchart: { 
+                curve: 'basis' 
+            } 
+        });
+        
+        // 初始化圖表
+        window.addEventListener('load', function() {
+            // Docling 功能圖表
+            const doclingChart = echarts.init(document.getElementById('docling-features-chart'),
+                htmlElement.classList.contains('dark') ? 'dark' : null);
+            
+            const option = {
+                tooltip: {
+                    trigger: 'item',
+                    formatter: '{a} <br/>{b}: {c} ({d}%)'
+                },
+                legend: {
+                    orient: 'vertical',
+                    right: 10,
+                    top: 'center',
+                    data: [
+                        'PDF解析', 'OCR支援', '表格識別', 'HTML處理', 
+                        'Word文件', 'Excel表格', 'PowerPoint', '圖片處理'
+                    ],
+                    textStyle: {
+                        color: htmlElement.classList.contains('dark') ? '#d1d5db' : '#4b5563'
+                    }
+                },
+                series: [
+                    {
+                        name: 'Docling功能',
+                        type: 'pie',
+                        radius: ['40%', '70%'],
+                        avoidLabelOverlap: false,
+                        itemStyle: {
+                            borderRadius: 10,
+                            borderColor: htmlElement.classList.contains('dark') ? '#1f2937' : '#fff',
+                            borderWidth: 2
+                        },
+                        label: {
+                            show: false,
+                            position: 'center'
+                        },
+                        emphasis: {
+                            label: {
+                                show: true,
+                                fontSize: '16',
+                                fontWeight: 'bold'
+                            }
+                        },
+                        labelLine: {
+                            show: false
+                        },
+                        data: [
+                            { value: 28, name: 'PDF解析' },
+                            { value: 18, name: 'OCR支援' },
+                            { value: 15, name: '表格識別' },
+                            { value: 12, name: 'HTML處理' },
+                            { value: 10, name: 'Word文件' },
+                            { value: 8, name: 'Excel表格' },
+                            { value: 6, name: 'PowerPoint' },
+                            { value: 5, name: '圖片處理' }
+                        ]
+                    }
+                ]
+            };doclingChart.setOption(option);
+            
+            // 響應窗口大小變化
+            window.addEventListener('resize', function() {
+                doclingChart.resize();
+            });
+            
+            // 響應主題變化
+            themeToggle.addEventListener('click', function() {
+                doclingChart.dispose();
+                setTimeout(function() {
+                    const newChart = echarts.init(document.getElementById('docling-features-chart'), 
+                        htmlElement.classList.contains('dark') ? 'dark' : null);
+                    newChart.setOption(option);
+                    doclingChart = newChart;
+                }, 100);
+            });
+        });
+        
+        // 代碼塊複製功能
+        document.querySelectorAll('.copy-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const pre = button.previousElementSibling;
+                const code = pre.textContent;
+                
+                navigator.clipboard.writeText(code).then(() => {
+                    const originalText = button.textContent;
+                    button.textContent = '已複製!';
+                    button.classList.add('bg-green-500/80');    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.classList.remove('bg-green-500/80');
+                    }, 2000);
+                });
+            });
+        });
+        
+        // 滾動動畫
+        document.addEventListener('DOMContentLoaded', () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('fade-in');
+                    }
+                });
+            }, {
+                root: null,
+                threshold: 0.1,
+                rootMargin: '0px 0px -100px 0px'
+            });
+            
+            document.querySelectorAll('section:not(.fade-in)').forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
+    
+    <script>document.addEventListener('DOMContentLoaded', () => {
+            // 等待頁面載入完成
+            setTimeout(() => {document.querySelectorAll('.mermaid-diagram').forEach(div => {
+                    const pre = div.querySelector('pre.mermaid');
+                    if (pre) {
+                        const newDiv = document.createElement('div');
+                        newDiv.className = 'mermaid';
+                        newDiv.textContent = pre.textContent.trim();
+                        div.replaceChild(newDiv, pre);
+                    }
+                });
+                mermaid.contentLoaded();
+            }, 1000);
+        });
+        
+        // 初始化Preline UI
+        document.addEventListener('DOMContentLoaded', () => {
+            HSStaticMethods.autoInit();
+        });
+    </script>
+</body>
+</html>

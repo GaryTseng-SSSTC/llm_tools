@@ -1,0 +1,988 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG 系統建構完全指南 | LangChain + FastAPI 實作</title>
+    <meta name="description" content="運用 LangChain、Python 及 FastAPI 建構檢索增強生成（RAG）系統的完整實踐指南">
+    <!-- 引入所需的 CSS 和 JS 資源 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/preline@3.0.1/dist/preline.min.js"></script><script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/material-icons@1.13.14/iconfont/material-icons.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e'
+                        },
+                        gray: {
+                            50: '#fafafa',
+                            100: '#f5f5f5',
+                            200: '#e5e5e5',
+                            300: '#d4d4d4',
+                            400: '#a3a3a3',
+                            500: '#737373',
+                            600: '#525252',
+                            700: '#404040',
+                            800: '#262626',
+                            900: '#171717'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Hiragino Kaku Gothic ProN', 'Yu Gothic Medium', 'sans-serif'],
+                        mono: ['SF Mono', 'Monaco', 'Menlo', 'Consolas', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans">
+    <!-- 主題切換按鈕 -->
+    <div class="fixed top-4 right-4 z-50">
+        <button id="theme-toggle" class="p-3 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300">
+            <i class="fas fa-sun text-lg text-yellow-500 dark:hidden"></i>
+            <i class="fas fa-moon text-lg text-blue-400 hidden dark:block"></i>
+        </button>
+    </div>
+
+    <!-- 導航欄 -->
+    <nav class="sticky top-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-robot text-white text-lg"></i>
+                        </div>
+                        <span class="text-xl font-semibold">RAG 系統建構指南</span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-6 text-sm">
+                <a href="#overview" class="hover:text-primary-500 transition-colors">總覽</a><a href="#langchain" class="hover:text-primary-500 transition-colors">LangChain</a>
+                    <a href="#parsing" class="hover:text-primary-500 transition-colors">文件解析</a><a href="#fastapi" class="hover:text-primary-500 transition-colors">FastAPI</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 英雄區塊 -->
+    <section class="relative py-20 bg-gradient-to-br from-primary-50 to-blue-100 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
+        <div class="absolute inset-0 bg-grid-pattern opacity-10"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <div class="text-center">
+                <h1 class="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-primary-600 to-blue-600 bg-clip-text text-transparent mb-6 animate-fade-in">
+                    RAG 系統建構完全指南
+                </h1>
+                <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-8">
+                    運用 LangChain、Python 及 FastAPI 框架，建構功能強大的檢索增強生成系統
+                </p>
+                <div class="flex justify-center space-x-4">
+                    <div class="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4 backdrop-blur-sm">
+                        <div class="flex items-center space-x-2">
+                            <i class="fab fa-python text-blue-500 text-lg"></i>
+                            <span class="text-sm font-medium">Python</span>
+                        </div>
+                    </div>
+                    <div class="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4 backdrop-blur-sm">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-link text-green-500 text-lg"></i>
+                            <span class="text-sm font-medium">LangChain</span>
+                        </div>
+                    </div>
+                    <div class="bg-white/50 dark:bg-gray-800/50 rounded-lg p-4 backdrop-blur-sm">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-rocket text-red-500 text-lg"></i>
+                            <span class="text-sm font-medium">FastAPI</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 主要內容 -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- 總覽 -->
+        <section id="overview" class="mb-16 animate-fade-in">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-primary-100 dark:bg-primary-900 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-eye text-primary-600 dark:text-primary-400 text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold">總覽</h2>
+                </div>
+                
+                <p class="text-lg text-gray-600 dark:text-gray-300 mb-6 leading-relaxed">
+                    本研究報告旨在提供一個全面性的指南，說明如何運用 LangChain、Python 及 FastAPI 框架，建構一個功能強大的檢索增強生成（Retrieval-Augmented Generation, RAG）系統。
+                </p>
+
+                <!-- RAG 流程圖 -->
+                <div class="bg-gray-50 dark:bg-gray-900 rounded-xl p-6 mb-8">
+                    <h3 class="text-lg font-semibold mb-4">RAG 系統架構流程</h3>
+                    <div id="rag-mermaid" class="text-center">
+                        <div class="mermaid">
+                        graph TD
+                            A[原始文件] --> B[文件載入]
+                            B --> C[文本分割]
+                            C --> D[向量化]
+                            D --> E[向量儲存]
+                            F[用戶查詢] --> G[查詢向量化]
+                            G --> H[相似度檢索]
+                            E --> H
+                            H --> I[上下文注入]
+                            I --> J[LLM 生成]
+                            J --> K[回答輸出]
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 支援的檔案格式 -->
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-6">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center">
+                            <i class="fas fa-file text-blue-600 mr-2"></i>
+                            支援的檔案格式
+                        </h3>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="bg-white dark:bg-gray-800 rounded-lg p-3 text-center">
+                                <i class="fas fa-file-pdf text-red-500 text-lg mb-1"></i>
+                                <div class="text-sm font-medium">PDF</div>
+                            </div>
+                            <div class="bg-white dark:bg-gray-800 rounded-lg p-3 text-center">
+                                <i class="fas fa-file-word text-blue-500 text-lg mb-1"></i>
+                                <div class="text-sm font-medium">DOCX</div>
+                            </div>
+                            <div class="bg-white dark:bg-gray-800 rounded-lg p-3 text-center">
+                                <i class="fas fa-file-excel text-green-500 text-lg mb-1"></i>
+                                <div class="text-sm font-medium">XLSX</div>
+                            </div>
+                            <div class="bg-white dark:bg-gray-800 rounded-lg p-3 text-center">
+                                <i class="fab fa-markdown text-purple-500 text-lg mb-1"></i>
+                                <div class="text-sm font-medium">MD</div>
+                            </div><div class="bg-white dark:bg-gray-800 rounded-lg p-3 text-center">
+                                <i class="fas fa-file-csv text-orange-500 text-lg mb-1"></i>
+                                <div class="text-sm font-medium">CSV</div>
+                            </div>
+                            <div class="bg-white dark:bg-gray-800 rounded-lg p-3 text-center">
+                                <i class="fas fa-file-alt text-gray-500 text-lg mb-1"></i>
+                                <div class="text-sm font-medium">TXT</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl p-6">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center">
+                            <i class="fas fa-cogs text-green-600 mr-2"></i>
+                            核心特色
+                        </h3>
+                        <ul class="space-y-2">
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                <span class="text-sm">圖片與表格內容提取</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                <span class="text-sm">多模態文檔處理</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                <span class="text-sm">高效能 API 服務</span>
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                <span class="text-sm">自動化文檔處理</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!--兩大階段說明 -->
+                <div class="grid md:grid-cols-2 gap-6"><div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-6">
+                        <h3 class="text-lg font-semibold mb-3 flex items-center">
+                            <i class="fas fa-database text-purple-600 mr-2"></i>
+                            索引階段 (Indexing)
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">離線處理階段，負責文檔的預處理工作</p>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-center">
+                                <span class="w-6 h-6 bg-purple-200 dark:bg-purple-800 rounded-full flex items-center justify-center text-xs font-bold mr-2">1</span>
+                                載入 (Load)
+                            </li>
+                            <li class="flex items-center">
+                                <span class="w-6 h-6 bg-purple-200 dark:bg-purple-800 rounded-full flex items-center justify-center text-xs font-bold mr-2">2</span>
+                                分割 (Split)
+                            </li>
+                            <li class="flex items-center">
+                                <span class="w-6 h-6 bg-purple-200 dark:bg-purple-800 rounded-full flex items-center justify-center text-xs font-bold mr-2">3</span>
+                                儲存 (Store)
+                            </li>
+                        </ul>
+                    </div><div class="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-xl p-6">
+                        <h3 class="text-lg font-semibold mb-3 flex items-center">
+                            <i class="fas fa-search text-orange-600 mr-2"></i>
+                            檢索生成階段 (Retrieval & Generation)
+                        </h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">即時處理階段，與使用者進行互動</p>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-center">
+                                <span class="w-6 h-6 bg-orange-200 dark:bg-orange-800 rounded-full flex items-center justify-center text-xs font-bold mr-2">1</span>
+                                檢索 (Retrieve)
+                            </li>
+                            <li class="flex items-center">
+                                <span class="w-6 h-6 bg-orange-200 dark:bg-orange-800 rounded-full flex items-center justify-center text-xs font-bold mr-2">2</span>
+                                生成 (Generate)
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- LangChain 章節 -->
+        <section id="langchain" class="mb-16 animate-fade-in">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-link text-green-600 dark:text-green-400 text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold">使用 LangChain 建構 RAG 系統</h2>
+                </div>
+
+                <!-- RAG 系統概覽圖 -->
+                <div class="bg-gray-50 dark:bg-gray-900 rounded-xl p-6 mb-8">
+                    <div class="text-center mb-4">
+                        <img src="https://i0.wp.com/neptune.ai/wp-content/uploads/2024/12/How-to-build-a-RAG-system-using-LangChain-1.png?w=1200&ssl=1" 
+                             alt="RAG 系統概覽圖" 
+                             class="w-full max-w-4xl mx-auto rounded-lg shadow-md">
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">一個基礎 RAG 系統的概覽圖，展示了從使用者提問到生成答案的完整流程</p>
+                    </div></div>
+
+                <!-- 索引階段詳解 -->
+                <div class="mb-8">
+                    <h3 class="text-2xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-warehouse text-purple-600 mr-3"></i>
+                        索引 (Indexing) 階段
+                    </h3>
+                    <div class="grid lg:grid-cols-3 gap-6 mb-6">
+                        <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-6">
+                            <div class="flex items-center mb-4">
+                                <i class="fas fa-upload text-blue-600 text-xl mr-3"></i>
+                                <h4 class="text-lg font-semibold">載入 (Load)</h4>
+                            </div>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">使用 Document Loaders 讀取不同格式的資料</p>
+                            <ul class="text-xs space-y-1">
+                                <li>• WebBaseLoader - 網頁內容</li>
+                                <li>• UnstructuredURLLoader - 多 URL</li>
+                                <li>• PDF/DOCX 加載器</li>
+                            </ul>
+                        </div>
+                        <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl p-6">
+                            <div class="flex items-center mb-4">
+                                <i class="fas fa-cut text-green-600 text-xl mr-3"></i>
+                                <h4 class="text-lg font-semibold">分割 (Split)</h4>
+                            </div>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">使用 Text Splitters 將大型文檔切割成小區塊</p>
+                            <ul class="text-xs space-y-1">
+                                <li>• RecursiveCharacterTextSplitter</li>
+                                <li>• 保留上下文連貫性</li>
+                                <li>• 設定 chunk_size 和 overlap</li>
+                            </ul>
+                        </div>        <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-6">
+                            <div class="flex items-center mb-4">
+                                <i class="fas fa-database text-purple-600 text-xl mr-3"></i>
+                                <h4 class="text-lg font-semibold">儲存 (Store)</h4>
+                            </div>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">轉換為向量並儲存到向量資料庫</p>
+                            <ul class="text-xs space-y-1">
+                                <li>• Embedding Models</li>
+                                <li>• VectorStores (Chroma, Qdrant)</li>
+                                <li>• 語義相似度搜索</li>
+                            </ul>
+                        </div>
+                    </div></div>
+
+                <!--檢索生成階段詳解 -->
+                <div class="mb-8">
+                    <h3 class="text-2xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-magic text-orange-600 mr-3"></i>
+                        檢索與生成 (Retrieval & Generation) 階段
+                    </h3>
+                    
+                    <div class="grid lg:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded-xl p-6">
+                            <div class="flex items-center mb-4">
+                                <i class="fas fa-search text-yellow-600 text-xl mr-3"></i>
+                                <h4 class="text-lg font-semibold">檢索 (Retrieve)</h4>
+                            </div>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">將查詢轉換為向量並搜索相關文檔</p>
+                            <ul class="text-xs space-y-1">
+                                <li>• 查詢向量化</li>
+                                <li>• 相似度計算</li>
+                                <li>• vectorstore.as_retriever()</li>
+                            </ul>
+                        </div>        <div class="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-xl p-6">
+                            <div class="flex items-center mb-4">
+                                <i class="fas fa-robot text-red-600 text-xl mr-3"></i>
+                                <h4 class="text-lg font-semibold">生成 (Generate)</h4>
+                            </div>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">將檢索結果注入 Prompt 並生成答案</p>
+                            <ul class="text-xs space-y-1">
+                                <li>• Prompt Template</li>
+                                <li>• 上下文注入</li>
+                                <li>• LLM 生成回答</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 程式碼範例 -->
+                <div class="bg-gray-50 dark:bg-gray-900 rounded-xl p-6">
+                    <h4 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fas fa-code text-gray-600 mr-2"></i>
+                        完整 RAG 系統實現範例
+                    </h4>
+                <pre class="bg-gray-800 text-gray-100 rounded-lg p-4 text-sm overflow-x-auto"><code># 完整的 RAG 流程實現
+import os
+from langchain_community.document_loaders import WebBaseLoader
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_openai import OpenAIEmbeddings
+from langchain_community.vectorstores import Chroma
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.chains import create_retrieval_chain
+
+# 1. 設定 API 金鑰
+os.environ["OPENAI_API_KEY"] = "YOUR_OPENAI_API_KEY"
+
+# 2. 載入與分割文件
+loader = WebBaseLoader("https://docs.smith.langchain.com/user_guide")
+docs = loader.load()
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=1000, 
+    chunk_overlap=200
+)
+splits = text_splitter.split_documents(docs)
+
+# 3. 建立向量儲存與檢索器
+vectorstore = Chroma.from_documents(
+    documents=splits, 
+    embedding=OpenAIEmbeddings()
+)
+retriever = vectorstore.as_retriever()
+
+# 4. 建立 RAG 鏈
+llm = ChatOpenAI(model="gpt-4o-mini")
+
+system_prompt = (
+    "You are an assistant for question-answering tasks. "
+    "Use the following pieces of retrieved context to answer "
+    "the question. If you don't know the answer, say that you "
+    "don't know. Use three sentences maximum and keep the "
+    "answer concise."
+    "\n\n"
+    "{context}"
+)
+
+prompt = ChatPromptTemplate.from_messages([
+    ("system", system_prompt),
+    ("human", "{input}"),
+])
+
+question_answer_chain = create_stuff_documents_chain(llm, prompt)
+rag_chain = create_retrieval_chain(retriever, question_answer_chain)
+
+# 5. 執行查詢
+response = rag_chain.invoke({"input": "What is LangSmith?"})
+print(response["answer"])</code></pre></div>
+            </div>
+        </section>
+
+        <!-- 文件解析工具 -->
+        <section id="parsing" class="mb-16 animate-fade-in">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-file-alt text-blue-600 dark:text-blue-400 text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold">文件解析工具深度解析</h2>
+                </div>
+
+                <!-- 解析挑戰 -->
+                <div class="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-xl p-6 mb-8">
+                    <h3 class="text-xl font-semibold mb-4 flex items-center">
+                        <i class="fas fa-exclamation-triangle text-red-600 mr-3"></i>
+                        核心挑戰：解析圖片與表格
+                    </h3>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
+                            <h4 class="font-semibold mb-2 flex items-center">
+                                <i class="fas fa-table text-blue-600 mr-2"></i>
+                                表格 (Tables)
+                            </h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">表格的行列結構包含關鍵語義關係</p>
+                            <ul class="text-xs space-y-1">
+                                <li>• 純文本提取會丟失結構</li>
+                                <li>• 需要保留行列關係</li>
+                                <li>• 轉換為 Markdown 表格格式</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-white dark:bg-gray-800 rounded-lg p-4">
+                            <h4 class="font-semibold mb-2 flex items-center">
+                                <i class="fas fa-image text-green-600 mr-2"></i>
+                                圖片 (Images)
+                            </h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">圖片、圖表中的文字內容提取</p>
+                            <ul class="text-xs space-y-1">
+                                <li>• 需要 OCR 技術</li>
+                                <li>• 複雜圖表需要視覺 LLM</li>
+                                <li>• 多模態內容處理</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 表格數據提取示例圖 -->
+                <div class="bg-gray-50 dark:bg-gray-900 rounded-xl p-6 mb-8">
+                    <div class="text-center mb-4">
+                        <img src="https://cdn.prod.website-files.com/64be86eaa29fa71f24b00661/64be86eaa29fa71f24b008a6_S1Img6-min.webp" 
+                             alt="從PDF 文件中提取表格數據" 
+                             class="w-full max-w-3xl mx-auto rounded-lg shadow-md">
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">一個線上工具展示了從 PDF 文件中提取表格數據的過程</p>
+                    </div>
+                </div>
+
+                <!-- 推薦工具 -->
+                <div class="mb-8">
+                    <h3 class="text-2xl font-semibold mb-6 flex items-center">
+                        <i class="fas fa-tools text-purple-600 mr-3"></i>
+                        推薦的解析工具與函式庫
+                    </h3>
+
+                    <!-- 通用解析框架 -->
+                    <div class="mb-6">
+                        <h4 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">通用解析框架</h4>
+                        <div class="grid lg:grid-cols-3 gap-6">
+                            <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-6 hover:shadow-lg transition-shadow">
+                                <div class="flex items-center mb-4"><i class="fas fa-file-contract text-purple-600 text-xl mr-3"></i><h5 class="font-semibold text-lg">Docling</h5>
+                                </div>
+                                <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">專為生成式 AI 準備文件的開源工具</p>
+                                <ul class="text-xs space-y-1"><li>• 支援 PDF, DOCX, PPTX, HTML</li>
+                                    <li>• 先進的 PDF 理解能力</li>
+                                    <li>• 輸出 Markdown/JSON 格式</li></ul>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl p-6 hover:shadow-lg transition-shadow">
+                                <div class="flex items-center mb-4"><i class="fas fa-puzzle-piece text-green-600 text-xl mr-3"></i>
+                                    <h5 class="font-semibold text-lg">Unstructured.io</h5>
+                                </div>
+                                <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">廣受歡迎的開源函式庫</p>
+                                <ul class="text-xs space-y-1">
+                                    <li>• 處理圖像與文檔</li>
+                                    <li>• PDF, HTML, Word 支援</li>
+                                    <li>• 轉換為乾淨格式</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-6 hover:shadow-lg transition-shadow">
+                                <div class="flex items-center mb-4">
+                                    <i class="fas fa-gem text-blue-600 text-xl mr-3"></i><h5 class="font-semibold text-lg">MinerU</h5>
+                                </div>
+                                <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">專為 RAG 應用而生的開源專案</p>
+                                <ul class="text-xs space-y-1"><li>• 高品質 PDF 轉 Markdown</li>
+                                    <li>• 優秀的表格處理能力</li>
+                                    <li>• 支援標題和段落識別</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 特定格式工具 -->
+                    <div>
+                        <h4 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">特定格式的工具</h4>
+                        <div class="grid lg:grid-cols-2 gap-6">
+                            <div class="space-y-4">
+                                <!-- PDF 工具 -->
+                                <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-4">
+                                    <h5 class="font-semibold flex items-center mb-3">
+                                        <i class="fas fa-file-pdf text-red-600 mr-2"></i>
+                                        PDF 工具
+                                    </h5><div class="space-y-2 text-sm">
+                                        <div class="flex justify-between">
+                                            <span class="font-medium">PyMuPDF (fitz)</span>
+                                            <span class="text-xs text-gray-600 dark:text-gray-400">輕量高效</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="font-medium">Marker</span>
+                                            <span class="text-xs text-gray-600 dark:text-gray-400">PDF → Markdown</span></div>
+                                        <div class="flex justify-between"><span class="font-medium">LlamaParse</span>
+                                            <span class="text-xs text-gray-600 dark:text-gray-400">GenAI 原生</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Office 工具 -->
+                                <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4"><h5 class="font-semibold flex items-center mb-3">
+                                        <i class="fas fa-file-word text-blue-600 mr-2"></i>
+                                        Office 格式
+                                    </h5>
+                                    <div class="space-y-2 text-sm"><div class="flex justify-between">
+                                            <span class="font-medium">python-docx</span>
+                                            <span class="text-xs text-gray-600 dark:text-gray-400">DOCX 處理</span>
+                                        </div><div class="flex justify-between">
+                                            <span class="font-medium">pandas</span>
+                                            <span class="text-xs text-gray-600 dark:text-gray-400">XLSX/CSV</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="font-medium">openpyxl</span>
+                                            <span class="text-xs text-gray-600 dark:text-gray-400">Excel 處理</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div><div class="space-y-4">
+                                <!-- 文本格式 -->
+                                <div class="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4"><h5 class="font-semibold flex items-center mb-3">
+                                        <i class="fab fa-markdown text-purple-600 mr-2"></i>
+                                        文本格式
+                                    </h5>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex justify-between">
+                                            <span class="font-medium">markdown-it-py</span>
+                                            <span class="text-xs text-gray-600 dark:text-gray-400">Markdown 解析</span>
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <span class="font-medium">內建 I/O</span><span class="text-xs text-gray-600 dark:text-gray-400">TXT 處理</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 處理策略 -->
+                                <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
+                                    <h5 class="font-semibold flex items-center mb-3">
+                                        <i class="fas fa-cogs text-green-600 mr-2"></i>
+                                        處理策略
+                                    </h5>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="text-gray-700 dark:text-gray-300">
+                                            <strong>表格：</strong>轉換為 Markdown 表格格式
+                                        </div>
+                                        <div class="text-gray-700 dark:text-gray-300">
+                                            <strong>圖片：</strong>OCR + 多模態 LLM 描述
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 統一解析流程 -->
+                <div class="bg-gray-50 dark:bg-gray-900 rounded-xl p-6">
+                    <h4 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fas fa-sitemap text-gray-600 mr-2"></i>
+                        建立統一的解析流程
+                    </h4><div class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                        建議建立一個統一的解析管道，根據文件副檔名判斷類型，調用相應的專門解析器，所有輸出標準化為 Markdown 格式。
+                    </div>
+                <div id="parsing-flow" class="text-center">
+                        <div class="mermaid">
+                        graph LR
+                            A[文件輸入] --> B{檔案類型判斷}
+                            B -->|PDF| C[Docling/MinerU]
+                            B -->|DOCX| D[python-docx]
+                            B -->|XLSX| E[pandas]
+                            B -->|MD| F[markdown-it-py]
+                            B -->|TXT| G[內建 I/O]
+                            C --> H[標準化 Markdown]
+                            D --> HE --> H
+                            F --> H
+                            G --> HH --> I[文本分割]
+                            I --> J[向量化]
+                </div>
+                </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FastAPI 章節 -->
+        <section id="fastapi" class="mb-16 animate-fade-in">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-rocket text-red-600 dark:text-red-400 text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold">使用 Python 與 FastAPI 建構 API服務</h2>
+                </div>
+
+                <!-- 為什麼選擇 FastAPI -->
+                <div class="mb-8">
+                    <h3 class="text-2xl font-semibold mb-6 flex items-center">
+                        <i class="fas fa-star text-yellow-600 mr-3"></i>
+                        為什麼選擇 FastAPI？
+                    </h3>
+                    
+                    <div class="grid lg:grid-cols-2 gap-6mb-6">
+                        <div class="space-y-4">
+                            <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl p-6">
+                                <h4 class="font-semibold mb-2 flex items-center">
+                                    <i class="fas fa-tachometer-alt text-green-600 mr-2"></i>
+                                    極致性能
+                                </h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-300">基於 Starlette 和 Pydantic，採用 ASGI 架構，性能與 Node.js 和 Go 相當</p>
+                            </div>
+                            <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-6">
+                                <h4 class="font-semibold mb-2 flex items-center"><i class="fas fa-code text-purple-600 mr-2"></i>
+                                    開發效率高
+                                </h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-300">語法簡潔直觀，充分利用 Python 類型提示，學習曲線平緩</p>
+                            </div>
+                        </div>
+                <div class="space-y-4">
+                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-6">
+                                <h4 class="font-semibold mb-2 flex items-center"><i class="fas fa-shield-alt text-blue-600 mr-2"></i>
+                                    自動數據驗證
+                                </h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-300">與 Pydantic 深度整合，自動驗證請求格式，減少 40% 的人為錯誤</p>
+                            </div>
+                <div class="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-xl p-6">
+                                <h4 class="font-semibold mb-2 flex items-center">
+                                    <i class="fas fa-file-alt text-orange-600 mr-2"></i>
+                                    自動生成 API 文件
+                                </h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-300">自動生成符合 OpenAPI 標準的互動式文件，支援 Swagger UI 和 ReDoc</p>
+                            </div>
+                        </div>
+                    </div></div>
+
+                <!-- FastAPI Swagger UI 示例圖 -->
+                <div class="bg-gray-50 dark:bg-gray-900 rounded-xl p-6 mb-8">
+                    <div class="text-center mb-4">
+                        <img src="https://ironpdf.com/static-assets/pdf/blog/fastapi-python/fastapi-python-2.webp" 
+                             alt="FastAPI Swagger UI" 
+                             class="w-full max-w-4xl mx-auto rounded-lg shadow-md">
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">FastAPI 自動生成的 Swagger UI 互動式 API 文件介面</p>
+                    </div></div>
+
+                <!-- 專案結構 -->
+                <div class="mb-8">
+                    <h3 class="text-2xl font-semibold mb-6 flex items-center">
+                        <i class="fas fa-folder-tree text-blue-600 mr-3"></i>
+                        專案結構建議
+                    </h3>
+                    
+                    <div class="bg-gray-50 dark:bg-gray-900 rounded-xl p-6">
+                        <pre class="text-sm"><code>/rag-api
+├── app/
+│   ├── __init__.py
+│   ├── main.py             # FastAPI 應用實例與主要配置
+│   ├── api/                # API 路由層
+│   │   └── v1/
+│   │       └── endpoints.py
+│   ├── services/           # 業務邏輯層
+│   │   └── rag_service.py
+│   ├── schemas/            # Pydantic 數據模型
+│   │   └── request_response.py
+│   └── core/               # 核心配置
+│       └── config.py
+└── requirements.txt</code></pre>
+                        <div class="mt-4 grid md:grid-cols-2 gap-4">
+                            <div class="text-sm">
+                                <h5 class="font-semibold mb-2">核心檔案說明：</h5>
+                                <ul class="space-y-1 text-xs"><li><strong>main.py</strong> - FastAPI 應用初始化</li>
+                                    <li><strong>endpoints.py</strong> - API 端點定義</li><li><strong>rag_service.py</strong> - LangChain 核心邏輯</li>
+                                    <li><strong>request_response.py</strong> - 數據模型</li></ul>
+                            </div>
+                <div class="text-sm">
+                                <h5 class="font-semibold mb-2">設計優勢：</h5>
+                                <ul class="space-y-1 text-xs">
+                                    <li>• 分層架構，職責分離</li>
+                                    <li>• 易於測試和維護</li>
+                                    <li>• 支援路由版本控制</li>
+                                    <li>• 模組化設計</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API 實現 -->
+                <div class="mb-8">
+                    <h3 class="text-2xl font-semibold mb-6 flex items-center">
+                        <i class="fas fa-cogs text-purple-600 mr-3"></i>
+                        實現 RAG API 端點
+                    </h3>
+
+                    <!-- Pydantic 模型 -->
+                    <div class="mb-6">
+                        <h4 class="text-lg font-semibold mb-4">1. 定義 Pydantic 模型</h4>
+                        <div class="bg-gray-800 rounded-lg p-4">
+                            <pre class="text-gray-100 text-sm overflow-x-auto"><code># schemas/request_response.py
+from pydantic import BaseModel
+from typing import List, Optional
+
+class QueryRequest(BaseModel):
+    question: str
+    user_id: Optional[str] = None
+
+class QueryResponse(BaseModel):
+    answer: str
+    source_documents: List[dict]</code></pre>
+                        </div></div>
+
+                    <!-- FastAPI 端點 -->
+                    <div class="mb-6">
+                        <h4 class="text-lg font-semibold mb-4">2. 建立 FastAPI 端點</h4>
+                        <div class="bg-gray-800 rounded-lg p-4">
+                            <pre class="text-gray-100 text-sm overflow-x-auto"><code># main.py
+from fastapi import FastAPI, UploadFile, File
+from app.schemas.request_response import QueryRequest, QueryResponse
+from app.services.rag_service import process_query, index_file
+
+app = FastAPI(
+    title="RAG System API",
+    description="An API for querying documents using RAG.",
+    version="1.0.0"
+)
+
+@app.post("/query", response_model=QueryResponse)
+async def query_endpoint(request: QueryRequest):
+    """
+    接收問題並基於索引文檔返回答案
+    """
+    answer, sources = await process_query(request.question)
+    return QueryResponse(answer=answer, source_documents=sources)
+
+@app.post("/upload")
+async def upload_document_endpoint(file: UploadFile = File(...)):
+    """
+    上傳文檔進行索引
+    """
+    file_content = await file.read()
+    file_name = file.filename
+    await index_file(file_name, file_content)
+    return {"filename": file_name, "status": "indexing_started"}</code></pre>
+                        </div>
+                    </div>
+
+                    <!-- 運行應用 -->
+                    <div>
+                        <h4 class="text-lg font-semibold mb-4">3. 運行應用程式</h4>
+                        <div class="bg-gray-800 rounded-lg p-4">
+                            <pre class="text-gray-100 text-sm overflow-x-auto"><code>#安裝 Uvicorn ASGI 伺服器
+pip install uvicorn
+
+# 運行 FastAPI 應用
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# 參數說明：
+# --reload    :啟用熱重載，開發時使用
+# --host 0.0.0.0 : 允許外部訪問
+# --port 8000    : 指定端口號</code></pre>
+                        </div><div class="mt-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                            <p class="text-sm text-blue-800 dark:text-blue-200">
+                                <i class="fas fa-info-circle mr-2"></i>啟動後可訪問 <code class="bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">http://127.0.0.1:8000/docs</code> 查看自動生成的 API 文件
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API 特性 -->
+                <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl p-6">
+                    <h4 class="text-lg font-semibold mb-4 flex items-center">
+                        <i class="fas fa-magic text-indigo-600 mr-2"></i>
+                        FastAPI 核心特性
+                    </h4>    <div class="grid md:grid-cols-3 gap-4">
+                        <div class="text-center">
+                            <div class="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-2">
+                                <i class="fas fa-lightning-bolt text-green-600"></i>
+                            </div>
+                            <h5 class="font-semibold text-sm mb-1">高性能</h5>
+                            <p class="text-xs text-gray-600 dark:text-gray-300">ASGI 異步架構</p>
+                        </div>
+                
+                        <div class="text-center">
+                            <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-2">
+                                <i class="fas fa-check-double text-blue-600"></i>
+                            </div>
+                            <h5 class="font-semibold text-sm mb-1">自動驗證</h5>
+                            <p class="text-xs text-gray-600 dark:text-gray-300">Pydantic 數據模型</p>
+                        </div>
+                        
+                        <div class="text-center">
+                            <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-2">
+                                <i class="fas fa-book text-purple-600"></i>
+                            </div>
+                            <h5 class="font-semibold text-sm mb-1">自動文檔</h5>
+                            <p class="text-xs text-gray-600 dark:text-gray-300">OpenAPI 標準</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 作者信息 -->
+    <footer class="bg-gray-800 dark:bg-gray-950 text-gray-300 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4 text-white">關於作者</h3>
+                    <p class="text-sm mb-4">本指南由 Gary Tseng 撰寫，專注於 AI 系統架構設計與實作。</p>
+                    <p class="text-xs text-gray-400">致力於推廣現代 AI 技術的實際應用與最佳實踐。</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4 text-white">社交媒體</h3>
+                    <div class="space-y-2"><a href="https://twitter.com/cl_tseng" class="flex items-center text-sm hover:text-blue-400 transition-colors">
+                            <i class="fab fa-twitter mr-2"></i>
+                            Twitter/X
+                        </a>
+                        <a href="https://github.com/cl-tseng" class="flex items-center text-sm hover:text-blue-400 transition-colors">
+                            <i class="fab fa-github mr-2"></i>
+                            GitHub
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 class="text-lg font-semibold mb-4 text-white">版權信息</h3>
+                    <p class="text-sm">© 2025 Gary Tseng</p>
+                    <p class="text-xs text-gray-400 mt-2">本指南僅供學習與研究使用</p>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center">
+                <p class="text-sm text-gray-400">
+                    Built with ❤️ using FastAPI, LangChain, and modern web technologies
+                </p>
+            </div>
+        </div>
+    </footer><script>
+        // 主題切換功能
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+
+        // 檢查系統主題偏好
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const currentTheme = localStorage.getItem('theme') || (prefersDark ? 'dark' : 'light');
+
+        if (currentTheme === 'dark') {
+            html.classList.add('dark');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        });
+
+        // 平滑滾動
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // 初始化 Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: html.classList.contains('dark') ? 'dark' : 'default',
+            themeVariables: {
+                primaryColor: '#0ea5e9',
+                primaryTextColor: '#1f2937',
+                primaryBorderColor: '#0284c7',
+                lineColor: '#6b7280',
+                secondaryColor: '#f3f4f6',
+                tertiaryColor: '#f9fafb'
+            }
+        });
+
+        // 監聽主題變化，重新渲染 Mermaid 圖表
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                    const isDark = html.classList.contains('dark');
+                    mermaid.initialize({
+                        startOnLoad: true,
+                        theme: isDark ? 'dark' : 'default'
+                    });
+                }
+            });
+        });
+
+        observer.observe(html, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
+
+        // 添加 fade-in 動畫
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .animate-fade-in {
+                animation: fadeIn 0.6s ease-out;
+            }
+            .bg-grid-pattern {
+                background-image: radial-gradient(circle, #e5e7eb 1px, transparent 1px);
+                background-size: 20px 20px;
+            }
+            .dark .bg-grid-pattern {
+                background-image: radial-gradient(circle, #374151 1px, transparent 1px);}
+        `;
+        document.head.appendChild(style);
+
+        // 滾動時添加動畫
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const animationObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // 監聽所有 section 元素
+        document.querySelectorAll('section').forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(20px)';
+            section.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+            animationObserver.observe(section);
+        });
+
+        // 初始化 Preline 組件
+        window.HSStaticMethods?.autoInit();
+    </script>
+</body>
+</html>

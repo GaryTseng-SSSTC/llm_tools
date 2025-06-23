@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vLLM 學習地圖心智圖 </title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f7fafc;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .mindmap-container {
+            background-color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 1200px;
+            width: 100%;
+            overflow-x: auto;
+        }
+        h1 {
+            text-align: center;
+            color: #2d3748;
+            margin-bottom: 2rem;
+        }
+        .mermaid {
+            width: 100%;
+            height: auto;
+            font-size: 12px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="mindmap-container">
+        <h1>vLLM 學習地圖</h1>
+        <div class="mermaid">
+graph LR
+    A[vLLM 學習地圖] --> B[基礎概念]
+    A --> C[環境設置]
+    A --> D[進階應用]
+    
+    B --> B1[核心問題]
+    B --> B2[核心技術]
+    B --> B3[主要優勢]
+    
+    B1 --> B11[LLM推斷瓶頸]
+    B1 --> B12[KV Cache記憶體碎片化]
+    B1 --> B13[GPU利用率低]
+    
+    B2 --> B21[PagedAttention]
+    B2 --> B22[分頁記憶體管理]
+    B2 --> B23[解決碎片化問題]
+    
+    B3 --> B31[高速推斷]
+    B3 --> B32[高吞吐量]
+    B3 --> B33[支持更多並行請求]
+    
+    C --> C1[直接安裝]
+    C --> C2[Docker部署]
+    
+    C1 --> C11[前提條件]
+    C1 --> C12[使用方法]
+    
+    C11 --> C111[Python環境]
+    C11 --> C112[NVIDIA GPU]
+    C11 --> C113[CUDA Toolkit]
+    
+    C12 --> C121[LLM類別]
+    C12 --> C122[SamplingParams]
+    C12 --> C123[generate方法]
+    
+    C2 --> C21[部署優勢]
+    C2 --> C22[前提條件]
+    C2 --> C23[運行方式]
+    
+    C21 --> C211[環境隔離]
+    C21 --> C212[簡化部署]
+    C21 --> C213[資源管理]
+    
+    C22 --> C221[Docker Engine]
+    C22 --> C222[NVIDIA Container Toolkit]
+    
+    C23 --> C231[官方Docker映象]
+    C23 --> C232[GPU支持啟動]
+    
+    D --> D1[批量處理機制]
+    D --> D2[API服務部署]
+    D --> D3[性能優化]
+    
+    D1 --> D11[多請求打包處理]
+    D1 --> D12[連續批量處理]
+    D1 --> D13[即時釋放資源]
+    
+    D2 --> D21[兼容OpenAI API]
+    D2 --> D22[服務器啟動參數]
+    D2 --> D23[客戶端調用方法]
+    
+    D3 --> D31[監控指標]
+    D3 --> D32[優化參數]
+    D3 --> D33[其他優化]
+    
+    D31 --> D311[吞吐量]
+    D31 --> D312[延遲時間]
+    D31 --> D313[GPU利用率]
+    
+    D32 --> D321[max_model_len]
+    D32 --> D322[gpu_memory_utilization]
+    D32 --> D323[max_num_batched_tokens]
+    
+    D33 --> D331[FlashAttention]
+    D33 --> D332[模型量化]
+    D33 --> D333[AWQ量化]
+    
+    classDef highlight fill:#fffbe6,stroke:#f6e05e,stroke-width:2px,color:#b7791f,font-weight:600
+    classDef root fill:#e6f3ff,stroke:#3182ce,stroke-width:3px,color:#2c5282,font-weight:bold
+    
+    class A root
+    class B2,B12,C2,C22,D12,D21,D32,D33 highlight
+        </div>
+    </div>
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default'
+        });
+    </script>
+</body>
+</html>
