@@ -1,0 +1,875 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大型語言模型微調流程指南</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/preline@3.0.1/dist/preline.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/material-icons@1.13.14/iconfont/material-icons.min.css" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'media',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        gray: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        }
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.6s ease-in-out',
+                        'slide-up': 'slideUp 0.8s ease-out',
+                    }
+                }
+            }
+        }
+    </script><style>
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .smooth-scroll {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans">
+    <!-- Theme Toggle Button -->
+    <button id="themeToggle" class="fixed top-4 right-4 z-50 p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg border border-gray-200 dark:border-gray-700 hover:scale-110 transition-all duration-300">
+        <i class="fas fa-sun text-yellow-500 dark:hidden"></i>
+        <i class="fas fa-moon text-blue-500 hidden dark:inline"></i>
+    </button>
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-brain text-2xl text-primary-600 mr-3"></i>
+                    <span class="text-xl font-semibold">LLM微調指南</span>
+                </div>
+                <div class="hidden md:flex space-x-8 items-center">
+                    <a href="#overview" class="text-gray-600 dark:text-gray-300 hover:text-primary-600 transition-colors">總覽</a><a href="#phases" class="text-gray-600 dark:text-gray-300 hover:text-primary-600 transition-colors">流程階段</a>
+                    <a href="#comparison" class="text-gray-600 dark:text-gray-300 hover:text-primary-600 transition-colors">技術比較</a>
+                    <a href="#workflow" class="text-gray-600 dark:text-gray-300 hover:text-primary-600 transition-colors">工作流程</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="gradient-bg text-white py-20">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-4xl md:text-6xl font-bold mb-6 animate-fade-in">大型語言模型微調</h1>
+            <p class="text-xl md:text-2xl mb-8 opacity-90 animate-slide-up">從通用模型到專業領域專家的系統性轉化流程</p>
+            <div class="flex justify-center space-x-4 animate-slide-up">
+                <div class="bg-white/20 rounded-lg px-6 py-3">
+                    <div class="text-2xl font-bold">5</div>
+                    <div class="text-sm">核心階段</div>
+                </div>
+                <div class="bg-white/20 rounded-lg px-6 py-3">
+                    <div class="text-2xl font-bold">高效</div>
+                    <div class="text-sm">成本控制</div>
+                </div>
+                <div class="bg-white/20 rounded-lg px-6 py-3">
+                    <div class="text-2xl font-bold">精準</div>
+                    <div class="text-sm">任務導向</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Overview Section -->
+    <section id="overview" class="py-16">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12 animate-fade-in">
+                <h2 class="text-3xl md:text-4xl font-bold mb-6 text-gray-900 dark:text-white">微調概述</h2>
+                <div class="w-24 h-1 bg-primary-500 mx-auto mb-8"></div>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg card-hover animate-slide-up">
+                    <div class="flex items-center mb-6">
+                        <div class="p-3 bg-primary-100 dark:bg-primary-900 rounded-lg mr-4">
+                            <i class="fas fa-target text-primary-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold">核心目標</h3>
+                    </div>
+                    <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+                        將通用的預訓練模型轉化為特定領域或任務的專家模型，利用特定任務的資料集對模型既有參數進行調整，使輸出更符合預期，同時顯著降低從頭訓練的巨大成本。
+                    </p>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg card-hover animate-slide-up">
+                    <div class="flex items-center mb-6">
+                        <div class="p-3 bg-green-100 dark:bg-green-900 rounded-lg mr-4">
+                            <i class="fas fa-chart-line text-green-600 text-2xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold">核心優勢</h3>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            <span class="text-gray-600 dark:text-gray-300">更高性能的客製化應用</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-shield-alt text-green-500 mr-3"></i>
+                            <span class="text-gray-600 dark:text-gray-300">增強隱私保障機制</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-dollar-sign text-green-500 mr-3"></i>
+                            <span class="text-gray-600 dark:text-gray-300">優化成本效益比例</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fas fa-cog text-green-500 mr-3"></i>
+                            <span class="text-gray-600 dark:text-gray-300">提升模型可控性</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Comparison Table Section -->
+    <section id="comparison" class="py-16 bg-gray-100 dark:bg-gray-800">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-6 text-gray-900 dark:text-white">微調 vs 提示工程</h2>
+                <div class="w-24 h-1 bg-primary-500 mx-auto mb-8"></div>
+                <p class="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                    了解兩種主要技術路徑的差異，選擇最適合您需求的解決方案
+                </p>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50 dark:bg-gray-800">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-white">特性</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-primary-600 dark:text-primary-400">
+                                    <i class="fas fa-edit mr-2"></i>提示工程
+                                </th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-primary-600 dark:text-primary-400"><i class="fas fa-cogs mr-2"></i>微調
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">核心方法</td>
+                                <td class="px-6 py-4 text-gray-600 dark:text-gray-300">透過設計精巧的提示詞引導模型行為</td>
+                                <td class="px-6 py-4 text-gray-600 dark:text-gray-300">透過在特定資料集上訓練來更新模型權重</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">資料需求</td>
+                                <td class="px-6 py-4 text-gray-600 dark:text-gray-300">無需訓練資料，可透過RAG接入少量資料</td>
+                                <td class="px-6 py-4 text-gray-600 dark:text-gray-300">需要大量、高品質的標籤化訓練資料</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">知識學習</td>
+                                <td class="px-6 py-4 text-gray-600 dark:text-gray-300">模型僅能存取提示中提供的資料，容易產生幻覺</td>
+                                <td class="px-6 py-4 text-gray-600 dark:text-gray-300">模型能從大量資料中學習新知識，減少幻覺</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">前期成本</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                        <i class="fas fa-dollar-sign mr-1"></i>成本較低
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200"><i class="fas fa-dollar-sign mr-1"></i>需要額外計算資源
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">技術門檻</td>
+                                <td class="px-6 py-4"><span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"><i class="fas fa-user mr-1"></i>較低
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                        <i class="fas fa-user-graduate mr-1"></i>較高
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">適用情境</td>
+                                <td class="px-6 py-4 text-gray-600 dark:text-gray-300">快速原型驗證、泛用型案例</td>
+                                <td class="px-6 py-4 text-gray-600 dark:text-gray-300">領域專家級應用、生產環境、企業級客製化模型</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Process Flow Section -->
+    <section id="workflow" class="py-16">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-6 text-gray-900 dark:text-white">微調流程圖</h2>
+                <div class="w-24 h-1 bg-primary-500 mx-auto mb-8"></div>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg">
+                <div class="mermaid" id="flowchart">
+                    graph TB
+                        A[任務定義與規劃] --> B[資料準備與處理]
+                        B --> C[模型選擇與參數設定]
+                        C --> D[執行訓練與監控]
+                        D --> E[驗證與迭代]
+                        E --> F{結果滿意?}
+                        F -->|否| B
+                        F -->|是| G[部署上線]
+                        
+                        A1[確認任務目標<br/>比較技術路徑] --> A
+                        B1[資料收集<br/>資料正規化<br/>資料擴增] --> B
+                        C1[選擇預訓練模型<br/>硬體規格預覽<br/>參數設定] --> C
+                        D1[訓練循環<br/>即時監控<br/>損失趨勢分析] --> D
+                        E1[模型驗證<br/>處理挑戰<br/>迭代優化] --> E
+                        
+                        classDef processBox fill:#e0f2fe,stroke:#0284c7,stroke-width:2px,color:#0c4a6e
+                        classDef detailBox fill:#f0f9ff,stroke:#0ea5e9,stroke-width:1px,color:#075985
+                        classDef decisionBox fill:#fef3c7,stroke:#f59e0b,stroke-width:2px,color:#92400e
+                        classDef finalBox fill:#d1fae5,stroke:#10b981,stroke-width:2px,color:#065f46
+                        
+                        class A,B,C,D,E processBox
+                        class A1,B1,C1,D1,E1 detailBox
+                        class F decisionBox
+                        class G finalBox
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Five Phases Section -->
+    <section id="phases" class="py-16 bg-gray-100 dark:bg-gray-800">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-6 text-gray-900 dark:text-white">五大核心階段</h2>
+                <div class="w-24 h-1 bg-primary-500 mx-auto mb-8"></div>
+            </div>
+
+            <!-- Phase 1 -->
+            <div class="mb-12">
+                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden card-hover">
+                    <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mr-4">
+                                <span class="text-blue-600 font-bold text-xl">1</span>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-white">任務定義與規劃</h3>
+                                <p class="text-blue-100">明確目標，選擇正確技術路徑</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <div>
+                                <h4 class="text-lg font-semibold mb-4 flex items-center">
+                                    <i class="fas fa-bullseye text-blue-500 mr-3"></i>
+                                    確認任務目標
+                                </h4>
+                                <p class="text-gray-600 dark:text-gray-300 mb-4">
+                                    精確定義模型需要執行的具體任務，如文本生成、摘要、翻譯、情感分析或程式碼完成等。明確的目標是選擇正確模型架構、準備相關資料集以及設定評估指標的基礎。
+                                </p>
+                                <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                                    <div class="flex items-center mb-2">
+                                        <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                                        <span class="font-medium">實例</span>
+                                    </div>
+                                    <p class="text-sm text-gray-600 dark:text-gray-300">
+                                        將通用的GPT-4模型特化為專門用於程式碼完成的GitHub Copilot
+                                    </p>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-semibold mb-4 flex items-center"><i class="fas fa-balance-scale text-blue-500 mr-3"></i>
+                                    技術路徑評估
+                                </h4>
+                                <p class="text-gray-600 dark:text-gray-300 mb-4">
+                                    評估微調是否為最合適的技術路徑。與提示工程相比，微調在處理特定、複雜或需要深度領域知識的應用時具有顯著優勢。
+                                </p>
+                                <div class="space-y-2">
+                                    <div class="flex items-center text-sm">
+                                        <i class="fas fa-check text-green-500 mr-2"></i>
+                                        <span>領域專家級應用</span></div>
+                                    <div class="flex items-center text-sm">
+                                        <i class="fas fa-check text-green-500 mr-2"></i>
+                                        <span>生產環境部署</span>
+                                    </div>
+                                    <div class="flex items-center text-sm">
+                                        <i class="fas fa-check text-green-500 mr-2"></i>
+                                        <span>企業級客製化需求</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 2 -->
+            <div class="mb-12">
+                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden card-hover">
+                    <div class="bg-gradient-to-r from-green-500 to-green-600 p-6">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mr-4">
+                                <span class="text-green-600 font-bold text-xl">2</span>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-white">資料準備與處理</h3>
+                                <p class="text-green-100">建立高品質、多樣化的訓練資料集</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <div class="grid md:grid-cols-3 gap-6">
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-database text-green-600 text-2xl"></i>
+                                </div>
+                                <h4 class="font-semibold mb-2">資料收集</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-300">收集與目標任務高度相關的資料</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-filter text-green-600 text-2xl"></i>
+                                </div>
+                                <h4 class="font-semibold mb-2">資料正規化</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-300">清洗和標準化，確保格式一致性</p>
+                            </div>
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-expand-arrows-alt text-green-600 text-2xl"></i>
+                                </div>
+                                <h4 class="font-semibold mb-2">資料擴增</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-300">增加訓練數據多樣性，預防過擬合</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 3 -->
+            <div class="mb-12">
+                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden card-hover">
+                    <div class="bg-gradient-to-r from-purple-500 to-purple-600 p-6">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mr-4">
+                                <span class="text-purple-600 font-bold text-xl">3</span>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-white">模型選擇與參數設定</h3>
+                                <p class="text-purple-100">選擇合適的基礎模型並配置訓練參數</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <div class="space-y-6">
+                            <div class="border-l-4 border-purple-500 pl-6">
+                                <h4 class="font-semibold mb-2">步驟一：硬體規格預覽</h4>
+                                <p class="text-gray-600 dark:text-gray-300">確認執行訓練任務的伺服器硬體規格，包括GPU型號、顯示記憶體、系統記憶體等</p>
+                            </div>
+                            <div class="border-l-4 border-purple-500 pl-6">
+                                <h4 class="font-semibold mb-2">步驟二：微調參數設定</h4>
+                                <p class="text-gray-600 dark:text-gray-300">指定要微調的基礎模型、選擇資料集、分配GPU型號與數量，為訓練任務命名</p>
+                            </div>
+                            <div class="border-l-4 border-purple-500 pl-6">
+                                <h4 class="font-semibold mb-2">步驟三：最終確認</h4>
+                                <p class="text-gray-600 dark:text-gray-300">總覽所有硬體規格與訓練參數，確認無誤後即可開始執行微調任務</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 4 -->
+            <div class="mb-12">
+                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden card-hover">
+                    <div class="bg-gradient-to-r from-orange-500 to-orange-600 p-6">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mr-4">
+                                <span class="text-orange-600 font-bold text-xl">4</span>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-white">執行訓練與監控</h3>
+                                <p class="text-orange-100">自動化訓練循環與即時性能監控</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <div>
+                                <h4 class="text-lg font-semibold mb-4 flex items-center">
+                                    <i class="fas fa-sync-alt text-orange-500 mr-3"></i>
+                                    訓練循環
+                                </h4>
+                                <div class="space-y-3">
+                                    <div class="flex items-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                                        <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3">1</div>
+                                        <span class="text-sm">前向傳播：輸入訓練資料產生預測輸出</span></div>
+                                    <div class="flex items-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                                        <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3">2</div>
+                                        <span class="text-sm">計算損失：比較輸出與真實標籤差異</span>
+                                    </div>
+                                    <div class="flex items-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                                        <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3">3</div>
+                                        <span class="text-sm">反向傳播：根據損失值反向計算梯度</span></div>
+                                    <div class="flex items-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                                        <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white text-sm font-bold mr-3">4</div>
+                                        <span class="text-sm">更新參數：使用梯度更新模型權重</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-semibold mb-4 flex items-center">
+                                    <i class="fas fa-chart-area text-orange-500 mr-3"></i>
+                                    即時監控
+                                </h4>
+                                <div class="space-y-3">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-list text-orange-500 mr-3 w-5"></i>
+                                        <span class="text-sm">任務清單與狀態追蹤</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-microchip text-orange-500 mr-3 w-5"></i>
+                                        <span class="text-sm">硬體資源使用率監控</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-chart-line text-orange-500 mr-3 w-5"></i>
+                                        <span class="text-sm">損失趨勢圖分析</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-file-alt text-orange-500 mr-3 w-5"></i>
+                                        <span class="text-sm">詳細訓練日誌記錄</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-cog text-orange-500 mr-3 w-5"></i>
+                                        <span class="text-sm">任務管理與控制功能</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Training Progress Chart -->
+                                <div class="mt-6 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                                    <h5 class="font-medium mb-3 text-center">損失函數收斂示意圖</h5>
+                                    <div id="lossChart" style="width: 100%; height: 200px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phase 5 -->
+            <div class="mb-12">
+                <div class="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden card-hover">
+                    <div class="bg-gradient-to-r from-red-500 to-red-600 p-6">
+                        <div class="flex items-center">
+                            <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center mr-4">
+                                <span class="text-red-600 font-bold text-xl">5</span>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-white">驗證與迭代</h3>
+                                <p class="text-red-100">性能評估與持續優化改進</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <div>
+                                <h4 class="text-lg font-semibold mb-4 flex items-center"><i class="fas fa-shield-alt text-red-500 mr-3"></i>
+                                    常見挑戰與解決方案
+                                </h4>
+                                <div class="space-y-4">
+                                    <div class="border border-red-200 dark:border-red-800 rounded-lg p-4">
+                                        <div class="flex items-center mb-2">
+                                            <i class="fas fa-exclamation-triangle text-yellow-500 mr-2"></i>
+                                            <h5 class="font-medium">過擬合 (Overfitting)</h5>
+                                        </div>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">模型在訓練資料上表現完美，但在新資料上表現不佳</p>
+                                    </div>
+                                    <div class="border border-red-200 dark:border-red-800 rounded-lg p-4">
+                                        <div class="flex items-center mb-2"><i class="fas fa-brain text-purple-500 mr-2"></i>
+                                            <h5 class="font-medium">災難性遺忘</h5>
+                                        </div><p class="text-sm text-gray-600 dark:text-gray-300">模型可能會忘記預訓練階段學到的一般性知識</p></div>
+                                    <div class="border border-red-200 dark:border-red-800 rounded-lg p-4">
+                                        <div class="flex items-center mb-2">
+                                            <i class="fas fa-balance-scale text-orange-500 mr-2"></i>
+                                            <h5 class="font-medium">偏見放大</h5>
+                                        </div><p class="text-sm text-gray-600 dark:text-gray-300">微調過程可能會無意中放大訓練資料中的偏見</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-semibold mb-4 flex items-center"><i class="fas fa-recycle text-red-500 mr-3"></i>
+                                    迭代優化流程
+                                </h4>
+                                <div class="space-y-4">
+                                    <p class="text-gray-600 dark:text-gray-300 mb-4">
+                                        微調是一個反覆試驗的過程。如果驗證結果不理想，開發團隊需要：
+                                    </p>
+                                    <div class="space-y-3"><div class="flex items-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                                            <i class="fas fa-database text-red-500 mr-3"></i>
+                                            <span class="text-sm">調整資料集品質與數量</span></div>
+                                        <div class="flex items-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                                            <i class="fas fa-sliders-h text-red-500 mr-3"></i><span class="text-sm">更改超參數配置</span>
+                                        </div>
+                                        <div class="flex items-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                                            <i class="fas fa-exchange-alt text-red-500 mr-3"></i>
+                                            <span class="text-sm">嘗試不同的基礎模型</span>
+                                        </div>
+                                        <div class="flex items-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                                            <i class="fas fa-redo text-red-500 mr-3"></i>
+                                            <span class="text-sm">重新執行訓練和驗證</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Performance Metrics Section -->
+    <section class="py-16">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl md:text-4xl font-bold mb-6 text-gray-900 dark:text-white">性能指標監控</h2>
+                <div class="w-24 h-1 bg-primary-500 mx-auto mb-8"></div>
+            </div><div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg">
+                    <h3 class="text-xl font-semibold mb-6 flex items-center">
+                        <i class="fas fa-tachometer-alt text-blue-500 mr-3"></i>
+                        硬體資源使用率
+                    </h3>
+                    <div id="resourceChart" style="width: 100%; height: 300px;"></div>
+                </div><div class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg">
+                    <h3 class="text-xl font-semibold mb-6 flex items-center">
+                        <i class="fas fa-chart-pie text-green-500 mr-3"></i>
+                        訓練階段分佈
+                    </h3>
+                    <div id="phaseChart" style="width: 100%; height: 300px;"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-3 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-brain text-2xl text-primary-400mr-3"></i>
+                        <span class="text-xl font-semibold">LLM微調指南</span>
+                    </div>
+                    <p class="text-gray-400">
+                        專業的大型語言模型微調流程指南，幫助開發者打造高性能的客製化AI應用。
+                    </p>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">作者資訊</h4>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <i class="fas fa-user text-gray-400 mr-3"></i>
+                            <span>Cl Tseng</span>
+                        </div>
+                        <div class="flex items-center">
+                            <i class="fab fa-twitter text-gray-400 mr-3"></i>
+                            <a href="#" class="text-primary-400 hover:text-primary-300 transition-colors">@cl_tseng</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">版權資訊</h4>
+                    <p class="text-gray-400">
+                        © 2025Cl Tseng. All rights reserved.
+                    </p><p class="text-sm text-gray-500 mt-2">
+                        本指南基於最新的機器學習最佳實踐編寫
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer><script>
+        // Initialize Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+            themeVariables: {
+                primaryColor: '#0ea5e9',
+                primaryTextColor: '#0c4a6e',
+                primaryBorderColor: '#0284c7',
+                lineColor: '#64748b'
+            }
+        });
+
+        // Theme Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+
+        // Check for saved theme preference or default to 'dark' mode
+        const currentTheme = localStorage.getItem('theme') ||
+                            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+        if (currentTheme) {
+            html.classList.toggle('dark', currentTheme === 'dark');
+        }
+
+        themeToggle.addEventListener('click', function() {
+            html.classList.toggle('dark');
+            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+        });
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Initialize Charts
+        function initCharts() {
+            // Loss Chart
+            const lossChart = echarts.init(document.getElementById('lossChart'));
+            const lossOption = {
+                xAxis: {
+                    type: 'value',
+                    name: '訓練步數',
+                    nameLocation: 'center',
+                    nameGap: 30
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '損失值',
+                    nameLocation: 'center',
+                    nameGap: 40
+                },
+                series: [{
+                    data: generateLossData(),
+                    type: 'line',
+                    smooth: true,
+                    lineStyle: {
+                        color: '#0ea5e9'
+                    },
+                    itemStyle: {
+                        color: '#0ea5e9'
+                    },
+                    areaStyle: {
+                        color: 'rgba(14, 165, 233, 0.1)'
+                    }
+                }],
+                grid: {
+                    left: '15%',
+                    right: '10%',
+                    bottom: '15%',
+                    top: '10%'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                }
+            };
+            lossChart.setOption(lossOption);
+
+            // Resource Chart
+            const resourceChart = echarts.init(document.getElementById('resourceChart'));
+            const resourceOption = {
+                title: {
+                    text: '即時硬體使用率',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: ['CPU', 'GPU', '記憶體'],
+                    bottom: 10
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['00:00', '00:05', '00:10', '00:15', '00:20', '00:25', '00:30']
+                },
+                yAxis: {
+                    type: 'value',
+                    max: 100,
+                    axisLabel: {
+                        formatter: '{value}%'
+                    }
+                },
+                series: [
+                    {
+                        name: 'CPU',
+                        type: 'line',
+                        data: [45, 52, 48, 55, 51, 49, 47],
+                        itemStyle: { color: '#10b981' }
+                    },
+                    {
+                        name: 'GPU',
+                        type: 'line',
+                        data: [85, 88, 92, 89, 91, 87, 85],
+                        itemStyle: { color: '#f59e0b' }
+                    },
+                    {
+                        name: '記憶體',
+                        type: 'line',
+                        data: [65, 68, 72, 70, 73, 69, 67],
+                        itemStyle: { color: '#8b5cf6' }
+                    }
+                ]
+            };
+            resourceChart.setOption(resourceOption);
+
+            // Phase Chart
+            const phaseChart = echarts.init(document.getElementById('phaseChart'));
+            const phaseOption = {
+                title: {
+                    text: '各階段時間分配',
+                    left: 'center'
+                },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: '{a} <br/>{b}: {d}%'
+                },
+                series: [
+                    {
+                        name: '時間分配',
+                        type: 'pie',
+                        radius: ['40%', '70%'],
+                        center: ['50%', '60%'],
+                        data: [
+                            {value: 15, name: '任務定義', itemStyle: {color: '#0ea5e9'}},
+                            {value: 35, name: '資料準備', itemStyle: {color: '#10b981'}},
+                            {value: 20, name: '模型選擇', itemStyle: {color: '#8b5cf6'}},
+                            {value: 25, name: '訓練監控', itemStyle: {color: '#f59e0b'}},
+                            {value: 5, name: '驗證迭代', itemStyle: {color: '#ef4444'}}
+                        ],
+                        emphasis: {
+                            itemStyle: {
+                                shadowBlur: 10,
+                                shadowOffsetX: 0,
+                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            }
+                        },
+                        label: {
+                            show: true,
+                            formatter: '{b}\n{d}%'
+                        }
+                    }
+                ]
+            };
+            phaseChart.setOption(phaseOption);
+
+            // Make charts responsive
+            window.addEventListener('resize', function() {
+                lossChart.resize();
+                resourceChart.resize();
+                phaseChart.resize();
+            });
+        }
+
+        function generateLossData() {
+            const data = [];
+            let loss = 2.5;
+            for (let i = 0; i <= 100; i += 2) {
+                loss = Math.max(0.1, loss * (0.95 + Math.random() * 0.03));
+                data.push([i, loss]);
+            }
+            return data;
+        }
+
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initCharts, 500);
+        });
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in');
+                }
+            });
+        }, observerOptions);
+
+        // Observe all cards and sections
+        document.querySelectorAll('.card-hover, section').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>

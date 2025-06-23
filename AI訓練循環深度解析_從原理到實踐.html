@@ -1,0 +1,618 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI訓練循環深度解析 - 從原理到實踐</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/preline@3.0.1/dist/preline.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/material-icons@1.13.14/iconfont/material-icons.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e'
+                        },
+                        gray: {
+                            50: '#fafafa',
+                            100: '#f5f5f5',
+                            200: '#e5e5e5',
+                            300: '#d4d4d4',
+                            400: '#a3a3a3',
+                            500: '#737373',
+                            600: '#525252',
+                            700: '#404040',
+                            800: '#262626',
+                            900: '#171717'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        .smooth-transition {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .dark .gradient-bg {
+            background: linear-gradient(135deg, #4c1d95 0%, #1e1b4b 100%);
+        }
+        
+        .step-card {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .step-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, #3b82f6, #8b5cf6);
+            transition: width 0.3s ease;
+        }
+        
+        .step-card:hover::before {
+            width: 8px;
+        }
+        
+        .mermaid {
+            text-align: center;
+        }
+        
+        .chart-container {
+            min-height: 400px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 smooth-transition">
+    <!-- Dark Mode Toggle -->
+    <button id="darkModeToggle" class="fixed top-4 right-4 z-50 p-3 rounded-full bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl smooth-transition hover-lift">
+        <i class="fas fa-moon dark:hidden"></i>
+        <i class="fas fa-sun hidden dark:inline"></i>
+    </button>
+
+    <!-- Header -->
+    <header class="gradient-bg text-white py-16 px-4">
+        <div class="max-w-6xl mx-auto fade-in">
+            <div class="text-center mb-8">
+                <h1 class="text-4xl md:text-6xl font-bold mb-4">AI訓練循環深度解析</h1>
+                <p class="text-xl md:text-2xl opacity-90">從原理到實踐</p>
+                <div class="mt-6 text-sm opacity-80">
+                    <i class="fas fa-calendar-alt mr-2"></i>報告日期：2025年06月23日
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 py-12">
+        <!-- Overview Section -->
+        <section class="mb-16 fade-in">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl smooth-transition hover-lift p-8">
+                <div class="flex items-center mb-6">
+                    <i class="fas fa-eye text-primary-500 text-3xl mr-4"></i>
+                    <h2 class="text-3xl font-bold">總覽</h2>
+                </div>
+                <p class="text-lg leading-relaxed text-gray-700 dark:text-gray-300">
+                    AI模型的訓練過程，本質上是一個稱為「訓練循環（Training Loop）」的迭代優化過程。其核心目標是透過不斷地向模型展示訓練資料，並根據其預測結果與真實答案之間的差異（即「損失」），系統性地微調模型內部數以百萬計的參數，最終使模型能夠在未見過的資料上做出準確的預測或生成。
+                </p>
+            </div>
+        </section>
+
+        <!-- Training Loop Visualization -->
+        <section class="mb-16 fade-in">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-8">
+                    <i class="fas fa-sync-alt text-primary-500 text-3xl mr-4"></i>
+                    <h2 class="text-3xl font-bold">訓練循環流程圖</h2>
+                </div>
+                <div class="mermaid">
+                    graph TD
+                        A[資料準備與批次處理] --> B[前向傳播]
+                        B --> C[損失計算]
+                        C --> D[反向傳播]
+                        D --> E[參數更新]
+                        E --> F{是否收斂?}
+                        F -->|否| A
+                        F -->|是| G[訓練完成]
+                        
+                        style A fill:#e1f5fe
+                        style B fill:#f3e5f5
+                        style C fill:#fff3e0
+                        style D fill:#e8f5e8
+                        style E fill:#fce4ec
+                        style G fill:#e0f2f1
+                </div>
+            </div>
+        </section>
+
+        <!-- Five Steps Section -->
+        <section class="mb-16">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-bold mb-4">訓練循環五大步驟</h2>
+                <p class="text-xl text-gray-600 dark:text-gray-400">深入解析每個關鍵環節</p>
+            </div>
+
+            <div class="grid gap-8">
+                <!-- Step 1 -->
+                <div class="step-card bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl smooth-transition hover-lift p-8 fade-in">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mr-6">1</div>
+                        <div class="flex-1">
+                            <h3 class="text-2xl font-bold mb-4 text-blue-600 dark:text-blue-400">資料準備與批次處理</h3>
+                            <div class="space-y-4">
+                                <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
+                                    在訓練開始前，必須先準備好結構化的資料集。通常，資料集會被分為三個部分，以確保模型訓練的有效性與評估的客觀性。
+                                </p>
+                                <div class="grid md:grid-cols-3 gap-4">
+                                    <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                                        <h4 class="font-semibold text-blue-800 dark:text-blue-300 mb-2">訓練資料集</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">用於模型學習的主要資料，佔最大比例</p>
+                                    </div>
+                                    <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                                        <h4 class="font-semibold text-green-800 dark:text-green-300 mb-2">驗證資料集</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">監控模型效能，防止過擬合</p></div>
+                                    <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                                        <h4 class="font-semibold text-purple-800 dark:text-purple-300 mb-2">測試資料集</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">最終評估模型泛化能力</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="step-card bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl smooth-transition hover-lift p-8 fade-in">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mr-6">2</div>
+                        <div class="flex-1">
+                            <h3 class="text-2xl font-bold mb-4 text-purple-600 dark:text-purple-400">前向傳播</h3>
+                            <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                                前向傳播是模型進行「預測」的過程。資料從輸入層逐層通過網路的隱藏層，每一層的節點都會對接收到的輸入進行加權運算，並透過激活函數轉換，最後產生預測結果。
+                            </p>
+                            <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                                <h4 class="font-semibold text-purple-800 dark:text-purple-300 mb-2">計算流程</h4>
+                                <ol class="list-decimal list-inside space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                                    <li>輸入資料到神經網路</li>
+                                    <li>逐層進行加權運算和激活函數轉換</li><li>在輸出層產生預測結果</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="step-card bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl smooth-transition hover-lift p-8 fade-in">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mr-6">3</div>
+                        <div class="flex-1">
+                            <h3 class="text-2xl font-bold mb-4 text-orange-600 dark:text-orange-400">損失計算</h3>
+                            <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                                損失計算的目的是量化模型預測結果與真實答案之間的差距。透過損失函數計算出一個數值，代表模型在這個批次上的「錯誤程度」。
+                            </p>
+                            <div class="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
+                                <h4 class="font-semibold text-orange-800 dark:text-orange-300 mb-2">常見損失函數</h4>
+                                <ul class="list-disc list-inside space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                                    <li>交叉熵損失（分類任務）</li>
+                                    <li>均方誤差（回歸任務）</li>
+                                    <li>Huber損失（Robust回歸）</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="step-card bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl smooth-transition hover-lift p-8 fade-in">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mr-6">4</div>
+                        <div class="flex-1">
+                            <h3 class="text-2xl font-bold mb-4 text-green-600 dark:text-green-400">反向傳播</h3>
+                            <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                                反向傳播是訓練循環中最核心的計算步驟。運用微積分的鏈式法則，從損失值開始，反向逐層計算損失函數對每個參數的梯度，確定參數調整的方向和幅度。
+                            </p>
+                            <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                                <h4 class="font-semibold text-green-800 dark:text-green-300 mb-2">梯度概念</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    梯度是一個向量，指向損失值增長最快的方向。其反方向就是損失值下降最快的方向，這是參數更新的依據。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 5 -->
+                <div class="step-card bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl smooth-transition hover-lift p-8 fade-in">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 w-16 h-16 bg-pink-500 rounded-full flex items-center justify-center text-white text-2xl font-bold mr-6">5</div>
+                        <div class="flex-1">
+                            <h3 class="text-2xl font-bold mb-4 text-pink-600 dark:text-pink-400">參數更新</h3>
+                            <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
+                                根據反向傳播計算出的梯度，使用優化器來更新模型參數。更新的規則是將當前參數值減去學習率與梯度的乘積。
+                            </p>
+                            <div class="bg-pink-50 dark:bg-pink-900/20 p-4 rounded-lg">
+                                <h4 class="font-semibold text-pink-800 dark:text-pink-300 mb-2">更新公式</h4>
+                                <p class="text-sm font-mono bg-gray-100 dark:bg-gray-700 p-2 rounded text-center">
+                                    新參數 = 舊參數 - 學習率 × 梯度
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Training Progress Chart -->
+        <section class="mb-16 fade-in">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-8">
+                    <i class="fas fa-chart-line text-primary-500 text-3xl mr-4"></i>
+                    <h2 class="text-3xl font-bold">訓練進度示意圖</h2>
+                </div>
+                <div id="trainingChart" class="chart-container"></div>
+            </div>
+        </section>
+
+        <!-- Example Section -->
+        <section class="mb-16 fade-in">
+            <div class="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-8">
+                    <i class="fas fa-code text-indigo-600 text-3xl mr-4"></i>
+                    <h2 class="text-3xl font-bold">實踐範例：大型語言模型微調</h2>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-xl p-6 mb-6">
+                    <h3 class="text-xl font-semibold mb-4 text-indigo-600 dark:text-indigo-400">場景設定</h3>
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">
+                        假設我們正在使用 `aiDAPTIV+` 框架微調一個 `Llama-3.1-8B` 模型，使其能夠回答公司內部的問題。
+                    </p>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                            <h4 class="font-semibold text-blue-800 dark:text-blue-300 mb-2">模型規模</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Llama-3.1-8B (80億參數)</p>
+                        </div>
+                        <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                            <h4 class="font-semibold text-green-800 dark:text-green-300 mb-2">批次大小</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">8個問答對/批次</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-6"><div class="bg-white dark:bg-gray-800 rounded-xl p-6">
+                        <h4 class="font-semibold text-lg mb-3 flex items-center">
+                            <span class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm mr-3">1</span>
+                            資料準備
+                        </h4>
+                        <p class="text-gray-700 dark:text-gray-300">準備 `QA_data.json` 文件，包含數百個問答對，格式為 `{"instruction": "...", "input": "...", "output": "..."}`</p>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-6">
+                        <h4 class="font-semibold text-lg mb-3 flex items-center">
+                            <span class="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center text-sm mr-3">2</span>
+                            啟動訓練循環
+                        </h4>
+                        <p class="text-gray-700 dark:text-gray-300 mb-3">Epoch 1, Iteration 1 的詳細步驟：</p>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-start"><i class="fas fa-check text-green-500 mt-1 mr-2"></i><span class="text-gray-600 dark:text-gray-400">讀取前8個問答對作為第一個批次</span></li>
+                            <li class="flex items-start"><i class="fas fa-check text-green-500 mt-1 mr-2"></i><span class="text-gray-600 dark:text-gray-400">模型根據現有知識生成8個對應答案</span></li>
+                            <li class="flex items-start"><i class="fas fa-check text-green-500 mt-1 mr-2"></i><span class="text-gray-600 dark:text-gray-400">比較生成答案與標準答案，計算損失值（例如：loss: 2.5）</span></li>
+                            <li class="flex items-start"><i class="fas fa-check text-green-500 mt-1 mr-2"></i><span class="text-gray-600 dark:text-gray-400">計算損失對80億個參數的梯度</span></li>
+                            <li class="flex items-start"><i class="fas fa-check text-green-500 mt-1 mr-2"></i><span class="text-gray-600 dark:text-gray-400">Adam優化器更新模型參數</span></li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-6">
+                        <h4 class="font-semibold text-lg mb-3 flex items-center">
+                            <span class="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center text-sm mr-3">3</span>
+                            持續優化
+                        </h4>
+                        <p class="text-gray-700 dark:text-gray-300">重複迭代直到驗證集損失趨於穩定，最終模型能準確回答企業內部問題。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Concepts -->
+        <section class="mb-16 fade-in">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
+                <div class="flex items-center mb-8">
+                    <i class="fas fa-lightbulb text-yellow-500 text-3xl mr-4"></i>
+                    <h2 class="text-3xl font-bold">關鍵概念補充</h2>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-6 rounded-xl">
+                        <h3 class="text-xl font-semibold mb-4 text-blue-800 dark:text-blue-300">學習率調整</h3>
+                        <p class="text-gray-700 dark:text-gray-300 text-sm mb-3">學習率是控制參數更新步長的關鍵超參數</p>
+                        <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                            <li>• 過高：模型可能震盪，無法收斂</li>
+                            <li>• 過低：訓練速度過慢</li>
+                            <li>• 自適應：Adam等優化器可自動調整</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-6 rounded-xl">
+                        <h3 class="text-xl font-semibold mb-4 text-purple-800 dark:text-purple-300">優化器選擇</h3>
+                        <p class="text-gray-700 dark:text-gray-300 text-sm mb-3">不同優化器適用於不同場景</p>
+                        <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                            <li>• SGD：簡單但需要精細調參</li>
+                            <li>• Adam：自適應性強，廣泛使用</li>
+                            <li>• AdamW：改進版本，處理權重衰減</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 dark:bg-gray-900 text-white py-12 px-4">
+        <div class="max-w-6xl mx-auto text-center">
+            <div class="mb-8">
+                <h3 class="text-2xl font-bold mb-4">關於作者</h3>
+                <p class="text-xl text-gray-300">Cl Tseng</p>
+                <p class="text-gray-400 mt-2">AI研究者 & 深度學習專家</p>
+            </div>
+            
+            <div class="flex justify-center space-x-6 mb-8">
+                <a href="https://twitter.com/cltseng" target="_blank" class="text-gray-400 hover:text-blue-400 smooth-transition text-2xl">
+                    <i class="fab fa-twitter"></i>
+                </a>
+                <a href="https://x.com/cltseng" target="_blank" class="text-gray-400 hover:text-gray-200 smooth-transition text-2xl">
+                    <i class="fab fa-x-twitter"></i>
+                </a>
+                <a href="https://github.com/cltseng" target="_blank" class="text-gray-400 hover:text-gray-200 smooth-transition text-2xl">
+                    <i class="fab fa-github"></i>
+                </a>
+                <a href="https://linkedin.com/in/cltseng" target="_blank" class="text-gray-400 hover:text-blue-400 smooth-transition text-2xl">
+                    <i class="fab fa-linkedin"></i>
+                </a>
+            </div>
+            
+            <div class="border-t border-gray-700 pt-8">
+                <p class="text-gray-400">
+                    © 2025 Cl Tseng. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Dark mode toggle
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const html = document.documentElement;
+
+        // Check for saved theme preference or default to system preference
+        const savedTheme = localStorage.getItem('theme');
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        
+        if (savedTheme) {
+            html.classList.toggle('dark', savedTheme === 'dark');
+        } else {
+            html.classList.toggle('dark', systemTheme === 'dark');
+        }
+
+        darkModeToggle.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+        });
+
+        // Initialize Mermaid
+        mermaid.initialize({ 
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#3b82f6',
+                primaryTextColor: '#1e293b',
+                primaryBorderColor: '#64748b',
+                lineColor: '#64748b',
+                fontFamily: 'Noto Sans TC'
+            }
+        });
+
+        // Training Progress Chart
+        const trainingChart = echarts.init(document.getElementById('trainingChart'));
+
+        const trainingOption = {
+            title: {
+                text: '訓練損失變化',
+                left: 'center',
+                textStyle: {
+                    color: getComputedStyle(document.documentElement).getPropertyValue('color') || '#374151'
+                }
+            },
+            tooltip: {
+                trigger: 'axis',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                borderColor: '#e5e7eb',
+                textStyle: {
+                    color: '#374151'
+                }
+            },
+            legend: {
+                data: ['訓練損失', '驗證損失'],
+                bottom: 20,
+                textStyle: {
+                    color: getComputedStyle(document.documentElement).getPropertyValue('color') || '#374151'
+                }
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '15%',
+                top: '15%',
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                data: ['Epoch 1', 'Epoch 5', 'Epoch 10', 'Epoch 15', 'Epoch 20', 'Epoch 25', 'Epoch 30'],
+                axisLine: {
+                    lineStyle: {
+                        color: '#9ca3af'
+                    }
+                }
+            },
+            yAxis: {
+                type: 'value',
+                name: '損失值',
+                axisLine: {
+                    lineStyle: {
+                        color: '#9ca3af'
+                    }
+                },
+                nameTextStyle: {
+                    color: getComputedStyle(document.documentElement).getPropertyValue('color') || '#374151'
+                }
+            },
+            series: [
+                {
+                    name: '訓練損失',
+                    type: 'line',
+                    data: [2.5, 1.8, 1.2, 0.9, 0.7, 0.6, 0.5],
+                    smooth: true,
+                    lineStyle: {
+                        color: '#3b82f6',
+                        width: 3
+                    },
+                    areaStyle: {
+                        color: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [{
+                                offset: 0, color: 'rgba(59, 130, 246, 0.3)'
+                            }, {
+                                offset: 1, color: 'rgba(59, 130, 246, 0.05)'
+                            }]
+                        }
+                    }
+                },
+                {
+                    name: '驗證損失',
+                    type: 'line',
+                    data: [2.7, 2.0, 1.4, 1.1, 0.9, 0.8, 0.8],
+                    smooth: true,
+                    lineStyle: {
+                        color: '#8b5cf6',
+                        width: 3
+                    },
+                    areaStyle: {
+                        color: {
+                            type: 'linear',
+                            x: 0,
+                            y: 0,
+                            x2: 0,
+                            y2: 1,
+                            colorStops: [{
+                                offset: 0, color: 'rgba(139, 92, 246, 0.3)'
+                            }, {
+                                offset: 1, color: 'rgba(139, 92, 246, 0.05)'
+                            }]
+                        }
+                    }
+                }
+            ]
+        };
+
+        trainingChart.setOption(trainingOption);
+
+        // Responsive chart
+        window.addEventListener('resize', () => {
+            trainingChart.resize();
+        });
+
+        // Update chart theme on dark mode toggle
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === 'class') {
+                    const isDark = html.classList.contains('dark');
+                    trainingOption.title.textStyle.color = isDark ? '#f3f4f6' : '#374151';
+                    trainingOption.legend.textStyle.color = isDark ? '#f3f4f6' : '#374151';
+                    trainingOption.yAxis.nameTextStyle.color = isDark ? '#f3f4f6' : '#374151';
+                    trainingChart.setOption(trainingOption);
+                    trainingChart.resize();
+                }
+            });
+        });
+
+        observer.observe(html, { attributes: true, attributeFilter: ['class'] });
+
+        // Fade in animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observerCallback = (entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        };
+
+        const scrollObserver = new IntersectionObserver(observerCallback, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+            scrollObserver.observe(el);
+        });
+
+        // Initialize first items as visible
+        setTimeout(() => {
+            document.querySelector('.fade-in')?.style.setProperty('opacity', '1');
+            document.querySelector('.fade-in')?.style.setProperty('transform', 'translateY(0)');
+        }, 100);
+    </script>
+</body>
+</html>
