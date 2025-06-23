@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>專業教學電子白板</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f4f8;
+        }
+        
+        .whiteboard {
+            background-color: white;
+            touch-action: none;
+        }
+        
+        .tool-btn {
+            transition: all 0.2s ease;
+        }
+        
+        .tool-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .tool-btn.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        
+        .timer-display {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        
+        .color-swatch {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .color-swatch:hover {
+            transform: scale(1.2);
+        }
+        
+        .color-swatch.active {
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px #3b82f6;
+        }
+        
+        .sidebar {
+            background-color: #1e3a8a;
+            color: white;
+            transition: width 0.3s ease-in-out;
+            position: relative;
+            z-index: 40;
+        }
+        
+        .sidebar-collapsed {
+            width: 64px !important; /* w-16, increased from 56px */
+            overflow: hidden; /* Add overflow:hidden ONLY when collapsed */
+        }
+        
+        .sidebar-collapsed .sidebar-item,
+        .sidebar-collapsed .color-swatch,
+        .sidebar-collapsed #colorPicker,
+        .sidebar-collapsed #lineWidth
+        /* .shape-dropdown is hidden because its parent .sidebar-item (shape-btn-container) is hidden */
+        {
+            display: none !important;
+        }
+        
+        .sidebar-collapsed .tool-btn:not(#toggleSidebar) {
+            justify-content: center;
+        }
+        
+        .main-content {
+            height: calc(100vh - 64px);
+            overflow: hidden; /* 避免主內容區域出現滾動條 */
+        }
+        
+        #rightPanel {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 384px; /* w-96 = 24rem = 384px */
+            z-index: 20;
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        #rightPanel.right-panel-collapsed {
+            transform: translateX(100%);
+        }
+        
+        #canvasContainer {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            right: 0;
+            transition: right 0.3s ease-in-out;
+        }
+        
+        #mainContentArea.panel-expanded #canvasContainer {
+            right: 384px; /* 為右側面板留出空間 */
+        }
+        
+        #mainContentArea.panel-collapsed #canvasContainer {
+            right: 0; /* 占滿整個空間 */
+        }
+        
+        .shape-btn-container {
+            position: relative; /* 確保子元素的絕對定位是相對於此容器 */
+        }
+        
+        .shape-dropdown {
+            position: absolute;
+            left: 100%; /* Position to the right of the parent */
+            top: 50%; /* Vertically center relative to the parent */
+            transform: translateY(-50%); /* Adjust for vertical centering */
+            margin-left: 8px; /* Add some space to the right */
+            background-color: #1e3a8a; /* 與側邊欄背景相同 */
+            border-radius: 8px;
+            padding: 8px;
+            display: none; /* 預設隱藏 */
+            z-index: 50; /* 高於其他側邊欄內容 */
+            width: auto; /* 自動寬度以適應內容 */
+            min-width: max-content; /* 確保寬度至少能容納最寬的按鈕 */
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2); /* 添加陰影以更好地區分 */
+            grid-template-columns: repeat(2, minmax(0, 1fr)); /* 恢復為兩列 */
+        }
+        
+        /* REMOVED HOVER LOGIC - Will be handled by JavaScript onClick 
+        .sidebar:not(.sidebar-collapsed) .shape-btn-container:hover .shape-dropdown {
+            display: grid; 
+        }
+        */
+        
+        .sidebar-collapsed .tool-btn:not(#toggleSidebar) {
+            justify-content: center;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        
+        .recording {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="flex flex-col h-screen">
+        <!-- 頂部導航欄 -->
+        <header class="bg-white shadow-md py-4 px-6">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                    </svg>
+                    <h1 class="text-2xl font-bold text-gray-800">智慧教學白板</h1>
+                </div>
+                
+                <!-- 計時器控制 -->
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-gray-700">倒數計時:</span>
+                        <input type="number" id="minutes" min="0" max="60" value="5" class="w-16 px-2 py-1 border border-gray-300 rounded text-center">
+                        <span class="text-gray-700">分鐘</span>
+                        <button id="startTimer" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded transition">開始</button>
+                        <button id="resetTimer" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded transition">重置</button>
+                    </div>
+                    <div class="timer-display bg-gray-800 text-white px-4 py-2 rounded-lg text-xl">
+                        <span id="timerDisplay">05:00</span>
+                    </div>
+                </div>
+                
+                <!-- 儲存與清除 -->
+                <div class="flex items-center space-x-3">
+                    <button id="saveBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded flex items-center space-x-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                        </svg>
+                        <span>儲存白板</span>
+                    </button>
+                    <button id="clearBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded flex items-center space-x-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        <span>清除白板</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+        
+        <div class="flex flex-1 overflow-hidden main-content">
+            <!-- 左側工具欄 -->
+            <div class="sidebar w-24 flex flex-col items-center py-4 space-y-4">
+                <button id="toggleSidebar" class="tool-btn p-2 rounded-lg bg-blue-800 text-white mb-2 self-center" title="收合工具欄">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 transition-transform duration-300" viewBox="0 0 24 24" fill="currentColor" id="sidebarToggleIcon">
+                        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                    </svg>
+                </button>
+                <div class="border-t border-blue-400 w-12 my-2 sidebar-item"></div>
+
+                <button class="tool-btn active p-2 rounded-lg bg-blue-500 text-white sidebar-item" data-tool="pen" title="畫筆">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                </button>
+                <button class="tool-btn p-2 rounded-lg bg-blue-800 text-white sidebar-item" data-tool="eraser" title="橡皮擦">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </button>
+                <button class="tool-btn p-2 rounded-lg bg-blue-800 text-white sidebar-item" data-tool="text" title="文字">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                    </svg>
+                </button>
+                
+                <!-- 形狀工具 -->
+                <div class="shape-btn-container relative sidebar-item">
+                    <button class="tool-btn p-2 rounded-lg bg-blue-800 text-white" id="shapeBtn" title="形狀">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                        </svg>
+                    </button>
+                    <div class="shape-dropdown grid-cols-2 gap-2">
+                        <button class="tool-btn p-2 rounded-lg bg-blue-700 text-white" data-shape="rectangle" title="矩形">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <rect x="4" y="4" width="16" height="16" rx="0" stroke-width="2" />
+                            </svg>
+                        </button>
+                        <button class="tool-btn p-2 rounded-lg bg-blue-700 text-white" data-shape="circle" title="圓形">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <circle cx="12" cy="12" r="8" stroke-width="2" />
+                            </svg>
+                        </button>
+                        <button class="tool-btn p-2 rounded-lg bg-blue-700 text-white" data-shape="ellipse" title="橢圓">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <ellipse cx="12" cy="12" rx="10" ry="6" stroke-width="2" />
+                            </svg>
+                        </button>
+                        <button class="tool-btn p-2 rounded-lg bg-blue-700 text-white" data-shape="line" title="直線">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <line x1="4" y1="20" x2="20" y2="4" stroke-width="2" />
+                            </svg>
+                        </button>
+                        <button class="tool-btn p-2 rounded-lg bg-blue-700 text-white" data-shape="triangle" title="三角形">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path d="M12 4 L20 20 L4 20 Z" stroke-width="2" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="border-t border-blue-400 w-12 my-2 sidebar-item"></div>
+                
+                <!-- 顏色選擇器 -->
+                <div class="flex flex-col items-center space-y-2 sidebar-item">
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="color-swatch active" style="background-color: #000000;" data-color="#000000"></div>
+                        <div class="color-swatch" style="background-color: #ff0000;" data-color="#ff0000"></div>
+                        <div class="color-swatch" style="background-color: #0000ff;" data-color="#0000ff"></div>
+                        <div class="color-swatch" style="background-color: #008000;" data-color="#008000"></div>
+                        <div class="color-swatch" style="background-color: #ffff00;" data-color="#ffff00"></div>
+                        <div class="color-swatch" style="background-color: #ffa500;" data-color="#ffa500"></div>
+                        <div class="color-swatch" style="background-color: #800080;" data-color="#800080"></div>
+                        <div class="color-swatch" style="background-color: #ff69b4;" data-color="#ff69b4"></div>
+                        <div class="color-swatch" style="background-color: #00ffff;" data-color="#00ffff"></div>
+                    </div>
+                    <input type="color" id="colorPicker" value="#000000" class="w-12 h-6 cursor-pointer" title="自訂顏色">
+                </div>
+                
+                <select id="lineWidth" class="bg-blue-800 text-white rounded p-1 text-sm w-16 text-center sidebar-item" title="線條粗細">
+                    <option value="2">細</option>
+                    <option value="5" selected>中</option>
+                    <option value="10">粗</option>
+                    <option value="15">特粗</option>
+                </select>
+                
+                <div class="border-t border-blue-400 w-12 my-2 sidebar-item"></div>
+                
+                <button id="youtubeBtn" class="tool-btn p-2 rounded-lg bg-red-600 text-white sidebar-item" title="YouTube影片">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+                    </svg>
+                </button>
+                
+                <button id="recordBtn" class="tool-btn p-2 rounded-lg bg-blue-800 text-white sidebar-item" title="錄製">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- 主要內容區域 (包含白板和右側面板) -->
+            <div id="mainContentArea" class="flex-1 relative panel-expanded">
+                <!-- 白板區域 -->
+                <div id="canvasContainer">
+                    <canvas id="whiteboard" class="whiteboard absolute inset-0 w-full h-full border shadow-inner bg-white"></canvas>
+                    
+                    <!-- 收合狀態下的展開按鈕 -->
+                    <button id="expandBtn" class="absolute top-4 right-4 bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg shadow-lg hidden transition-all duration-200 z-10">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <!-- 右側面板 (YouTube和筆記) -->
+                <div id="rightPanel" class="bg-white shadow-lg p-4 flex flex-col">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold text-gray-800">YouTube 影片</h2>
+                        <button id="togglePanel" class="text-gray-500 hover:text-gray-700 transition-transform duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="flex space-x-2">
+                            <input type="text" id="youtubeUrl" placeholder="輸入YouTube影片網址或ID" class="flex-1 border border-gray-300 rounded px-3 py-2">
+                            <button id="loadYoutube" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded">載入</button>
+                        </div>
+                    </div>
+                    
+                    <div id="youtubeContainer" class="aspect-w-16 aspect-h-9 mb-4">
+                        <div id="youtubePlayer" class="w-full h-56 bg-gray-200 flex items-center justify-center">
+                            <p class="text-gray-500">請輸入YouTube影片網址</p>
+                        </div>
+                    </div>
+                    
+                    <h2 class="text-lg font-bold text-gray-800 mb-2">筆記區</h2>
+                    <textarea id="notes" class="flex-1 border border-gray-300 rounded p-3 resize-none" placeholder="在這裡記錄筆記..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- YouTube影片輸入對話框 -->
+    <div id="youtubeModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg p-6 w-96">
+            <h3 class="text-xl font-bold mb-4">插入YouTube影片</h3>
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">YouTube影片網址或ID</label>
+                <input type="text" id="youtubeUrlModal" class="w-full border border-gray-300 rounded px-3 py-2" placeholder="https://www.youtube.com/watch?v=...">
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button id="cancelYoutube" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100">取消</button>
+                <button id="confirmYoutube" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">確認</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 白板功能
+            const canvas = document.getElementById('whiteboard');
+            const ctx = canvas.getContext('2d');
+            let isDrawing = false;
+            let lastX = 0;
+            let lastY = 0;
+            let startX = 0;
+            let startY = 0;
+            let currentTool = 'pen';
+            let currentShape = 'rectangle';
+            let currentColor = '#000000';
+            let currentLineWidth = 5;
+            let textInput = null;
+            let drawingHistory = [];
+            let currentDrawing = null;
+            
+            // 設置畫布大小
+            function resizeCanvas() {
+                const canvasContainer = document.getElementById('canvasContainer');
+                if (!canvasContainer) {
+                    console.error('Canvas container not found');
+                    return;
+                }
+
+                // Create a temporary canvas to hold the current drawing
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+
+                let drawingExists = canvas.width > 0 && canvas.height > 0;
+                if (drawingExists) {
+                    tempCanvas.width = canvas.width;
+                    tempCanvas.height = canvas.height;
+                    tempCtx.drawImage(canvas, 0, 0);
+                }
+
+                // Get the new dimensions from the container element
+                const newWidth = canvasContainer.offsetWidth;
+                const newHeight = canvasContainer.offsetHeight;
+
+                // Set the drawing surface size
+                canvas.width = newWidth;
+                canvas.height = newHeight;
+
+                // If there was a previous drawing, redraw it onto the resized canvas
+                if (drawingExists) {
+                    ctx.drawImage(tempCanvas, 0, 0);
+                }
+                // Note: We rely on Tailwind classes (w-full, h-full, inset-0 on the canvas element)
+                // to make the <canvas> HTML element fill its parent container (#canvasContainer).
+                // We should not set canvas.style.width or canvas.style.height in pixels here,
+                // as it would override the Tailwind classes.
+            }
+            
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+            
+            // 保存當前畫布狀態
+            function saveState() {
+                drawingHistory.push(canvas.toDataURL());
+                if (drawingHistory.length > 20) {
+                    drawingHistory.shift();
+                }
+            }
+            
+            // 工具選擇
+            document.querySelectorAll('.tool-btn[data-tool]').forEach(button => {
+                button.addEventListener('click', function() {
+                    document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
+                        btn.classList.remove('active');
+                        btn.classList.remove('bg-blue-500');
+                        btn.classList.add('bg-blue-800');
+                    });
+                    this.classList.add('active');
+                    this.classList.add('bg-blue-500');
+                    this.classList.remove('bg-blue-800');
+                    currentTool = this.dataset.tool;
+                    console.log('Current tool selected:', currentTool);
+                    // If a text input is active and user switches tool, remove text input
+                    if (currentTool !== 'text' && textInput) {
+                        if (document.body.contains(textInput)) {
+                            document.body.removeChild(textInput);
+                        }
+                        textInput = null;
+                    }
+                });
+            });
+            
+            // 形狀選擇
+            document.querySelectorAll('.tool-btn[data-shape]').forEach(button => {
+                button.addEventListener('click', function() {
+                    currentShape = this.dataset.shape;
+                    currentTool = 'shape';
+                    
+                    // 更新形狀按鈕的狀態
+                    document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
+                        btn.classList.remove('active');
+                        btn.classList.remove('bg-blue-500');
+                        btn.classList.add('bg-blue-800');
+                    });
+                    
+                    document.getElementById('shapeBtn').classList.add('active');
+                    document.getElementById('shapeBtn').classList.add('bg-blue-500');
+                    document.getElementById('shapeBtn').classList.remove('bg-blue-800');
+                });
+            });
+            
+            // 顏色選擇
+            document.querySelectorAll('.color-swatch').forEach(swatch => {
+                swatch.addEventListener('click', function() {
+                    document.querySelectorAll('.color-swatch').forEach(s => {
+                        s.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    currentColor = this.dataset.color;
+                    document.getElementById('colorPicker').value = currentColor;
+                });
+            });
+            
+            document.getElementById('colorPicker').addEventListener('input', function(e) {
+                currentColor = e.target.value;
+                document.querySelectorAll('.color-swatch').forEach(s => {
+                    s.classList.remove('active');
+                });
+            });
+            
+            // 線條粗細
+            document.getElementById('lineWidth').addEventListener('change', function(e) {
+                currentLineWidth = parseInt(e.target.value);
+            });
+            
+            // 繪圖功能
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            
+            // 觸控支援
+            canvas.addEventListener('touchstart', handleTouchStart);
+            canvas.addEventListener('touchmove', handleTouchMove);
+            canvas.addEventListener('touchend', handleTouchEnd);
+            
+            function handleTouchStart(e) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousedown', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            }
+            
+            function handleTouchMove(e) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousemove', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            }
+            
+            function handleTouchEnd(e) {
+                e.preventDefault();
+                const mouseEvent = new MouseEvent('mouseup', {});
+                canvas.dispatchEvent(mouseEvent);
+            }
+            
+            function startDrawing(e) {
+                console.log('startDrawing triggered. Current tool:', currentTool);
+                console.log('Mouse coordinates (offsetX, offsetY):', e.offsetX, e.offsetY);
+                console.log('Mouse coordinates (clientX, clientY):', e.clientX, e.clientY);
+
+                if (currentTool === 'text') {
+                    // Prevent drawing anything else if text tool is active
+                    isDrawing = false; // Set this early for text tool
+
+                    // If an old input exists and is still in DOM, remove it
+                    if (textInput && document.body.contains(textInput)) {
+                        document.body.removeChild(textInput);
+                    }
+                    textInput = null; // Reset textInput variable
+
+                    // Create and setup the new input field
+                    const newTextInput = document.createElement('input');
+                    newTextInput.type = 'text';
+                    newTextInput.style.position = 'absolute';
+                    newTextInput.style.left = `${e.clientX}px`;
+                    newTextInput.style.top = `${e.clientY}px`;
+                    newTextInput.style.color = currentColor;
+                    newTextInput.style.background = 'transparent';
+                    newTextInput.style.border = '1px dashed #999';
+                    newTextInput.style.zIndex = '1000'; // Should be high enough
+                    newTextInput.style.fontSize = `${currentLineWidth * 3}px`; // Match text size
+                    newTextInput.style.fontFamily = 'Arial'; // Match text font
+                    newTextInput.style.padding = '2px'; // Some padding
+                    newTextInput.placeholder = '輸入文字後按 Enter';
+                    
+                    let textInputJustCreated = true; // Flag to prevent immediate blur removal
+
+                    console.log('Creating text input:', newTextInput);
+
+                    newTextInput.addEventListener('keydown', function(eventKeydown) {
+                        textInputJustCreated = false; // Interaction happened
+                        if (eventKeydown.key === 'Enter') {
+                            const text = newTextInput.value;
+                            if (text) {
+                                ctx.font = `${currentLineWidth * 3}px Arial`;
+                                ctx.fillStyle = currentColor;
+                                ctx.fillText(text, e.offsetX, e.offsetY); // Use original click coords for drawing
+                                console.log('Text drawn on Enter:', text, 'at', e.offsetX, e.offsetY);
+                                saveState(); // Save state after drawing text
+                            }
+                            if (document.body.contains(newTextInput)) {
+                                document.body.removeChild(newTextInput);
+                            }
+                            textInput = null;
+                        } else if (eventKeydown.key === 'Escape') {
+                             if (document.body.contains(newTextInput)) {
+                                document.body.removeChild(newTextInput);
+                            }
+                            textInput = null;
+                        }
+                    });
+
+                    newTextInput.addEventListener('blur', function() {
+                        if (textInputJustCreated) { 
+                            console.log('Text input blur event ignored due to immediate creation.');
+                            return; 
+                        }
+                        if (newTextInput && document.body.contains(newTextInput)) {
+                            const text = newTextInput.value;
+                            if (text) {
+                                ctx.font = `${currentLineWidth * 3}px Arial`;
+                                ctx.fillStyle = currentColor;
+                                ctx.fillText(text, e.offsetX, e.offsetY); // Use original click coords
+                                console.log('Text drawn on blur:', text, 'at', e.offsetX, e.offsetY);
+                                saveState(); // Save state after drawing text
+                            }
+                            document.body.removeChild(newTextInput);
+                        }
+                        textInput = null;
+                    });
+                    
+                    document.body.appendChild(newTextInput);
+                    newTextInput.focus();
+                    textInput = newTextInput; 
+
+                    setTimeout(() => {
+                        textInputJustCreated = false;
+                    }, 100);
+
+                    console.log('Text input appended and focused.');
+                    return; 
+                }
+
+                // If not text tool, proceed with normal drawing setup
+                isDrawing = true; 
+                [lastX, lastY] = [e.offsetX, e.offsetY];
+                [startX, startY] = [e.offsetX, e.offsetY];
+                saveState(); // Save state for pen, eraser, shapes etc.
+            }
+            
+            function draw(e) {
+                if (!isDrawing) return;
+                
+                if (currentTool === 'pen') {
+                    ctx.strokeStyle = currentColor;
+                    ctx.lineWidth = currentLineWidth;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(lastX, lastY);
+                    ctx.lineTo(e.offsetX, e.offsetY);
+                    ctx.stroke();
+                    
+                    [lastX, lastY] = [e.offsetX, e.offsetY];
+                } else if (currentTool === 'eraser') {
+                    ctx.strokeStyle = '#FFFFFF';
+                    ctx.lineWidth = currentLineWidth * 2;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(lastX, lastY);
+                    ctx.lineTo(e.offsetX, e.offsetY);
+                    ctx.stroke();
+                    
+                    [lastX, lastY] = [e.offsetX, e.offsetY];
+                } else if (currentTool === 'shape') {
+                    // 清除上一次的預覽
+                    if (currentDrawing) {
+                        const img = new Image();
+                        img.onload = function() {
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                            ctx.drawImage(img, 0, 0);
+                            drawShape(startX, startY, e.offsetX, e.offsetY);
+                        };
+                        img.src = currentDrawing;
+                    } else {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        const img = new Image();
+                        img.onload = function() {
+                            ctx.drawImage(img, 0, 0);
+                            drawShape(startX, startY, e.offsetX, e.offsetY);
+                        };
+                        img.src = drawingHistory[drawingHistory.length - 1];
+                    }
+                }
+            }
+            
+            function drawShape(x1, y1, x2, y2) {
+                ctx.strokeStyle = currentColor;
+                ctx.lineWidth = currentLineWidth;
+                ctx.beginPath();
+                
+                switch (currentShape) {
+                    case 'rectangle':
+                        ctx.rect(x1, y1, x2 - x1, y2 - y1);
+                        break;
+                    case 'circle':
+                        const radius = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+                        ctx.arc(x1, y1, radius, 0, Math.PI * 2);
+                        break;
+                    case 'ellipse':
+                        const radiusX = Math.abs(x2 - x1);
+                        const radiusY = Math.abs(y2 - y1);
+                        ctx.ellipse(x1, y1, radiusX, radiusY, 0, 0, Math.PI * 2);
+                        break;
+                    case 'line':
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                        break;
+                    case 'triangle':
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y1);
+                        ctx.lineTo((x1 + x2) / 2, y2);
+                        ctx.closePath();
+                        break;
+                }
+                
+                ctx.stroke();
+            }
+            
+            function stopDrawing() {
+                if (isDrawing && currentTool === 'shape') {
+                    currentDrawing = canvas.toDataURL();
+                }
+                isDrawing = false;
+            }
+            
+            // 清除白板
+            document.getElementById('clearBtn').addEventListener('click', function() {
+                if (confirm('確定要清除整個白板嗎？')) {
+                    saveState(); // 保存清除前的狀態，以便可能的撤銷
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    currentDrawing = null; // 重置 currentDrawing 狀態
+                }
+            });
+            
+            // 儲存白板
+            document.getElementById('saveBtn').addEventListener('click', function() {
+                const dataURL = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.download = '白板_' + new Date().toISOString().slice(0, 10) + '.png';
+                link.href = dataURL;
+                link.click();
+            });
+            
+            // 計時器功能
+            let timer;
+            let timeLeft = 300; // 5分鐘 = 300秒
+            
+            function updateTimerDisplay() {
+                const minutes = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+                const seconds = (timeLeft % 60).toString().padStart(2, '0');
+                document.getElementById('timerDisplay').textContent = `${minutes}:${seconds}`;
+            }
+            
+            document.getElementById('startTimer').addEventListener('click', function() {
+                if (timer) {
+                    clearInterval(timer);
+                    this.textContent = '開始';
+                    timer = null;
+                } else {
+                    const minutes = parseInt(document.getElementById('minutes').value) || 5;
+                    timeLeft = minutes * 60;
+                    updateTimerDisplay();
+                    
+                    this.textContent = '暫停';
+                    
+                    timer = setInterval(function() {
+                        timeLeft--;
+                        updateTimerDisplay();
+                        
+                        if (timeLeft <= 0) {
+                            clearInterval(timer);
+                            document.getElementById('startTimer').textContent = '開始';
+                            timer = null;
+                            alert('時間到！');
+                        }
+                    }, 1000);
+                }
+            });
+            
+            document.getElementById('resetTimer').addEventListener('click', function() {
+                if (timer) {
+                    clearInterval(timer);
+                    document.getElementById('startTimer').textContent = '開始';
+                    timer = null;
+                }
+                
+                const minutes = parseInt(document.getElementById('minutes').value) || 5;
+                timeLeft = minutes * 60;
+                updateTimerDisplay();
+            });
+            
+            // 面板收合/展開功能
+            let isPanelCollapsed = false;
+            const panel = document.getElementById('rightPanel');
+            const expandBtn = document.getElementById('expandBtn');
+            
+            function togglePanelState() {
+                const toggleBtn = document.getElementById('togglePanel').querySelector('svg');
+                const mainContentArea = document.getElementById('mainContentArea');
+                
+                if (!isPanelCollapsed) {
+                    // 收合面板
+                    panel.classList.add('right-panel-collapsed');
+                    mainContentArea.classList.remove('panel-expanded');
+                    mainContentArea.classList.add('panel-collapsed');
+                    toggleBtn.style.transform = 'rotate(180deg)';
+                    expandBtn.classList.remove('hidden');
+                    isPanelCollapsed = true;
+                } else {
+                    // 展開面板
+                    panel.classList.remove('right-panel-collapsed');
+                    mainContentArea.classList.remove('panel-collapsed');
+                    mainContentArea.classList.add('panel-expanded');
+                    toggleBtn.style.transform = 'rotate(0deg)';
+                    expandBtn.classList.add('hidden');
+                    isPanelCollapsed = false;
+                }
+                
+                // 延遲重新調整畫布大小，等待 CSS 動畫完成
+                setTimeout(function() {
+                    resizeCanvas();
+                }, 350); // 稍微超過 CSS 動畫時間 (300ms)
+            }
+            
+            document.getElementById('togglePanel').addEventListener('click', togglePanelState);
+            
+            // 展開按鈕功能
+            document.getElementById('expandBtn').addEventListener('click', function() {
+                if (isPanelCollapsed) {
+                    togglePanelState();
+                }
+            });
+
+            // YouTube功能
+            document.getElementById('youtubeBtn').addEventListener('click', function() {
+                document.getElementById('youtubeModal').classList.remove('hidden');
+            });
+            
+            document.getElementById('cancelYoutube').addEventListener('click', function() {
+                document.getElementById('youtubeModal').classList.add('hidden');
+            });
+            
+            document.getElementById('confirmYoutube').addEventListener('click', function() {
+                const url = document.getElementById('youtubeUrlModal').value;
+                if (url) {
+                    loadYouTubeVideo(url);
+                    document.getElementById('youtubeModal').classList.add('hidden');
+                    
+                    // 如果面板是收合狀態，則展開它
+                    if (isPanelCollapsed) {
+                        togglePanelState();
+                    }
+                }
+            });
+            
+            document.getElementById('loadYoutube').addEventListener('click', function() {
+                const url = document.getElementById('youtubeUrl').value;
+                if (url) {
+                    loadYouTubeVideo(url);
+                    
+                    // 如果面板是收合狀態，則展開它
+                    if (isPanelCollapsed) {
+                        togglePanelState();
+                    }
+                }
+            });
+            
+            function loadYouTubeVideo(url) {
+                let videoId = url;
+                
+                // 從URL中提取視頻ID
+                if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                    const urlObj = new URL(url);
+                    if (url.includes('youtube.com')) {
+                        videoId = urlObj.searchParams.get('v');
+                    } else if (url.includes('youtu.be')) {
+                        videoId = urlObj.pathname.substring(1);
+                    }
+                }
+                
+                if (videoId) {
+                    const embedHtml = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                    document.getElementById('youtubePlayer').innerHTML = embedHtml;
+                }
+            }
+            
+            // 錄製功能
+            let mediaRecorder;
+            let recordedChunks = [];
+            let screenStream;
+            let isActuallyRecording = false; // Renamed from isRecording to avoid confusion with UI state if any
+            const recordBtn = document.getElementById('recordBtn');
+
+            async function startRecordingScreen() {
+                try {
+                    screenStream = await navigator.mediaDevices.getDisplayMedia({
+                        video: { mediaSource: "screen" },
+                        audio: true, // Optionally include audio from the screen/tab
+                    });
+
+                    // Stop recording if user stops sharing via browser UI
+                    screenStream.getVideoTracks()[0].onended = () => {
+                        if (isActuallyRecording) stopRecordingScreen();
+                    };
+
+                    recordedChunks = []; // Reset chunks
+                    mediaRecorder = new MediaRecorder(screenStream, {
+                        mimeType: 'video/webm; codecs=vp9' // Specify a common MIME type
+                    });
+
+                    mediaRecorder.ondataavailable = function(event) {
+                        if (event.data.size > 0) {
+                            recordedChunks.push(event.data);
+                        }
+                    };
+
+                    mediaRecorder.onstop = function() {
+                        const blob = new Blob(recordedChunks, {
+                            type: 'video/webm'
+                        });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'whiteboard_recording_' + new Date().toISOString().slice(0,19).replace('T', '_').replace(/:/g, '-') + '.webm';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        
+                        // Reset UI
+                        recordBtn.classList.remove('recording', 'bg-red-600');
+                        recordBtn.classList.add('bg-blue-800');
+                        recordBtn.title = "錄製";
+                        isActuallyRecording = false;
+                    };
+
+                    mediaRecorder.start();
+                    isActuallyRecording = true;
+                    recordBtn.classList.add('recording', 'bg-red-600');
+                    recordBtn.classList.remove('bg-blue-800');
+                    recordBtn.title = "停止錄製";
+
+                } catch (err) {
+                    console.error("無法開始錄製:", err);
+                    alert("無法開始錄製畫面，請確認已授予權限。錯誤訊息: " + err.message);
+                    // Reset UI if start failed
+                    recordBtn.classList.remove('recording', 'bg-red-600');
+                    recordBtn.classList.add('bg-blue-800');
+                    recordBtn.title = "錄製";
+                    isActuallyRecording = false;
+                    if (screenStream) {
+                        screenStream.getTracks().forEach(track => track.stop());
+                    }
+                }
+            }
+
+            function stopRecordingScreen() {
+                if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                    mediaRecorder.stop();
+                }
+                if (screenStream) {
+                    screenStream.getTracks().forEach(track => track.stop());
+                }
+                // UI reset is handled in mediaRecorder.onstop
+            }
+
+            recordBtn.addEventListener('click', function() {
+                if (!isActuallyRecording) {
+                    startRecordingScreen();
+                } else {
+                    stopRecordingScreen();
+                }
+            });
+            
+            // 初始化
+            saveState(); // 保存初始空白狀態
+
+            // 左側工具欄收合/展開功能
+            let isSidebarCollapsed = false;
+            const sidebar = document.querySelector('.sidebar');
+            const sidebarToggleIcon = document.getElementById('sidebarToggleIcon');
+            const toggleSidebarBtn = document.getElementById('toggleSidebar');
+
+            function toggleSidebarState() {
+                isSidebarCollapsed = !isSidebarCollapsed;
+                if (isSidebarCollapsed) {
+                    sidebar.classList.add('sidebar-collapsed');
+                    sidebarToggleIcon.innerHTML = '<path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>'; // 右箭頭
+                    toggleSidebarBtn.title = "展開工具欄";
+                } else {
+                    sidebar.classList.remove('sidebar-collapsed');
+                    sidebarToggleIcon.innerHTML = '<path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>'; // 左箭頭
+                    toggleSidebarBtn.title = "收合工具欄";
+                }
+
+                // 延遲重新調整畫布大小，等待 CSS 動畫完成
+                setTimeout(function() {
+                    resizeCanvas();
+                }, 350); // 稍微超過 CSS 動畫時間 (300ms)
+            }
+
+            toggleSidebarBtn.addEventListener('click', toggleSidebarState);
+
+            const shapeBtn = document.getElementById('shapeBtn');
+            const shapeDropdown = shapeBtn.nextElementSibling; // Assuming .shape-dropdown is the next sibling
+
+            shapeBtn.addEventListener('click', function(event) {
+                event.stopPropagation(); // 防止事件冒泡到全局點擊監聽器
+                shapeDropdown.style.display = shapeDropdown.style.display === 'grid' ? 'none' : 'grid';
+            });
+
+            // 點擊形狀選擇欄中的按鈕時，應選擇形狀並關閉選擇欄
+            shapeDropdown.querySelectorAll('.tool-btn[data-shape]').forEach(button => {
+                button.addEventListener('click', function() {
+                    // currentShape and currentTool are already set by existing logic
+                    shapeDropdown.style.display = 'none';
+                });
+            });
+
+            // 全局點擊監聽器，用於隱藏形狀選擇欄
+            document.addEventListener('click', function(event) {
+                if (shapeDropdown.style.display === 'grid' && !shapeBtn.contains(event.target) && !shapeDropdown.contains(event.target)) {
+                    shapeDropdown.style.display = 'none';
+                }
+            });
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'94549041c58f4a5a',t:'MTc0ODE3MTE4Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
