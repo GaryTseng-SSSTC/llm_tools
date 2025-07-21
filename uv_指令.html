@@ -1,0 +1,1196 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW" x-data="{ darkMode: window.matchMedia('(prefers-color-scheme: dark)').matches }" x-init="$watch('darkMode', val => localStorage.setItem('darkMode', val))" :class="{ 'dark': darkMode }">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>uv 常用指令與實用範例 - Python 高速套件管理工具</title>
+    <meta name="description" content="完整的 uv 工具指令參考和實用範例，包含專案管理、依賴管理、環境配置等最佳實踐。">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.13.3/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/preline@3.0.1/dist/preline.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/material-icons@1.13.14/iconfont/material-icons.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                        secondary: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                        },
+                        accent: {
+                            50: '#fef7ee',
+                            100: '#fdedd5',
+                            200: '#fbd7aa',
+                            300: '#f8b974',
+                            400: '#f59e0b',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                            700: '#b45309',
+                            800: '#92400e',
+                            900: '#78350f',
+                        }
+                    },
+                    fontFamily: {
+                        'sans': ['-apple-system', 'BlinkMacSystemFont', 'Helvetica Neue', 'Yu Gothic', 'YuGothic', 'Verdana', 'Meiryo', 'M PLUS Rounded 1c', 'sans-serif'],
+                        'mono': ['SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'monospace'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.4s ease-out',
+                        'bounce-gentle': 'bounceGentle 2s infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' }
+                        },
+                        bounceGentle: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-5px)' }
+                        }
+                    }
+                }
+            }
+        }
+        
+        mermaid.initialize({
+            theme: 'default',
+            startOnLoad: true,
+            securityLevel: 'loose'
+        });
+    </script>
+<script src="https://felo.ai/js/webpageIframe.js"></script>
+ <style>
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: #bfc5ce transparent !important;
+}
+*::-webkit-scrollbar {
+  width: 6px !important;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: #bfc5ce !important;
+  border-radius: 9999px !important;
+}
+*::-webkit-scrollbar-track {
+  background-color: transparent !important;
+  border-radius: 9999px !important;
+}
+</style></head>
+
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-rocket text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                            uv 工具指南
+                        </h1>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Python 高速套件管理</p>
+                    </div>
+                </div>
+                
+                <!-- Theme Toggle -->
+                <button @click="darkMode = !darkMode" 
+                        class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200">
+                    <i class="fas fa-moon dark:hidden"></i>
+                    <i class="fas fa-sun hidden dark:inline"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-800 dark:via-gray-800 dark:to-gray-900 py-20">
+        <div class="absolute inset-0 bg-grid-pattern opacity-5"></div>
+        <div class="container mx-auto px-6 relative">
+            <div class="max-w-4xl mx-auto text-center">
+                <div class="inline-flex items-center space-x-2 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 px-4 py-2 rounded-full text-sm font-medium mb-6">
+                    <i class="fas fa-zap text-yellow-500"></i>
+                    <span>比 pip 快 10-100 倍</span>
+                </div>
+                
+                <h1 class="text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+                    <span class="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                        uv 常用指令
+                    </span>
+                    <br>
+                    <span class="text-gray-800 dark:text-gray-200">實用範例集</span>
+                </h1>
+                
+                <p class="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+                    完整的 uv 工具指令參考手冊，涵蓋專案管理、依賴安裝、環境配置等各種場景的最佳實踐和腳本範例。
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="#commands" class="inline-flex items-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all duration-200 hover:scale-105 shadow-lg">
+                        <i class="fas fa-terminal mr-3"></i>
+                        查看指令表
+                    </a><a href="#examples" class="inline-flex items-center px-8 py-4 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-xl font-semibold transition-all duration-200 hover:scale-105">
+                        <i class="fas fa-code mr-3"></i>
+                        實用範例
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Performance Chart Section -->
+    <section class="py-16 bg-white dark:bg-gray-800">
+        <div class="container mx-auto px-6">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-gray-100">
+                    <i class="fas fa-chart-line text-green-500 mr-3"></i>
+                    效能比較：uv vs 傳統工具
+                </h2><div class="grid lg:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <div id="performanceChart" class="w-full" style="height: 400px;"></div>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 p-6 rounded-xl border border-green-200 dark:border-green-700">
+                            <h3 class="font-semibold text-lg mb-3 text-green-800 dark:text-green-200">
+                                <i class="fas fa-rocket mr-2"></i>
+                                速度優勢
+                            </h3>
+                            <ul class="space-y-2 text-gray-600 dark:text-gray-300">
+                                <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2 text-sm"></i>套件安裝速度提升 10-100 倍</li>
+                                <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2 text-sm"></i>依賴解析速度提升 20 倍</li>
+                                <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2 text-sm"></i>虛擬環境建立接近瞬間完成</li>
+                            </ul>
+                        </div><div class="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-6 rounded-xl border border-purple-200 dark:border-purple-700">
+                            <h3 class="font-semibold text-lg mb-3 text-purple-800 dark:text-purple-200">
+                                <i class="fas fa-tools mr-2"></i>
+                                一體化解決方案
+                            </h3>
+                            <p class="text-gray-600 dark:text-gray-300">
+                                由Rust 編寫，取代 pip、pip-tools、pipx、poetry、pyenv、virtualenv 等多個工具，提供統一的開發體驗。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Commands Table Section -->
+    <section id="commands" class="py-16 bg-gray-50 dark:bg-gray-900">
+        <div class="container mx-auto px-6">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="text-4xl font-bold mb-4 text-gray-900 dark:text-gray-100">
+                        <i class="fas fa-list-ul text-blue-500 mr-3"></i>
+                        常用 uv 指令與說明
+                    </h2>
+                    <p class="text-xl text-gray-600 dark:text-gray-300">
+                        完整的指令參考表格，包含功能說明、重點參數和實際範例
+                    </p>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 border-b dark:border-gray-600">指令</th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 border-b dark:border-gray-600">功能定位</th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 border-b dark:border-gray-600">重點參數</th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900 dark:text-gray-100 border-b dark:border-gray-600">對應腳本範例</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                                    <td class="px-6 py-4"><code class="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-md font-mono text-sm font-semibold">uv run</code>
+                                    </td><td class="px-6 py-4 text-gray-700 dark:text-gray-300">在專案虛擬環境或臨時環境內執行程式、指令</td>
+                                    <td class="px-6 py-4"><div class="space-y-1">
+                                            <div><code class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">--with &lt;pkg&gt;</code>臨時安裝依賴</div><div><code class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">--python &lt;ver&gt;</code> 指定 Python 版本</div>
+                                        </div>
+                                    </td><td class="px-6 py-4">
+                                        <div class="space-y-2">
+                                            <code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv run --with cowsay main.py</code><code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv run --python 3.13 script.py</code></div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                                    <td class="px-6 py-4">
+                                        <code class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-3 py-1 rounded-md font-mono text-sm font-semibold">uv init</code>
+                                    </td><td class="px-6 py-4 text-gray-700 dark:text-gray-300">初始化專案／單檔腳本，產生 .venv、pyproject.toml...</td>
+                                    <td class="px-6 py-4">
+                                        <div class="space-y-1">
+                                            <div><code class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">--lib</code> 建立函式庫</div>
+                                            <div><code class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">--script &lt;file&gt;</code> 單檔模式</div>
+                                        </div></td>
+                                    <td class="px-6 py-4">
+                                        <div class="space-y-2">
+                                            <code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv init --lib mylib</code>
+                                            <code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv init --script tool.py --python 3.12</code>
+                                        </div></td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150"><td class="px-6 py-4">
+                                        <code class="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-3 py-1 rounded-md font-mono text-sm font-semibold">uv add</code>
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-700 dark:text-gray-300">安裝套件並寫入 pyproject.toml、更新 uv.lock</td>
+                                    <td class="px-6 py-4">
+                                        <div class="space-y-1">
+                                            <div><code class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">--group dev</code> 加入 dev 群組</div>
+                                            <div><code class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">-r &lt;req.txt&gt;</code> 從檔案安裝</div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="space-y-2">
+                                            <code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv add requests fastapi</code>
+                                            <code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv add -r requirements.txt</code>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                                    <td class="px-6 py-4"><code class="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 px-3 py-1 rounded-md font-mono text-sm font-semibold">uv remove</code>
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-700 dark:text-gray-300">從專案移除套件並更新鎖檔</td>
+                                    <td class="px-6 py-4"><div><code class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">--group dev</code> 僅移除特定群組</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="space-y-2">
+                                            <code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv remove fastapi</code>
+                                            <code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv remove pytest --group dev</code></div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                                    <td class="px-6 py-4">
+                                        <code class="bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 px-3 py-1 rounded-md font-mono text-sm font-semibold">uv sync</code>
+                                    </td><td class="px-6 py-4 text-gray-700 dark:text-gray-300">依 uv.lock 內容同步環境</td>
+                                    <td class="px-6 py-4"><div><code class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">--locked</code> 僅驗證不安裝</div>
+                                    </td>
+                                    <td class="px-6 py-4"><code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv sync  # clone 專案後第一次執行</code>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                                    <td class="px-6 py-4"><code class="bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 px-3 py-1 rounded-md font-mono text-sm font-semibold">uv lock</code>
+                                    </td><td class="px-6 py-4 text-gray-700 dark:text-gray-300">解析並產生／更新 uv.lock</td><td class="px-6 py-4">
+                                        <div><code class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">-U</code> 升級全部依賴</div></td>
+                                    <td class="px-6 py-4">
+                                        <div class="space-y-2">
+                                            <code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv lock  # 產生鎖檔</code>
+                                            <code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv lock -U  # 升級並重新鎖定</code>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                                    <td class="px-6 py-4">
+                                        <code class="bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-200 px-3 py-1 rounded-md font-mono text-sm font-semibold">uv export</code>
+                                    </td><td class="px-6 py-4 text-gray-700 dark:text-gray-300">匯出鎖檔為其他格式</td>
+                                    <td class="px-6 py-4">
+                                        <div><code class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">--format pip / toml</code></div>
+                                    </td>
+                                    <td class="px-6 py-4"><code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv export --format pip > requirements.txt</code>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                                    <td class="px-6 py-4">
+                                        <code class="bg-pink-100 dark:bg-pink-900 text-pink-800 dark:text-pink-200 px-3 py-1 rounded-md font-mono text-sm font-semibold">uv tree</code>
+                                    </td><td class="px-6 py-4 text-gray-700 dark:text-gray-300">顯示依賴樹</td>
+                                    <td class="px-6 py-4">
+                                        <div><code class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">--depth &lt;n&gt;</code> 限制深度</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv tree --depth 2</code>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                                    <td class="px-6 py-4">
+                                        <code class="bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 px-3 py-1 rounded-md font-mono text-sm font-semibold">uvx</code>
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-700 dark:text-gray-300">在一次性隔離環境中執行 CLI 工具</td>
+                                    <td class="px-6 py-4"><div><code class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">—</code></div>
+                                    </td>
+                                    <td class="px-6 py-4"><code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uvx pycowsay "Hello uv!"</code>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                                    <td class="px-6 py-4">
+                                        <code class="bg-cyan-100 dark:bg-cyan-900 text-cyan-800 dark:text-cyan-200 px-3 py-1 rounded-md font-mono text-sm font-semibold">uv tool install</code>
+                                    </td><td class="px-6 py-4 text-gray-700 dark:text-gray-300">像 pipx 一樣全域安裝 CLI 工具</td>
+                                    <td class="px-6 py-4">
+                                        <div><code class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">—</code></div></td>
+                                    <td class="px-6 py-4">
+                                        <div class="space-y-2">
+                                            <code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv tool install ruff</code>
+                                            <code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">ruff --version</code>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                                    <td class="px-6 py-4">
+                                        <code class="bg-lime-100 dark:bg-lime-900 text-lime-800 dark:text-lime-200 px-3 py-1 rounded-md font-mono text-sm font-semibold">uv python</code>
+                                    </td><td class="px-6 py-4 text-gray-700 dark:text-gray-300">安裝、列舉、切換多版本 Python</td>
+                                    <td class="px-6 py-4">
+                                        <div><code class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">install, list, pin</code></div></td>
+                                    <td class="px-6 py-4">
+                                        <div class="space-y-2">
+                                            <code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv python install 3.12</code>
+                                            <code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv python list</code>
+                                            <code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv python pin 3.12</code>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                                    <td class="px-6 py-4">
+                                        <code class="bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 px-3 py-1 rounded-md font-mono text-sm font-semibold">uv venv</code>
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-700 dark:text-gray-300">建立虛擬環境（極快速）</td>
+                                    <td class="px-6 py-4">
+                                        <div><code class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">--python &lt;ver&gt;</code> 指定版本</div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv venv --python 3.11</code>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                                    <td class="px-6 py-4"><code class="bg-violet-100 dark:bg-violet-900 text-violet-800 dark:text-violet-200 px-3 py-1 rounded-md font-mono text-sm font-semibold">uv pip</code>
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-700 dark:text-gray-300">pip 相容介面（極快速）</td>
+                                    <td class="px-6 py-4">
+                                        <div><code class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">與原生 pip 相同</code></div></td>
+                                    <td class="px-6 py-4">
+                                        <div class="space-y-2">
+                                            <code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv pip install -r requirements.txt</code>
+                                            <code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv pip list</code>
+                                        </div></td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150"><td class="px-6 py-4">
+                                        <code class="bg-rose-100 dark:bg-rose-900 text-rose-800 dark:text-rose-200 px-3 py-1 rounded-md font-mono text-sm font-semibold">uv build</code>
+                                    </td><td class="px-6 py-4 text-gray-700 dark:text-gray-300">將專案打包成 wheel / sdist</td><td class="px-6 py-4">
+                                        <div><code class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">--out-dir &lt;dir&gt;</code></div>
+                                    </td>
+                                    <td class="px-6 py-4"><div class="space-y-2">
+                                            <code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv build</code>
+                                            <code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">ls dist/</code>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                                    <td class="px-6 py-4">
+                                        <code class="bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 px-3 py-1 rounded-md font-mono text-sm font-semibold">uv publish</code>
+                                    </td><td class="px-6 py-4 text-gray-700 dark:text-gray-300">發佈套件至 PyPI 或私有倉</td>
+                                    <td class="px-6 py-4">
+                                        <div class="space-y-1">
+                                            <div><code class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">--repository-url</code></div>
+                                            <div><code class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">--token</code></div></div>
+                                    </td>
+                                    <td class="px-6 py-4"><code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv publish --token $PYPI_TOKEN</code>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                                    <td class="px-6 py-4">
+                                        <code class="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-3 py-1 rounded-md font-mono text-sm font-semibold">uv cache</code>
+                                    </td><td class="px-6 py-4 text-gray-700 dark:text-gray-300">檢視、清理或停用全域快取</td>
+                                    <td class="px-6 py-4">
+                                        <div><code class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">clean, dir, stats</code></div></td>
+                                    <td class="px-6 py-4">
+                                        <div class="space-y-2">
+                                            <code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv cache stats</code>
+                                            <code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv cache clean</code>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150">
+                                    <td class="px-6 py-4"><code class="bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 px-3 py-1 rounded-md font-mono text-sm font-semibold">uv self update</code>
+                                    </td><td class="px-6 py-4 text-gray-700 dark:text-gray-300">升級 uv 本身</td>
+                                    <td class="px-6 py-4"><div><code class="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">—</code></div></td>
+                                    <td class="px-6 py-4">
+                                        <code class="block bg-gray-900 text-gray-100 px-3 py-2 rounded text-sm font-mono">uv self update</code>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="mt-8 p-6 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-700">
+                    <div class="flex items-start space-x-3">
+                        <i class="fas fa-info-circle text-blue-500 text-lg mt-1"></i>
+                        <div>
+                            <h3 class="font-semibold text-blue-800 dark:text-blue-200 mb-2">說明：</h3>
+                            <p class="text-blue-700 dark:text-blue-300">
+                                以上指令名稱與功能根據官方文件及操作範例彙整。腳本範例皆以 bash 命令列形式示範，可直接貼到終端機測試。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Workflow Diagram -->
+    <section class="py-16 bg-white dark:bg-gray-800">
+        <div class="container mx-auto px-6">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-gray-100">
+                    <i class="fas fa-project-diagram text-purple-500 mr-3"></i>
+                    uv 專案開發工作流程
+                </h2>
+                
+                <div class="bg-white dark:bg-gray-900 rounded-xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                    <div class="mermaid">
+                        graph TD
+                            A[開始新專案] --> B[uv init project-name]
+                            B --> C[編輯 pyproject.toml]
+                            C --> D[uv add dependencies]
+                            D --> E[開發程式碼]
+                            E --> F[uv run main.py]
+                            F --> G{需要新依賴?}
+                            G -->|是| H[uv add package-name]
+                            H --> E
+                            G -->|否| I[uv lock]
+                            I --> J[uv sync]
+                            J --> K[測試與部署]
+                            K --> L{發布套件?}
+                            L -->|是| M[uv build]
+                            M --> N[uv publish]
+                            L -->|否| O[專案完成]
+                            N --> O
+                            
+                            style A fill:#e1f5fe
+                            style B fill:#f3e5f5
+                            style D fill:#e8f5e8
+                            style F fill:#fff3e0
+                            style M fill:#fce4ec
+                            style O fill:#e0f2f1
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Examples Section -->
+    <section id="examples" class="py-16 bg-gray-50 dark:bg-gray-900">
+        <div class="container mx-auto px-6">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-4xl font-bold text-center mb-12 text-gray-900 dark:text-gray-100"><i class="fas fa-code text-green-500 mr-3"></i>
+                    實用範例和最佳實踐
+                </h2>
+
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <!-- Project Initialization Examples -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100 flex items-center">
+                            <i class="fas fa-play-circle text-green-500 mr-3"></i>
+                            專案初始化
+                        </h3>
+                        <div class="space-y-4">
+                            <!-- Basic Project -->
+                            <div>
+                                <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-2">基本專案建立</h4>
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                    <pre class="text-green-400 text-sm"><code># 建立新專案
+uv init my-project
+cd my-project
+
+# 查看生成的檔案結構
+ls -la
+# .git/  .gitignore  .python-version  README.md  main.py  pyproject.toml</code></pre>
+                                </div>
+                            </div>
+
+                            <!-- Library Project -->
+                            <div>
+                                <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-2">函式庫專案建立</h4>
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                    <pre class="text-green-400 text-sm"><code># 建立函式庫專案
+uv init --lib my-library
+cd my-library
+
+# 函式庫專案會有不同的結構
+tree .
+# ├── src/
+# │   └── my_library/
+# │       └── __init__.py
+# └── pyproject.toml</code></pre>
+                                </div>
+                            </div>
+
+                            <!-- Script Project -->
+                            <div>
+                                <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-2">單檔腳本專案</h4>
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                    <pre class="text-green-400 text-sm"><code># 建立單檔腳本
+uv init --script batch_processor.py --python 3.12
+
+# 在現有腳本上加上依賴宣告
+uv add --script batch_processor.py pandas numpy
+
+# 執行腳本
+uv run batch_processor.py input.csv</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dependency Management Examples -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100 flex items-center">
+                            <i class="fas fa-cubes text-blue-500 mr-3"></i>
+                            依賴管理
+                        </h3>
+                        <div class="space-y-4">
+                            <!-- Add Dependencies -->
+                            <div>
+                                <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-2">安裝依賴</h4>
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto"><pre class="text-blue-400 text-sm"><code># 安裝單個套件
+uv add requests
+
+# 安裝多個套件
+uv add fastapi uvicorn pydantic
+
+# 從 requirements.txt 安裝
+uv add -r requirements.txt
+
+# 指定版本
+uv add "django>=4.0,<5.0"</code></pre>
+                                </div>
+                            </div>
+
+                            <!-- Development Dependencies -->
+                            <div>
+                                <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-2">開發依賴</h4>
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                    <pre class="text-blue-400 text-sm"><code># 安裝開發工具
+uv add --group dev pytest black ruff mypy
+
+# 安裝測試依賴
+uv add --group test pytest-cov pytest-mock
+
+# 只同步生產依賴
+uv sync --no-group dev</code></pre>
+                                </div>
+                            </div>
+
+                            <!-- Version Management -->
+                            <div>
+                                <h4 class="font-medium text-gray-800 dark:text-gray-202 mb-2">版本管理</h4>
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                    <pre class="text-blue-400 text-sm"><code># 升級特定套件
+uv sync --upgrade-package requests
+
+# 升級所有套件
+uv lock --upgrade
+
+# 移除套件
+uv remove pandas
+
+# 查看依賴樹
+uv tree --depth 2</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Environment Management -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100 flex items-center">
+                            <i class="fas fa-layer-group text-purple-500 mr-3"></i>
+                            環境管理
+                        </h3>
+                        <div class="space-y-4">
+                            <!-- Python Installation -->
+                            <div>
+                                <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-2">Python 版本管理</h4>
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                    <pre class="text-purple-400 text-sm"><code># 安裝 Python 版本
+uv python install 3.12 3.11 3.10
+
+# 列出已安裝版本
+uv python list
+
+# 設定專案 Python 版本
+uv python pin 3.12
+
+# 檢查當前版本
+python --version</code></pre>
+                                </div>
+                            </div>
+
+                            <!-- Virtual Environment -->
+                            <div>
+                                <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-2">虛擬環境</h4>
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                    <pre class="text-purple-400 text-sm"><code># 建立虛擬環境
+uv venv --python 3.12
+
+# 指定虛擬環境位置
+uv venv my-env --python 3.11
+
+# 啟用虛擬環境（可選，uv run 會自動處理）
+source .venv/bin/activate  # Linux/macOS
+# .venv\Scripts\activate     # Windows</code></pre>
+                                </div>
+                            </div>
+
+                            <!-- Environment Sync -->
+                            <div>
+                                <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-2">環境同步</h4>
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                    <pre class="text-purple-400 text-sm"><code># 首次克隆專案後同步
+uv sync
+
+# 驗證鎖檔但不安裝
+uv sync --locked
+
+# 只安裝生產依賴
+uv sync --no-group dev
+
+# 重新安裝所有依賴
+uv sync --reinstall</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tools and Scripts -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100 flex items-center">
+                            <i class="fas fa-tools text-orange-500 mr-3"></i>
+                            工具和腳本執行
+                        </h3>
+                        <div class="space-y-4">
+                            <!-- Tool Installation -->
+                            <div>
+                                <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-2">全域工具安裝</h4>
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                    <pre class="text-orange-400 text-sm"><code># 安裝常用工具
+uv tool install ruff black mypy
+
+# 安裝特定版本
+uv tool install "black==23.12.1"
+
+# 列出已安裝工具
+uv tool list
+
+# 升級工具
+uv tool upgrade black</code></pre>
+                                </div>
+                            </div>
+
+                            <!-- One-off Execution -->
+                            <div>
+                                <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-2">臨時執行</h4>
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                    <pre class="text-orange-400 text-sm"><code># 臨時執行工具
+uvx cowsay "Hello uv!"
+
+# 指定套件版本
+uvx --from "httpx==0.24.0" python -c "import httpx; print(httpx.__version__)"
+
+# 臨時安裝依賴並執行
+uv run --with requests --with beautifulsoup4 scraper.py</code></pre>
+                                </div>
+                            </div>
+
+                            <!-- Script Execution -->
+                            <div>
+                                <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-2">腳本執行</h4>
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                    <pre class="text-orange-400 text-sm"><code># 執行專案腳本
+uv run main.py
+
+# 帶參數執行
+uv run manage.py runserver 8080
+
+# 指定 Python 版本執行
+uv run --python 3.11 script.py
+
+# 在專案環境中執行任意命令
+uv run pytest tests/</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Build and Publish -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100 flex items-center">
+                            <i class="fas fa-shipping-fast text-red-500 mr-3"></i>
+                            建構與發布
+                        </h3>
+                        <div class="space-y-4">
+                            <!-- Package Building -->
+                            <div>
+                                <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-2">套件建構</h4>
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                    <pre class="text-red-400 text-sm"><code># 建構套件
+uv build
+
+# 只建構 wheel
+uv build --wheel
+
+# 指定輸出目錄
+uv build --out-dir build/
+
+# 檢視建構結果
+ls dist/</code></pre>
+                                </div>
+                            </div>
+
+                            <!-- Package Publishing -->
+                            <div>
+                                <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-2">套件發布</h4>
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                    <pre class="text-red-400 text-sm"><code># 發布到 PyPI
+uv publish --token $PYPI_TOKEN
+
+# 發布到 TestPyPI
+uv publish --repository-url https://test.pypi.org/simple/ --token $TEST_PYPI_TOKEN
+
+# 乾運行（不實際上傳）
+uv publish --dry-run</code></pre>
+                                </div>
+                            </div>
+
+                            <!-- CI/CD Integration -->
+                            <div>
+                                <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-2">CI/CD 整合</h4>
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                    <pre class="text-red-400 text-sm"><code># GitHub Actions 範例
+- name: Set up uv
+  run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+- name: Sync dependencies
+  run: uv sync --locked
+
+- name: Run tests
+  run: uv run pytest
+
+- name: Build package
+  run: uv build</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Docker Integration -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+                        <h3 class="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100 flex items-center">
+                            <i class="fab fa-docker text-cyan-500 mr-3"></i>
+                            Docker 整合
+                        </h3>
+                        <div class="space-y-4">
+                            <!-- Basic Dockerfile -->
+                            <div>
+                                <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-2">基本 Dockerfile</h4>
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                                    <pre class="text-cyan-400 text-sm"><code>FROM python:3.12-slim
+
+# 安裝 uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+
+# 複製專案檔案
+COPY . /app
+WORKDIR /app
+
+# 同步依賴
+RUN uv sync --frozen
+
+# 設定路徑
+ENV PATH="/app/.venv/bin:$PATH"
+
+CMD ["python", "main.py"]</code></pre>
+                                </div>
+                            </div>
+
+                            <!-- Multi-stage Build -->
+                            <div>
+                                <h4 class="font-medium text-gray-800 dark:text-gray-200 mb-2">多階段建構</h4>
+                                <div class="bg-gray-900 rounded-lg p-4 overflow-x-auto"><pre class="text-cyan-400 text-sm"><code># 建構階段
+FROM python:3.12-slim as builder
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+COPY pyproject.toml uv.lock /app/
+WORKDIR /app
+RUN uv sync --frozen --no-dev
+
+# 執行階段
+FROM python:3.12-slim
+COPY --from=builder /app/.venv /app/.venv
+COPY . /app
+WORKDIR /app
+ENV PATH="/app/.venv/bin:$PATH"
+CMD ["python", "main.py"]</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Best Practices -->
+    <section class="py-16 bg-white dark:bg-gray-800">
+        <div class="container mx-auto px-6">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-3xl font-bold text-center mb-12 text-gray-900 dark:text-gray-100">
+                    <i class="fas fa-star text-yellow-500 mr-3"></i>
+                    最佳實踐建議
+                </h2>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Do's -->
+                    <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-xl p-6">
+                        <h3 class="text-xl font-semibold text-green-800 dark:text-green-200 mb-6 flex items-center">
+                            <i class="fas fa-check-circle mr-3"></i>
+                            建議做法
+                        </h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-start space-x-3">
+                                <i class="fas fa-check text-green-600 mt-1"></i>
+                                <div>
+                                    <strong class="text-green-800 dark:text-green-200">使用 uv sync 而非 uv run</strong><p class="text-green-700 dark:text-green-300 text-sm">在 CI/CD 中明確同步環境</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <i class="fas fa-check text-green-600 mt-1"></i>
+                                <div>
+                                    <strong class="text-green-800 dark:text-green-200">版本控制 uv.lock</strong>
+                                    <p class="text-green-700 dark:text-green-300 text-sm">確保團隊環境一致性</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <i class="fas fa-check text-green-600 mt-1"></i>
+                                <div>
+                                    <strong class="text-green-800 dark:text-green-200">使用依賴群組</strong>
+                                    <p class="text-green-700 dark:text-green-300 text-sm">分離開發、測試、生產依賴</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <i class="fas fa-check text-green-600 mt-1"></i>
+                                <div>
+                                    <strong class="text-green-800 dark:text-green-200">定期更新依賴</strong>
+                                    <p class="text-green-700 dark:text-green-300 text-sm">使用 uv lock --upgrade 保持最新</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <i class="fas fa-check text-green-600 mt-1"></i>
+                                <div>
+                                    <strong class="text-green-800 dark:text-green-200">使用 .python-version</strong><p class="text-green-700 dark:text-green-300 text-sm">明確指定專案 Python 版本</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Don'ts -->
+                    <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-xl p-6">
+                        <h3 class="text-xl font-semibold text-red-800 dark:text-red-200 mb-6 flex items-center">
+                            <i class="fas fa-times-circle mr-3"></i>
+                            避免做法
+                        </h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-start space-x-3">
+                                <i class="fas fa-times text-red-600 mt-1"></i>
+                                <div>
+                                    <strong class="text-red-800 dark:text-red-200">手動編輯 uv.lock</strong>
+                                    <p class="text-red-700 dark:text-red-300 text-sm">應該透過 uv 指令管理</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <i class="fas fa-times text-red-600 mt-1"></i>
+                                <div>
+                                    <strong class="text-red-800 dark:text-red-200">混用 pip 和 uv</strong>
+                                    <p class="text-red-700 dark:text-red-300 text-sm">可能導致依賴關係不一致</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <i class="fas fa-times text-red-600 mt-1"></i>
+                                <div>
+                                    <strong class="text-red-800 dark:text-red-200">忽略 .gitignore</strong><p class="text-red-700 dark:text-red-300 text-sm">.venv 應該被排除在版控外</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <i class="fas fa-times text-red-600 mt-1"></i>
+                                <div>
+                                    <strong class="text-red-800 dark:text-red-200">在生產環境安裝dev依賴</strong>
+                                    <p class="text-red-700 dark:text-red-300 text-sm">使用 --no-group dev 避免</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start space-x-3">
+                                <i class="fas fa-times text-red-600 mt-1"></i>
+                                <div>
+                                    <strong class="text-red-800 dark:text-red-200">跳過版本限制</strong>
+                                    <p class="text-red-700 dark:text-red-300 text-sm">應該指定合理的版本範圍</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Quick Tips -->
+                <div class="mt-12 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-8 border border-blue-200 dark:border-blue-700">
+                    <h3 class="text-xl font-semibold text-blue-800 dark:text-blue-200 mb-6 flex items-center">
+                        <i class="fas fa-lightbulb mr-3"></i>
+                        快速提示
+                    </h3>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-medium text-blue-700 dark:text-blue-300 mb-2">從其他工具遷移</h4>
+                            <ul class="space-y-2 text-sm text-blue-600 dark:text-blue-400">
+                                <li>• Poetry → uv: 轉換 pyproject.toml</li>
+                                <li>• pip-tools → uv: 導入 requirements.txt</li>
+                                <li>• Pipenv → uv: 使用 uv add 重建</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-blue-700 dark:text-blue-300 mb-2">效能優化</h4>
+                            <ul class="space-y-2 text-sm text-blue-600 dark:text-blue-400">
+                                <li>• 使用全域快取減少重複下載</li>
+                                <li>• 在 Docker 中分層建構減少重建時間</li>
+                                <li>• 使用 --locked 在 CI 中加速</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 dark:bg-gray-950 text-gray-300 py-12">
+        <div class="container mx-auto px-6">
+            <div class="max-w-6xl mx-auto">
+                <div class="grid md:grid-cols-3 gap-8 mb-8">
+                    <div>
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-rocket text-white"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white">uv 工具指南</h3>
+                        </div>
+                        <p class="text-gray-400 leading-relaxed">
+                            Python 高速套件管理工具的完整指令參考手冊，幫助開發者提升工作效率。
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-lg font-semibold text-white mb-4">相關資源</h4>
+                        <ul class="space-y-2">
+                            <li><a href="https://docs.astral.sh/uv/" target="_blank" class="text-gray-400 hover:text-blue-400 transition-colors duration-200 flex items-center">
+                                <i class="fas fa-external-link-alt mr-2 text-sm"></i>官方文件
+                            </a></li>
+                            <li><a href="https://github.com/astral-sh/uv" target="_blank" class="text-gray-400 hover:text-blue-400 transition-colors duration-200 flex items-center">
+                                <i class="fab fa-github mr-2"></i>GitHub 儲存庫
+                            </a></li>
+                            <li><a href="https://astral.sh/" target="_blank" class="text-gray-400 hover:text-blue-400 transition-colors duration-200 flex items-center">
+                                <i class="fas fa-building mr-2 text-sm"></i>Astral 公司
+                            </a></li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-lg font-semibold text-white mb-4">加入社群</h4>
+                        <div class="flex space-x-4">
+                            <a href="#" class="w-10 h-10 bg-gray-800 hover:bg-gray-700 rounded-lg flex items-center justify-center transition-colors duration-200">
+                                <i class="fab fa-twitter text-blue-400"></i></a>
+                            <a href="#" class="w-10 h-10 bg-gray-800 hover:bg-gray-700 rounded-lg flex items-center justify-center transition-colors duration-200">
+                                <i class="fab fa-discord text-purple-400"></i>
+                            </a><a href="#" class="w-10 h-10 bg-gray-800 hover:bg-gray-700 rounded-lg flex items-center justify-center transition-colors duration-200">
+                                <i class="fab fa-reddit text-orange-400"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Author Info -->
+                <div class="border-t border-gray-800 pt-8">
+                    <div class="flex flex-col md:flex-row items-center justify-between">
+                        <div class="flex items-center space-x-4 mb-4 md:mb-0">
+                            <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                                <span class="text-white font-bold text-lg">CT</span>
+                            </div>
+                            <div>
+                                <p class="text-white font-semibold">Cl Tseng</p>
+                                <p class="text-gray-400 text-sm">技術文件編寫者</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-6">
+                            <a href="https://twitter.com" target="_blank" class="text-gray-400 hover:text-blue-400 transition-colors duration-200 flex items-center space-x-2">
+                                <i class="fab fa-twitter"></i>
+                                <span>Twitter/X</span>
+                            </a>
+                            <div class="text-gray-400 text-sm">
+                                © 2025 版權所有
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Performance Chart
+        document.addEventListener('DOMContentLoaded', function() {
+            const chartDom = document.getElementById('performanceChart');
+            const myChart = echarts.init(chartDom);
+
+            const option = {
+                title: {
+                    text: '套件安裝速度比較',
+                    textStyle: {
+                        color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#1f2937'
+                    }
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    },
+                    formatter: '{b}: {c}秒'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['pip', 'pip-tools', 'poetry', 'uv'],
+                    axisLabel: {
+                        color: document.documentElement.classList.contains('dark') ? '#9ca3af' : '#6b7280'
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '安裝時間 (秒)',
+                    nameTextStyle: {
+                        color: document.documentElement.classList.contains('dark') ? '#9ca3af' : '#6b7280'
+                    },
+                    axisLabel: {
+                        color: document.documentElement.classList.contains('dark') ? '#9ca3af' : '#6b7280'
+                    }
+                },
+                series: [{
+                    data: [
+                        {value: 18, itemStyle: {color: '#ef4444'}},
+                        {value: 15, itemStyle: {color: '#f59e0b'}},
+                        {value: 12, itemStyle: {color: '#8b5cf6'}},
+                        {value: 0.8, itemStyle: {color: '#10b981'}}
+                    ],
+                    type: 'bar',
+                    label: {
+                        show: true,
+                        position: 'top',
+                        color: document.documentElement.classList.contains('dark') ? '#f3f4f6' : '#1f2937'
+                    }
+                }]
+            };
+
+            myChart.setOption(option);
+
+            // Responsive
+            window.addEventListener('resize', function() {
+                myChart.resize();
+            });
+
+            // Dark mode update
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.attributeName === 'class') {
+                        const isDark = document.documentElement.classList.contains('dark');
+                        option.title.textStyle.color = isDark ? '#f3f4f6' : '#1f2937';
+                        option.xAxis.axisLabel.color = isDark ? '#9ca3af' : '#6b7280';
+                        option.yAxis.nameTextStyle.color = isDark ? '#9ca3af' : '#6b7280';
+                        option.yAxis.axisLabel.color = isDark ? '#9ca3af' : '#6b7280';
+                        option.series[0].label.color = isDark ? '#f3f4f6' : '#1f2937';
+                        myChart.setOption(option);
+                    }
+                });
+            });
+            observer.observe(document.documentElement, { attributes: true });
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Animate elements on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('section, .bg-white, .bg-gray-50').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Copy code functionality
+        document.querySelectorAll('pre code').forEach(block => {
+            const button = document.createElement('button');
+            button.innerHTML = '<i class="fas fa-copy"></i>';
+            button.className = 'absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white p-2 rounded text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200';
+            
+            const container = block.closest('div');
+            if (container) {
+                container.style.position = 'relative';
+                container.classList.add('group');
+                container.appendChild(button);
+                
+                button.addEventListener('click', () => {
+                    navigator.clipboard.writeText(block.textContent).then(() => {
+                        button.innerHTML = '<i class="fas fa-check"></i>';
+                        setTimeout(() => {
+                            button.innerHTML = '<i class="fas fa-copy"></i>';
+                        }, 2000);
+                    });
+                });
+            }
+        });
+    </script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"rayId":"95d90d92b89328f2","serverTiming":{"name":{"cfExtPri":true,"cfEdge":true,"cfOrigin":true,"cfL4":true,"cfSpeedBrain":true,"cfCacheStatus":true}},"version":"2025.6.2","token":"411a3f34bb35430c8f79d9497eb73354"}' crossorigin="anonymous"></script>
+</body>
+</html>
