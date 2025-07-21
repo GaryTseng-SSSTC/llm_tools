@@ -1,0 +1,740 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agentic AI：下一代智能代理的深度解析</title>
+    <meta name="description" content="探索 Agentic AI 的定義、工作流程、應用場景及未來展望">
+    <meta name="keywords" content="Agentic AI, 人工智能, 智能代理, AI 工作流程">
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Preline UI -->
+    <script src="https://cdn.jsdelivr.net/npm/preline@3.0.1/dist/preline.min.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Material Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/material-icons@1.13.14/iconfont/material-icons.min.css">
+    
+    <!-- Mermaid -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e'
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.6s ease-in-out',
+                        'slide-up': 'slideUp 0.8s ease-out',
+                        'bounce-in': 'bounceIn 0.6s ease-out'
+                    }
+                }
+            }
+        }
+    </script><style>
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+        
+        .btn-hover {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .btn-hover:hover {
+            transform: scale(1.05);}
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .glass-effect {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .dark .glass-effect {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        
+        .scroll-smooth {
+            scroll-behavior: smooth;
+        }
+    </style>
+<script src="https://felo.ai/js/webpageIframe.js"></script>
+ <style>
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: #bfc5ce transparent !important;
+}
+*::-webkit-scrollbar {
+  width: 6px !important;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: #bfc5ce !important;
+  border-radius: 9999px !important;
+}
+*::-webkit-scrollbar-track {
+  background-color: transparent !important;
+  border-radius: 9999px !important;
+}
+</style></head>
+
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 scroll-smooth">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 glass-effect border-b border-gray-200 dark:border-gray-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <i class="fas fa-robot text-2xl text-primary-600 dark:text-primary-400"></i>
+                    <h1 class="text-xl font-bold">Agentic AI 深度解析</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="theme-toggle" class="btn-hover p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600">
+                        <i class="fas fa-sun dark:hidden"></i>
+                        <i class="fas fa-moon hidden dark:block"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 py-20">
+        <div class="absolute inset-0 bg-grid-pattern opacity-5"></div>
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center animate-fade-in">
+                <h1 class="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
+                    Agentic AI
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+                        智能代理新時代
+                    </span>
+                </h1>
+                <p class="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+                    探索下一代人工智能的革命性進展，了解 Agentic AI 如何重新定義自主智能系統的未來
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    <a href="https://zapier.com/blog/agentic-ai/?utm_source=Iterable&utm_medium=email&utm_campaign=itbl-gbl-pgv-ooc-blog_agentic_ai_20250721-ctn#what" target="_blank" class="btn-hover inline-flex items-center px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-lg font-medium shadow-lg">
+                        <i class="fas fa-external-link-alt mr-2"></i>閱讀原文</a>
+                    <button onclick="scrollToSection('content')" class="btn-hover inline-flex items-center px-8 py-3 border-2 border-primary-600 text-primary-600 dark:text-primary-400 rounded-lg font-medium hover:bg-primary-50 dark:hover:bg-gray-800">
+                        <i class="fas fa-arrow-down mr-2"></i>
+                        開始探索
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Author Info -->
+    <section class="bg-white dark:bg-gray-800 py-12 animate-slide-up">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600 rounded-2xl p-8">
+                <div class="flex items-center space-x-6">
+                    <div class="w-16 h-16 bg-primary-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-white text-xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Harry Guinness</h3>
+                        <p class="text-gray-600 dark:text-gray-300 mb-2">技術與生產力專欄作家</p>
+                        <div class="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                            <span class="flex items-center">
+                                <i class="fas fa-calendar-alt mr-1"></i>
+                                發布於 2025年6月13日
+                            </span>
+                            <span class="flex items-center">
+                                <i class="fas fa-building mr-1"></i>
+                                Zapier 官方部落格
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main id="content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        
+        <!-- Definition Section -->
+        <section class="animate-slide-up mb-16">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 card-hover">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mr-4">
+                        <i class="fas fa-lightbulb text-white text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white">什麼是 Agentic AI？</h2>
+                </div>
+                <div class="prose dark:prose-invert max-w-none">
+                    <p class="text-lg text-gray-600 dark:text-gray-300 leading-relaxed mb-6">
+                        Agentic AI 代表人工智能發展的新階段，這類 AI 系統具備自主決策、動態學習和獨立執行複雜任務的能力。
+                        與傳統的被動響應型 AI 不同，Agentic AI 能夠主動感知環境、制定策略並採取行動來實現既定目標。
+                    </p>
+                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600 rounded-xl p-6 border-l-4 border-primary-500">
+                        <h4 class="font-bold text-gray-900 dark:text-white mb-2">核心特徵：</h4>
+                        <ul class="space-y-2 text-gray-700 dark:text-gray-300">
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                                自主決策能力
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                                環境感知與適應
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                                持續學習優化
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-check-circle text-green-500 mr-3"></i>
+                                目標導向執行
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI Types Comparison -->
+        <section class="animate-slide-up mb-16">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 card-hover">
+                <div class="flex items-center mb-8">
+                    <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-lg flex items-center justify-center mr-4">
+                        <i class="fas fa-chart-bar text-white text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white">三種 AI 形態比較</h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 dark:bg-gray-700">
+                                <th class="border border-gray-200 dark:border-gray-600 px-6 py-4 text-left font-bold text-gray-900 dark:text-white">特徵</th>
+                                <th class="border border-gray-200 dark:border-gray-600 px-6 py-4 text-left font-bold text-primary-600">傳統 AI</th>
+                                <th class="border border-gray-200 dark:border-gray-600 px-6 py-4 text-left font-bold text-purple-600">生成式 AI</th>
+                                <th class="border border-gray-200 dark:border-gray-600 px-6 py-4 text-left font-bold text-green-600">Agentic AI</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                <td class="border border-gray-200 dark:border-gray-600 px-6 py-4 font-medium">決策方式</td>
+                                <td class="border border-gray-200 dark:border-gray-600 px-6 py-4">預設規則</td>
+                                <td class="border border-gray-200 dark:border-gray-600 px-6 py-4">基於提示</td>
+                                <td class="border border-gray-200 dark:border-gray-600 px-6 py-4 text-green-600 font-bold">自主決策</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                <td class="border border-gray-200 dark:border-gray-600 px-6 py-4 font-medium">學習能力</td>
+                                <td class="border border-gray-200 dark:border-gray-600 px-6 py-4">靜態模型</td>
+                                <td class="border border-gray-200 dark:border-gray-600 px-6 py-4">預訓練知識</td>
+                                <td class="border border-gray-200 dark:border-gray-600 px-6 py-4 text-green-600 font-bold">動態學習</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                <td class="border border-gray-200 dark:border-gray-600 px-6 py-4 font-medium">互動模式</td>
+                                <td class="border border-gray-200 dark:border-gray-600 px-6 py-4">被動響應</td>
+                                <td class="border border-gray-200 dark:border-gray-600 px-6 py-4">對話生成</td>
+                                <td class="border border-gray-200 dark:border-gray-600 px-6 py-4 text-green-600 font-bold">主動執行</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                                <td class="border border-gray-200 dark:border-gray-600 px-6 py-4 font-medium">目標導向</td>
+                                <td class="border border-gray-200 dark:border-gray-600 px-6 py-4">任務導向</td>
+                                <td class="border border-gray-200 dark:border-gray-600 px-6 py-4">內容導向</td>
+                                <td class="border border-gray-200 dark:border-gray-600 px-6 py-4 text-green-600 font-bold">結果導向</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Workflow Section -->
+        <section class="animate-slide-up mb-16">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 card-hover">
+                <div class="flex items-center mb-8">
+                    <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mr-4">
+                        <i class="fas fa-cogs text-white text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white">四步驟工作流程</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-6 card-hover">
+                        <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fas fa-eye text-white text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">1. 感知</h3>
+                        <p class="text-gray-600 dark:text-gray-300 text-sm">收集並分析環境資訊，識別當前狀態與目標差距</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl p-6 card-hover">
+                        <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fas fa-brain text-white text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">2. 推理</h3>
+                        <p class="text-gray-600 dark:text-gray-300 text-sm">基於感知資訊進行邏輯分析，制定最佳行動策略</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-6 card-hover">
+                        <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fas fa-play text-white text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">3. 執行</h3>
+                        <p class="text-gray-600 dark:text-gray-300 text-sm">實施決策並採取具體行動，與環境進行互動</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-xl p-6 card-hover">
+                        <div class="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center mb-4">
+                            <i class="fas fa-graduation-cap text-white text-xl"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-2">4. 學習</h3>
+                        <p class="text-gray-600 dark:text-gray-300 text-sm">評估執行結果，調整策略並優化未來決策</p>
+                    </div>
+                </div>
+                
+                <!-- Mermaid Workflow Diagram -->
+                <div class="mt-8">
+                    <div class="mermaid" id="workflowDiagram">
+                        graph TD
+                            A[環境感知] --> B[資料分析]
+                            B --> C[策略制定]
+                            C --> D[行動執行]
+                            D --> E[結果評估]
+                            E --> F[學習優化]
+                            F --> A
+                            
+                            A -.->|感知階段| G[收集環境資訊]
+                            C -.->|推理階段| H[邏輯分析決策]
+                            D -.->|執行階段| I[實際行動]
+                            F -.->|學習階段| J[經驗累積]
+                            
+                            classDef perception fill:#3B82F6,stroke:#1E40AF,color:#fff
+                            classDef reasoning fill:#10B981,stroke:#047857,color:#fff
+                            classDef action fill:#8B5CF6,stroke:#5B21B6,color:#fff
+                            classDef learning fill:#F59E0B,stroke:#D97706,color:#fff
+                            
+                            class A,B,G perception
+                            class C,H reasoning
+                            class D,I action
+                            class E,F,J learning
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Applications Section -->
+        <section class="animate-slide-up mb-16">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 card-hover">
+                <div class="flex items-center mb-8">
+                    <div class="w-12 h-12 bg-gradient-to-r from-indigo-500 to-blue-500 rounded-lg flex items-center justify-center mr-4">
+                        <i class="fas fa-rocket text-white text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white">實務應用場景</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-800/20 rounded-xl p-6 card-hover">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-briefcase text-2xl text-emerald-600 mr-3"></i>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">商業自動化</h3>
+                        </div>
+                        <ul class="space-y-2 text-gray-600 dark:text-gray-300 text-sm">
+                            <li class="flex items-center">
+                                <i class="fas fa-dot-circle text-emerald-500 mr-2 text-xs"></i>
+                                智能客戶服務
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-dot-circle text-emerald-500 mr-2 text-xs"></i>
+                                流程優化管理
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-dot-circle text-emerald-500 mr-2 text-xs"></i>
+                                預測性維護
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-900/20 dark:to-pink-800/20 rounded-xl p-6 card-hover">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-user-md text-2xl text-rose-600 mr-3"></i>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">醫療健康</h3>
+                        </div>
+                        <ul class="space-y-2 text-gray-600 dark:text-gray-300 text-sm">
+                            <li class="flex items-center">
+                                <i class="fas fa-dot-circle text-rose-500 mr-2 text-xs"></i>
+                                診斷輔助系統
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-dot-circle text-rose-500 mr-2 text-xs"></i>
+                                個人化治療
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-dot-circle text-rose-500 mr-2 text-xs"></i>
+                                藥物研發
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-800/20 rounded-xl p-6 card-hover">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-graduation-cap text-2xl text-amber-600 mr-3"></i>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">教育學習</h3>
+                        </div>
+                        <ul class="space-y-2 text-gray-600 dark:text-gray-300 text-sm">
+                            <li class="flex items-center">
+                                <i class="fas fa-dot-circle text-amber-500 mr-2 text-xs"></i>
+                                個人化學習
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-dot-circle text-amber-500 mr-2 text-xs"></i>
+                                智能導師系統
+                            </li>
+                            <li class="flex items-center">
+                                <i class="fas fa-dot-circle text-amber-500 mr-2 text-xs"></i>
+                                學習成效評估
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Insights -->
+        <section class="animate-slide-up mb-16">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 card-hover">
+                <div class="flex items-center mb-8">
+                    <div class="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center mr-4">
+                        <i class="fas fa-key text-white text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white">核心觀點與未來展望</h2>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="space-y-6">
+                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-800/20 rounded-xl p-6">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3 flex items-center">
+                                <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                                關鍵洞察
+                            </h3>
+                            <ul class="space-y-3 text-gray-600 dark:text-gray-300">
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-primary-500 mr-3 mt-1"></i>
+                                    Agentic AI 將重新定義人機協作模式
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-primary-500 mr-3 mt-1"></i>
+                                    自主決策能力是下一代 AI 的核心特徵
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-primary-500 mr-3 mt-1"></i>
+                                    持續學習將實現真正的智能進化
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-800/20 rounded-xl p-6">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3 flex items-center">
+                                <i class="fas fa-chart-line text-green-500 mr-2"></i>
+                                發展趨勢
+                            </h3>
+                            <ul class="space-y-3 text-gray-600 dark:text-gray-300">
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-green-500 mr-3 mt-1"></i>
+                                    多模態感知能力日趨完善
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-arrow-right text-green-500 mr-3 mt-1"></i>跨領域應用場景持續擴展
+                                </li>
+                                <li class="flex items-start"><i class="fas fa-arrow-right text-green-500 mr-3 mt-1"></i>
+                                    人工智能治理框架逐步建立
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <div id="insightsChart" style="width: 100%; height: 400px;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Discussion Questions -->
+        <section class="animate-slide-up mb-16">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 card-hover">
+                <div class="flex items-center mb-8">
+                    <div class="w-12 h-12 bg-gradient-to-r from-pink-500 to-rose-500 rounded-lg flex items-center justify-center mr-4">
+                        <i class="fas fa-comments text-white text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white">思考與討論</h2>
+                </div>
+                <div class="space-y-6">
+                    <div class="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-800/20 rounded-xl p-6">
+                        <h3 class="font-bold text-gray-900 dark:text-white mb-4">引導性問題</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-white dark:bg-gray-700 rounded-lg p-4 card-hover">
+                                <i class="fas fa-question-circle text-purple-500 mr-2"></i>
+                                <span class="font-medium">您認為 Agentic AI 在哪些領域最具潛力？</span>
+                            </div>
+                            <div class="bg-white dark:bg-gray-700 rounded-lg p-4 card-hover">
+                                <i class="fas fa-question-circle text-purple-500 mr-2"></i>
+                                <span class="font-medium">自主決策 AI 可能帶來哪些挑戰？</span>
+                            </div>
+                            <div class="bg-white dark:bg-gray-700 rounded-lg p-4 card-hover">
+                                <i class="fas fa-question-circle text-purple-500 mr-2"></i>
+                                <span class="font-medium">如何確保 AI 代理的決策透明度？</span>
+                            </div>
+                            <div class="bg-white dark:bg-gray-700 rounded-lg p-4 card-hover">
+                                <i class="fas fa-question-circle text-purple-500 mr-2"></i>
+                                <span class="font-medium">人類在 AI 時代的角色如何定位？</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 dark:bg-black text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-lg font-bold mb-4">作者資訊</h3>
+                    <p class="text-gray-300 mb-2">Cl Tseng</p>
+                    <p class="text-gray-400 text-sm">技術內容創作者與研究員</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">社群連結</h3>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors btn-hover">
+                            <i class="fab fa-twitter text-xl"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors btn-hover">
+                            <i class="fab fa-linkedin text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors btn-hover">
+                            <i class="fab fa-github text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">版權資訊</h3>
+                    <p class="text-gray-400 text-sm">© 2025 Cl Tseng. All rights reserved.</p><p class="text-gray-500 text-xs mt-2">
+                        內容基於 Harry Guinness 於 Zapier 部落格的原文進行分析與呈現
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+        
+        // Check for saved theme preference or default to system preference
+        const savedTheme = localStorage.getItem('theme');
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        
+        if (savedTheme) {
+            html.classList.toggle('dark', savedTheme === 'dark');
+        } else {
+            html.classList.toggle('dark', systemTheme === 'dark');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+        });
+
+        // Smooth scrolling function
+        function scrollToSection(sectionId) {
+            document.getElementById(sectionId).scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+
+        // Initialize Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            }
+        });
+
+        // Initialize ECharts after DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const chartDom = document.getElementById('insightsChart');
+            const myChart = echarts.init(chartDom);
+            
+            const option = {
+                title: {
+                    text: 'AI 技術發展階段',
+                    textStyle: {
+                        color: document.documentElement.classList.contains('dark') ? '#fff' : '#333'
+                    }
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                legend: {
+                    data: ['自主性', '學習能力', '適應性'],
+                    textStyle: {
+                        color: document.documentElement.classList.contains('dark') ? '#fff' : '#333'
+                    }
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['傳統 AI', '生成式 AI', 'Agentic AI'],
+                    axisLine: {
+                        lineStyle: {
+                            color: document.documentElement.classList.contains('dark') ? '#666' : '#333'
+                        }
+                    },
+                    axisLabel: {
+                        color: document.documentElement.classList.contains('dark') ? '#fff' : '#333'
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    max: 100,
+                    axisLine: {
+                        lineStyle: {
+                            color: document.documentElement.classList.contains('dark') ? '#666' : '#333'
+                        }
+                    },
+                    axisLabel: {
+                        color: document.documentElement.classList.contains('dark') ? '#fff' : '#333'
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: document.documentElement.classList.contains('dark') ? '#404040' : '#e6e6e6'
+                        }
+                    }
+                },
+                series: [
+                    {
+                        name: '自主性',
+                        type: 'bar',
+                        data: [30, 60, 95],
+                        itemStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: '#3B82F6' },
+                                { offset: 1, color: '#1E40AF' }
+                            ])
+                        }
+                    },
+                    {
+                        name: '學習能力',
+                        type: 'bar',
+                        data: [25, 70, 90],
+                        itemStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: '#10B981' },
+                                { offset: 1, color: '#047857' }
+                            ])
+                        }
+                    },
+                    {
+                        name: '適應性',
+                        type: 'bar',
+                        data: [20, 55, 85],
+                        itemStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: '#8B5CF6' },
+                                { offset: 1, color: '#5B21B6' }
+                            ])
+                        }
+                    }
+                ]
+            };
+
+            myChart.setOption(option);
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                myChart.resize();
+            });
+            
+            // Update chart theme when dark mode changes
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        const isDark = document.documentElement.classList.contains('dark');
+                        option.title.textStyle.color = isDark ? '#fff' : '#333';
+                        option.legend.textStyle.color = isDark ? '#fff' : '#333';
+                        option.xAxis.axisLine.lineStyle.color = isDark ? '#666' : '#333';
+                        option.xAxis.axisLabel.color = isDark ? '#fff' : '#333';
+                        option.yAxis.axisLine.lineStyle.color = isDark ? '#666' : '#333';
+                        option.yAxis.axisLabel.color = isDark ? '#fff' : '#333';
+                        option.yAxis.splitLine.lineStyle.color = isDark ? '#404040' : '#e6e6e6';
+                        myChart.setOption(option);
+                    }
+                });
+            });
+            
+            observer.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
+        });
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all animated elements
+        document.querySelectorAll('.animate-slide-up').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
