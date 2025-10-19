@@ -1,0 +1,1063 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenSpec 使用手冊 - 快速上手 AI 規格管理工作流</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/preline@2.3.0/dist/preline.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; }
+        .code-font { font-family: 'JetBrains Mono', monospace; }
+        .hero-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .glass-effect { backdrop-filter: blur(16px); background: rgba(255, 255, 255, 0.1); }
+        .dark .glass-effect { background: rgba(0, 0, 0, 0.2); }
+    </style>
+<script src="https://felo.ai/js/iframe.js?v=1760849896624"></script>
+ <style>
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: #bfc5ce transparent !important;
+}
+*::-webkit-scrollbar {
+  width: 6px !important;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: #bfc5ce !important;
+  border-radius: 9999px !important;
+}
+*::-webkit-scrollbar-track {
+  background-color: transparent !important;
+  border-radius: 9999px !important;
+}
+</style></head>
+<body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200">
+
+<!-- Navigation -->
+<nav class="fixed top-0 w-full z-50 glass-effect border-b border-white/20 dark:border-gray-800/20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-code text-white text-sm"></i>
+                </div>
+                <span class="text-xl font-bold">OpenSpec</span>
+            </div>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#quick-start" class="hover:text-blue-500 transition-colors">快速上手</a>
+                <a href="#workflow" class="hover:text-blue-500 transition-colors">核心工作流</a>
+                <a href="#tools" class="hover:text-blue-500 transition-colors">支援工具</a>
+                <a href="#commands" class="hover:text-blue-500 transition-colors">指令速查</a>
+            </div>
+            <button id="theme-toggle" class="p-2 rounded-lg bg-white/10 dark:bg-gray-800/50 hover:bg-white/20 dark:hover:bg-gray-700/50 transition-colors">
+                <i class="fas fa-sun dark:hidden"></i>
+                <i class="fas fa-moon hidden dark:inline"></i>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero-gradient min-h-screen flex items-center justify-center text-white relative overflow-hidden">
+    <div class="absolute inset-0 bg-black/20"></div>
+    <div class="relative z-10 text-center max-w-5xl mx-auto px-4">
+        <div class="mb-8">
+            <h1 class="text-6xl md:text-8xl font-black mb-6 leading-tight">
+                OpenSpec
+                <span class="block text-4xl md:text-5xl font-light opacity-90">使用手冊</span>
+            </h1>
+            <p class="text-xl md:text-2xl font-light opacity-90 max-w-3xl mx-auto leading-relaxed">
+                以工作流程為核心的 AI 規格管理工具<br>
+                從安裝到交付整個流程 15-30 分鐘跑通，無需 API Key
+            </p>
+        </div>
+        
+        <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <a href="#quick-start" class="bg-white text-gray-900 px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition-all duration-200 transform hover:scale-105">
+                <i class="fas fa-rocket mr-2"></i>5 分鐘快速上手
+            </a>
+            <a href="#workflow" class="border-2 border-white text-white px-8 py-4 rounded-full font-semibold hover:bg-white hover:text-gray-900 transition-all duration-200">
+                <i class="fas fa-book mr-2"></i>查看完整工作流
+            </a>
+        </div>
+
+        <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div class="glass-effect rounded-2xl p-6">
+                <div class="text-3xl font-bold mb-2">15-30</div>
+                <div class="text-sm opacity-80">分鐘完整流程</div>
+            </div>
+            <div class="glass-effect rounded-2xl p-6">
+                <div class="text-3xl font-bold mb-2">10+</div>
+                <div class="text-sm opacity-80">AI 工具支援</div>
+            </div>
+            <div class="glass-effect rounded-2xl p-6">
+                <div class="text-3xl font-bold mb-2">0</div>
+                <div class="text-sm opacity-80">API Key 需求</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Start Section -->
+<section id="quick-start" class="py-20 bg-gray-50 dark:bg-gray-800">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="text-center mb-16">
+            <h2 class="text-5xl font-bold mb-6">5 分鐘快速上手</h2>
+            <p class="text-xl text-gray-600 dark:text-gray-400">從零到第一個變更的完整流程</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+            <div class="space-y-8">
+                <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold mr-3">1</div>
+                        <h3 class="text-xl font-bold">環境檢查</h3>
+                    </div>
+                    <ul class="space-y-3 text-gray-600 dark:text-gray-400">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-3"></i>
+                            需要 Node.js 版本 ≥ 20.19.0
+                        </li>
+                        <li class="code-font bg-gray-100 dark:bg-gray-800 p-2 rounded">
+                            node --version
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 bg-purple-500 text-white rounded-full flex items-center justify-center font-bold mr-3">2</div>
+                        <h3 class="text-xl font-bold">安裝 OpenSpec CLI</h3>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="code-font bg-gray-100 dark:bg-gray-800 p-3 rounded">
+                            npm install -g @fission-ai/openspec@latest
+                        </div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">驗證安裝：</div>
+                        <div class="code-font bg-gray-100 dark:bg-gray-800 p-3 rounded">
+                            openspec --version
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center font-bold mr-3">3</div>
+                        <h3 class="text-xl font-bold">專案初始化</h3>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="code-font bg-gray-100 dark:bg-gray-800 p-3 rounded">
+                            cd 你的專案<br>
+                            openspec init
+                        </div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">
+                            系統會自動產生目錄結構並安裝對應的 slash commands
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-8">
+                <div class="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl p-8 border border-blue-200 dark:border-blue-800">
+                    <h3 class="text-xl font-bold mb-4 text-blue-800 dark:text-blue-300">
+                        <i class="fas fa-folder-tree mr-2"></i>產生的目錄結構
+                    </h3>
+                    <div class="code-font text-sm space-y-1 text-gray-700 dark:text-gray-300">
+                        <div>openspec/</div>
+                        <div class="ml-4">├── specs/ <span class="text-gray-500"># 正式規格</span></div>
+                        <div class="ml-4">└── changes/ <span class="text-gray-500"># 變更提案</span></div>
+                        <div>AGENTS.md <span class="text-gray-500"># 工作指引</span></div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold mr-3">4</div>
+                        <h3 class="text-xl font-bold">建立第一個變更</h3>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-4">
+                            <div class="text-sm font-semibold mb-2">對 AI 助手說：</div>
+                            <div class="italic">請建立一個 OpenSpec 變更提案，名稱：add-profile-filters，需求是「新增依角色與團隊的檔案搜尋篩選」</div>
+                        </div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">或使用 slash command：</div>
+                        <div class="code-font bg-gray-100 dark:bg-gray-800 p-3 rounded">
+                            /openspec:proposal Add profile search filters
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center font-bold mr-3">5</div>
+                        <h3 class="text-xl font-bold">檢查與實作</h3>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="code-font bg-gray-100 dark:bg-gray-800 p-3 rounded text-sm">
+                            openspec list<br>
+                            openspec validate add-profile-filters<br>
+                            openspec show add-profile-filters
+                        </div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">
+                            確認規格後開始實作，完成後執行封存指令
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Core Workflow Section -->
+<section id="workflow" class="py-20">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center mb-16">
+            <h2 class="text-5xl font-bold mb-6">核心工作流程</h2>
+            <p class="text-xl text-gray-600 dark:text-gray-400">分階段詳解，確保每個步驟都清晰明確</p>
+        </div>
+
+        <div class="mb-16">
+            <div class="mermaid bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg">
+flowchart TD
+    A["專案初始化"] --> B["建立變更提案"]
+    B --> C["規格對齊與審查"]
+    C --> D["實作工作流"]
+    D --> E["封存與合併"]
+    E --> F["完成"]
+    
+    A --> A1["安裝 CLI"]
+    A --> A2["openspec init"]
+    A --> A3["驗證環境"]
+    
+    B --> B1["生成 proposal.md"]
+    B --> B2["建立 tasks.md"]
+    B --> B3["產出 specs Delta"]
+    
+    C --> C1["需求檢查"]
+    C --> C2["格式驗證"]
+    C --> C3["跨模組影響"]
+    
+    D --> D1["依 tasks 實作"]
+    D --> D2["勾選完成項目"]
+    D --> D3["提交與測試"]
+    
+    E --> E1["openspec archive"]
+    E --> E2["合併回正式規格"]
+    E --> E3["清理變更資料夾"]
+    
+    style A fill:#e1f5fe
+    style B fill:#f3e5f5
+    style C fill:#fff8e1
+    style D fill:#e8f5e8
+    style E fill:#fce4ec
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold mr-4">1</div>
+                    <h3 class="text-2xl font-bold">初始化專案工作流</h3>
+                </div>
+                <div class="space-y-4">
+                    <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                        <div class="font-semibold text-blue-800 dark:text-blue-300 mb-2">目標</div>
+                        <div class="text-sm">讓專案具備 OpenSpec 的變更與規格目錄結構，並讓 AI 工具讀得到工作指引</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="font-semibold">步驟：</div>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-start">
+                                <i class="fas fa-arrow-right text-blue-500 mr-2 mt-1"></i>
+                                安裝 CLI：<code class="code-font bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">npm install -g @fission-ai/openspec@latest</code>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-arrow-right text-blue-500 mr-2 mt-1"></i>
+                                專案啟用：<code class="code-font bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">openspec init</code>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-arrow-right text-blue-500 mr-2 mt-1"></i>
+                                重新啟動 AI 工具並驗證：<code class="code-font bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">openspec list</code>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-purple-500 text-white rounded-full flex items-center justify-center font-bold mr-4">2</div>
+                    <h3 class="text-2xl font-bold">建立變更提案工作流</h3>
+                </div>
+                <div class="space-y-4">
+                    <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                        <div class="font-semibold text-purple-800 dark:text-purple-300 mb-2">目標</div>
+                        <div class="text-sm">明確化需求、分解任務、產出規格 Delta（不直接改動正式規格）</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="font-semibold">推薦 AI 提示語：</div>
+                        <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg text-sm italic">
+                            建立 OpenSpec 變更提案，名稱：&lt;change-name&gt;，需求說明：&lt;一句話目標&gt;，請生成 proposal、tasks 與 specs Delta
+                        </div>
+                        <div class="text-sm mt-2">
+                            或使用 slash commands：<code class="code-font bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">/openspec:proposal</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-yellow-500 text-white rounded-full flex items-center justify-center font-bold mr-4">3</div>
+                    <h3 class="text-2xl font-bold">規格對齊與審查工作流</h3>
+                </div>
+                <div class="space-y-4">
+                    <div class="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
+                        <div class="font-semibold text-yellow-800 dark:text-yellow-300 mb-2">目標</div>
+                        <div class="text-sm">在任何寫碼前，先把「要做什麼」對齊</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="font-semibold">開發者檢查節點：</div>
+                        <ul class="space-y-1 text-sm">
+                            <li class="flex items-start">
+                                <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
+                                需求是否以 Requirement + Scenario 方式完整敘述
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
+                                每項 Requirement 是否使用 SHALL/MUST
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
+                                有無跨規格或多模組影響並在 Delta 呈現
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center font-bold mr-4">4</div>
+                    <h3 class="text-2xl font-bold">實作工作流</h3>
+                </div>
+                <div class="space-y-4">
+                    <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                        <div class="font-semibold text-green-800 dark:text-green-300 mb-2">目標</div>
+                        <div class="text-sm">依 tasks 實作，確保每一步都映射到規格</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="font-semibold">推薦 AI 提示語：</div>
+                        <div class="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg text-sm italic">
+                            規格已凍結，依 tasks 開始實作；每完成一個任務請勾選並同步說明
+                        </div>
+                        <div class="text-sm mt-2">
+                            使用 slash commands：<code class="code-font bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">/openspec:apply &lt;change&gt;</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700 lg:col-span-2">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-red-500 text-white rounded-full flex items-center justify-center font-bold mr-4">5</div>
+                    <h3 class="text-2xl font-bold">封存與合併規格工作流</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg mb-4">
+                            <div class="font-semibold text-red-800 dark:text-red-300 mb-2">目標</div>
+                            <div class="text-sm">將已實作、已驗證的 Delta 合併回正式規格（source of truth）</div>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="font-semibold">動作：</div>
+                            <div class="code-font bg-gray-100 dark:bg-gray-800 p-3 rounded">
+                                openspec archive &lt;change&gt; --yes
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="font-semibold mb-2">完成判斷：</div>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-start">
+                                <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
+                                openspec/specs/ 已更新
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
+                                openspec/changes/&lt;change&gt;/ 已移至 archive 或完成狀態
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
+                                後續新功能再建立新的 change 夾，避免長期漂移
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- File Structure Section -->
+<section class="py-20 bg-gray-50 dark:bg-gray-800">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold mb-6">目錄與檔案說明</h2>
+            <p class="text-xl text-gray-600 dark:text-gray-400">上手時你會看到的完整結構</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                <h3 class="text-xl font-bold mb-6 flex items-center">
+                    <i class="fas fa-folder text-blue-500 mr-3"></i>正式規格目錄
+                </h3>
+                <div class="space-y-4">
+                    <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                        <div class="code-font text-sm font-semibold mb-2">openspec/specs/&lt;domain&gt;/spec.md</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">目前正式規格（source of truth）</div>
+                    </div>
+                    <div class="text-sm text-gray-600 dark:text-gray-400">
+                        這是系統的單一真實來源，所有已確認的規格都存放在這裡。每次封存變更後，Delta 會合併回此處。
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                <h3 class="text-xl font-bold mb-6 flex items-center">
+                    <i class="fas fa-edit text-purple-500 mr-3"></i>變更提案目錄
+                </h3>
+                <div class="space-y-4">
+                    <div class="space-y-3">
+                        <div class="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg">
+                            <div class="code-font text-sm font-semibold">proposal.md</div>
+                            <div class="text-xs text-gray-600 dark:text-gray-400">變更的背景與摘要（為何、要做什麼）</div>
+                        </div>
+                        <div class="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg">
+                            <div class="code-font text-sm font-semibold">tasks.md</div>
+                            <div class="text-xs text-gray-600 dark:text-gray-400">實作清單（可勾選）</div>
+                        </div>
+                        <div class="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg">
+                            <div class="code-font text-sm font-semibold">design.md</div>
+                            <div class="text-xs text-gray-600 dark:text-gray-400">技術決策（可選）</div>
+                        </div>
+                        <div class="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg">
+                            <div class="code-font text-sm font-semibold">specs/&lt;domain&gt;/spec.md</div>
+                            <div class="text-xs text-gray-600 dark:text-gray-400">此變更的規格 Delta（新增、修改、移除）</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-12 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-2xl p-8 border border-green-200 dark:border-green-800">
+            <h3 class="text-xl font-bold mb-4 text-green-800 dark:text-green-300">
+                <i class="fas fa-lightbulb mr-2"></i>常見例子（變更名稱 add-2fa）
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <div class="font-semibold mb-3">變更提案階段：</div>
+                    <div class="code-font text-sm space-y-1 bg-white dark:bg-gray-800 p-4 rounded-lg">
+                        <div>changes/add-2fa/</div>
+                        <div class="ml-4">├── proposal.md</div>
+                        <div class="ml-4">├── tasks.md</div>
+                        <div class="ml-4">└── specs/auth/spec.md <span class="text-gray-500"># Delta</span></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="font-semibold mb-3">合併後：</div>
+                    <div class="code-font text-sm space-y-1 bg-white dark:bg-gray-800 p-4 rounded-lg">
+                        <div>openspec/specs/auth/spec.md</div>
+                        <div class="ml-4 text-gray-500"># auth 的正式規格已更新</div>
+                        <div class="ml-4 text-gray-500"># 包含 2FA 相關內容</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Delta Format Section -->
+<section class="py-20">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold mb-6">Delta 規格格式要點</h2>
+            <p class="text-xl text-gray-600 dark:text-gray-400">避免 validate 失敗的關鍵格式</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                <h3 class="text-xl font-bold mb-6 text-orange-600 dark:text-orange-400">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>格式規則
+                </h3>
+                <div class="space-y-4">
+                    <div class="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
+                        <div class="font-semibold mb-2">三種變更區塊：</div>
+                        <div class="code-font text-sm space-y-1">
+                            <div>## ADDED</div>
+                            <div>## MODIFIED</div>
+                            <div>## REMOVED</div>
+                        </div>
+                    </div>
+                    <div class="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
+                        <div class="font-semibold mb-2">Requirement 標題格式：</div>
+                        <div class="code-font text-sm">### Requirement: &lt;名稱&gt;</div>
+                    </div>
+                    <div class="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
+                        <div class="font-semibold mb-2">Scenario 格式：</div>
+                        <div class="code-font text-sm">#### Scenario: &lt;情境&gt;</div>
+                    </div>
+                    <div class="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
+                        <div class="font-semibold mb-2">Requirement 文字：</div>
+                        <div class="text-sm">務必使用 SHALL 或 MUST<br>
+                        例如：The system SHALL ...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                <h3 class="text-xl font-bold mb-6 text-green-600 dark:text-green-400">
+                    <i class="fas fa-code mr-2"></i>範例格式
+                </h3>
+                <div class="bg-gray-50 dark:bg-gray-800 p-6 rounded-lg code-font text-sm overflow-x-auto">
+                    <div class="space-y-2">
+                        <div class="text-blue-600 dark:text-blue-400">## ADDED</div>
+                        <div></div>
+                        <div class="text-green-600 dark:text-green-400">### Requirement: 使用者搜尋篩選</div>
+                        <div></div>
+                        <div class="text-purple-600 dark:text-purple-400">#### Scenario: 依角色篩選</div>
+                        <div></div>
+                        <div>The system SHALL provide role-based</div>
+                        <div>filtering options in the search interface.</div>
+                        <div></div>
+                        <div class="text-purple-600 dark:text-purple-400">#### Scenario: 依團隊篩選</div>
+                        <div></div>
+                        <div>The system SHALL allow users to filter</div>
+                        <div>search results by team membership.</div>
+                        <div></div>
+                        <div class="text-blue-600 dark:text-blue-400">## MODIFIED</div>
+                        <div></div>
+                        <div class="text-green-600 dark:text-green-400">### Requirement: 搜尋介面</div>
+                        <div></div>
+                        <div>The search interface MUST include</div>
+                        <div>additional filter controls...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-8 border border-blue-200 dark:border-blue-800">
+            <div class="flex items-start">
+                <i class="fas fa-info-circle text-blue-500 mr-3 mt-1"></i>
+                <div>
+                    <div class="font-semibold text-blue-800 dark:text-blue-300 mb-2">目的說明</div>
+                    <div class="text-gray-700 dark:text-gray-300">
+                        把「要變動的規格」以補丁方式獨立呈現，便於審查與合併。這樣做的好處是可以清楚看到每次變更的具體內容，避免直接修改正式規格造成的混亂。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- AI Tools Support Section -->
+<section id="tools" class="py-20 bg-gray-50 dark:bg-gray-800">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold mb-6">支援的 AI 工具</h2>
+            <p class="text-xl text-gray-600 dark:text-gray-400">廣泛支援主流 AI 開發工具，選擇你的工具</p>
+        </div>
+
+        <div class="mb-12">
+            <h3 class="text-2xl font-bold mb-8 text-center">原生 Slash Commands 支援</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center mr-3">
+                            <i class="fas fa-robot text-white"></i>
+                        </div>
+                        <h4 class="font-bold">Claude Code</h4>
+                    </div>
+                    <div class="space-y-2 code-font text-sm">
+                        <div>/openspec:proposal</div>
+                        <div>/openspec:apply</div>
+                        <div>/openspec:archive</div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center mr-3">
+                            <i class="fas fa-cursor text-white"></i>
+                        </div>
+                        <h4 class="font-bold">Cursor</h4>
+                    </div>
+                    <div class="space-y-2 code-font text-sm">
+                        <div>/openspec-proposal</div>
+                        <div>/openspec-apply</div>
+                        <div>/openspec-archive</div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center mr-3">
+                            <i class="fas fa-industry text-white"></i>
+                        </div>
+                        <h4 class="font-bold">Factory Droid</h4>
+                    </div>
+                    <div class="space-y-2 code-font text-sm">
+                        <div>/openspec-proposal</div>
+                        <div>/openspec-apply</div>
+                        <div>/openspec-archive</div>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-2">.factory/commands/</div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center mr-3">
+                            <i class="fas fa-wind text-white"></i>
+                        </div>
+                        <h4 class="font-bold">Windsurf</h4>
+                    </div>
+                    <div class="space-y-2 code-font text-sm">
+                        <div>/openspec-proposal</div>
+                        <div>/openspec-apply</div>
+                        <div>/openspec-archive</div>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-2">.windsurf/workflows/</div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-gradient-to-br from-gray-600 to-gray-800 rounded-full flex items-center justify-center mr-3">
+                            <i class="fab fa-github text-white"></i>
+                        </div>
+                        <h4 class="font-bold">GitHub Copilot</h4>
+                    </div>
+                    <div class="space-y-2 code-font text-sm">
+                        <div>/openspec-proposal</div>
+                        <div>/openspec-apply</div>
+                        <div>/openspec-archive</div>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-2">.github/prompts/</div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-900 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center mr-3">
+                            <i class="fab fa-aws text-white"></i>
+                        </div>
+                        <h4 class="font-bold">Amazon Q Developer</h4>
+                    </div>
+                    <div class="space-y-2 code-font text-sm">
+                        <div>@openspec-proposal</div>
+                        <div>@openspec-apply</div>
+                        <div>@openspec-archive</div>
+                    </div>
+                    <div class="text-xs text-gray-500 mt-2">.amazonq/prompts/</div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h3 class="text-2xl font-bold mb-8 text-center">AGENTS.md 相容工具</h3>
+            <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                    <div class="space-y-2">
+                        <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full mx-auto flex items-center justify-center">
+                            <i class="fas fa-microchip text-white"></i>
+                        </div>
+                        <div class="font-semibold">Amp</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-500 rounded-full mx-auto flex items-center justify-center">
+                            <i class="fas fa-gem text-white"></i>
+                        </div>
+                        <div class="font-semibold">Jules</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-500 rounded-full mx-auto flex items-center justify-center">
+                            <i class="fab fa-google text-white"></i>
+                        </div>
+                        <div class="font-semibold">Gemini CLI</div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="w-12 h-12 bg-gradient-to-br from-gray-500 to-gray-700 rounded-full mx-auto flex items-center justify-center">
+                            <i class="fas fa-ellipsis-h text-white"></i>
+                        </div>
+                        <div class="font-semibold">其他工具</div>
+                    </div>
+                </div>
+                <div class="mt-6 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                    <div class="text-sm text-center">
+                        提醒工具「依 OpenSpec 工作流程執行」，它會讀取 openspec/AGENTS.md
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Commands Section -->
+<section id="commands" class="py-20">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold mb-6">指令速查表</h2>
+            <p class="text-xl text-gray-600 dark:text-gray-400">日常使用的核心指令與快速提示語</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                <h3 class="text-xl font-bold mb-6 text-blue-600 dark:text-blue-400">
+                    <i class="fas fa-terminal mr-2"></i>日常指令
+                </h3>
+                <div class="space-y-4">
+                    <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                        <div class="code-font font-bold text-sm mb-2">openspec list</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">列出目前進行中的變更資料夾</div>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                        <div class="code-font font-bold text-sm mb-2">openspec view</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">互動式儀表板（瀏覽 specs 與 changes）</div>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                        <div class="code-font font-bold text-sm mb-2">openspec show &lt;change&gt;</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">查看指定變更的 proposal、tasks、spec deltas</div>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                        <div class="code-font font-bold text-sm mb-2">openspec validate &lt;change&gt;</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">檢查格式是否符合 Delta 規範</div>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                        <div class="code-font font-bold text-sm mb-2">openspec archive &lt;change&gt; --yes</div>
+                        <div class="text-sm text-gray-600 dark:text-gray-400">封存變更，合併 Delta 回正式規格</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                <h3 class="text-xl font-bold mb-6 text-green-600 dark:text-green-400">
+                    <i class="fas fa-comments mr-2"></i>快速提示語模板
+                </h3>
+                <div class="space-y-4">
+                    <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                        <div class="font-semibold text-sm mb-2">建立提案</div>
+                        <div class="text-sm italic">建立 OpenSpec 變更提案，名稱：&lt;change-name&gt;，需求：&lt;一句話描述&gt;。請生成 proposal.md、tasks.md 與 specs Delta。</div>
+                    </div>
+                    <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                        <div class="font-semibold text-sm mb-2">補充驗收條件</div>
+                        <div class="text-sm italic">請在 Delta 中加入以下驗收情境，並更新 tasks 對應事項：&lt;條列情境&gt;。</div>
+                    </div>
+                    <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                        <div class="font-semibold text-sm mb-2">開始實作</div>
+                        <div class="text-sm italic">規格已凍結，請依 tasks 逐項實作並勾選完成，必要時提交 PR 與測試。</div>
+                    </div>
+                    <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                        <div class="font-semibold text-sm mb-2">封存變更</div>
+                        <div class="text-sm italic">所有任務已完成且測試通過，請封存此變更並合併 Delta 回正式規格。</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="py-20 bg-gray-50 dark:bg-gray-800">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold mb-6">常見問題與排除</h2>
+            <p class="text-xl text-gray-600 dark:text-gray-400">遇到問題時的快速解決方案</p>
+        </div>
+
+        <div class="space-y-6">
+            <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                <h3 class="text-xl font-bold mb-4 text-red-600 dark:text-red-400">
+                    <i class="fas fa-exclamation-circle mr-2"></i>看不到 slash commands
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="font-semibold mb-3">解決步驟：</div>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-start">
+                                <i class="fas fa-arrow-right text-red-500 mr-2 mt-1"></i>
+                                重新啟動你的 AI 工具（多數工具啟動時載入指令）
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-arrow-right text-red-500 mr-2 mt-1"></i>
+                                在專案中執行：<code class="code-font bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">openspec update</code>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-arrow-right text-red-500 mr-2 mt-1"></i>
+                                確認 <code class="code-font bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">openspec init</code> 已完成
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="font-semibold mb-3">檢查項目：</div>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-start">
+                                <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
+                                檔案已寫入對應資料夾（如 .github/prompts/）
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check text-green-500 mr-2 mt-1"></i>
+                                AGENTS.md 檔案存在於專案根目錄
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                <h3 class="text-xl font-bold mb-4 text-orange-600 dark:text-orange-400">
+                    <i class="fas fa-bug mr-2"></i>validate 失敗
+                </h3>
+                <div class="space-y-4">
+                    <div class="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
+                        <div class="font-semibold mb-2">常見問題：</div>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-start">
+                                <i class="fas fa-times text-red-500 mr-2 mt-1"></i>
+                                檢查 Requirement 標題格式與 Scenario 是否存在
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-times text-red-500 mr-2 mt-1"></i>
+                                Requirement 文案是否包含 SHALL/MUST
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-times text-red-500 mr-2 mt-1"></i>
+                                ADDED/MODIFIED/REMOVED 區塊是否使用正確小標題
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                <h3 class="text-xl font-bold mb-4 text-blue-600 dark:text-blue-400">
+                    <i class="fas fa-users mr-2"></i>多人協作
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="font-semibold mb-3">版本管理：</div>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-start">
+                                <i class="fas fa-git-alt text-blue-500 mr-2 mt-1"></i>
+                                將 openspec/ 與 AGENTS.md 納入版本管理
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-code-branch text-blue-500 mr-2 mt-1"></i>
+                                審查 PR 時，連同 Delta 一起審閱
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="font-semibold mb-3">團隊同步：</div>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-start">
+                                <i class="fas fa-sync text-blue-500 mr-2 mt-1"></i>
+                                每次切換工具或升級後，執行 <code class="code-font bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">openspec update</code>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Core Concepts Section -->
+<section class="py-20">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold mb-6">核心理念</h2>
+            <p class="text-xl text-gray-600 dark:text-gray-400">為什麼這樣做 - 設計原則與最佳實踐</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-8 border border-blue-200 dark:border-blue-800">
+                <div class="w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center mb-6">
+                    <i class="fas fa-database"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-4 text-blue-800 dark:text-blue-300">分離真實來源與提案</h3>
+                <p class="text-gray-700 dark:text-gray-300">
+                    openspec/specs/ 是目前事實；openspec/changes/ 是變更提案與 Delta。
+                    這樣的分離確保了系統穩定性，避免直接修改正式規格造成的混亂。
+                </p>
+            </div>
+
+            <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-8 border border-green-200 dark:border-green-800">
+                <div class="w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center mb-6">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-4 text-green-800 dark:text-green-300">先同意「做什麼」再開始「怎麼做」</h3>
+                <p class="text-gray-700 dark:text-gray-300">
+                    通過規格對齊階段，確保所有參與者對需求有統一認知，
+                    降低反覆重工與實作偏移，提高開發效率。
+                </p>
+            </div>
+
+            <div class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-8 border border-purple-200 dark:border-purple-800">
+                <div class="w-12 h-12 bg-purple-500 text-white rounded-full flex items-center justify-center mb-6">
+                    <i class="fas fa-key"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-4 text-purple-800 dark:text-purple-300">無需 API Key</h3>
+                <p class="text-gray-700 dark:text-gray-300">
+                    以工作流和結構化檔案對齊人與 AI 的意圖，
+                    降低使用門檻，讓團隊能快速上手並建立一致的開發流程。
+                </p>
+            </div>
+        </div>
+
+        <div class="mt-12 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800 dark:to-blue-900/20 rounded-2xl p-8 border border-gray-200 dark:border-gray-700">
+            <div class="text-center">
+                <h3 class="text-2xl font-bold mb-4">開始使用 OpenSpec</h3>
+                <p class="text-lg text-gray-600 dark:text-gray-400 mb-8">
+                    照著以上工作流執行，你就能用最少設定，把 OpenSpec 帶入現有專案，
+                    快速建立提案、對齊規格、落實任務，並將變更穩定地合併進系統規格。
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="#quick-start" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full font-semibold transition-colors">
+                        <i class="fas fa-rocket mr-2"></i>立即開始
+                    </a>
+                    <a href="#workflow" class="border-2 border-blue-600 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white px-8 py-3 rounded-full font-semibold transition-colors">
+                        <i class="fas fa-book mr-2"></i>查看詳細流程
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-gray-900 text-white py-12">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="text-center">
+            <div class="flex items-center justify-center space-x-3 mb-6">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-code text-white"></i>
+                </div>
+                <span class="text-2xl font-bold">OpenSpec</span>
+            </div>
+            <p class="text-gray-400 mb-6">
+                以工作流程為核心的 AI 規格管理工具使用手冊
+            </p>
+            <div class="border-t border-gray-800 pt-6">
+                <p class="text-sm text-gray-500">
+                    © 2025 Cl Tseng. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+// Theme toggle functionality
+const themeToggle = document.getElementById('theme-toggle');
+const html = document.documentElement;
+
+// Check for saved theme preference or default to system preference
+const savedTheme = localStorage.getItem('theme');
+const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+if (savedTheme) {
+    html.classList.toggle('dark', savedTheme === 'dark');
+} else if (systemPrefersDark) {
+    html.classList.add('dark');
+}
+
+themeToggle.addEventListener('click', () => {
+    html.classList.toggle('dark');
+    localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+});
+
+// Smooth scrolling for navigation links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+            const offsetTop = target.offsetTop - 80;
+            window.scrollTo({
+                top: offsetTop,
+                behavior: 'smooth'
+            });
+        }
+    });
+});
+
+// Initialize Mermaid
+mermaid.initialize({
+    startOnLoad: true,
+    theme: html.classList.contains('dark') ? 'dark' : 'default',
+    themeVariables: {
+        fontFamily: 'Noto Sans TC, sans-serif',
+        fontSize: '14px'
+    }
+});
+
+// Update Mermaid theme when dark mode changes
+const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+            const isDark = html.classList.contains('dark');
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: isDark ? 'dark' : 'default',
+                themeVariables: {
+                    fontFamily: 'Noto Sans TC, sans-serif',
+                    fontSize: '14px'
+                }
+            });
+            
+            // Re-render mermaid diagrams
+            document.querySelectorAll('.mermaid').forEach((element) => {
+                element.removeAttribute('data-processed');
+            });
+            mermaid.init();
+        }
+    });
+});
+
+observer.observe(html, {
+    attributes: true,
+    attributeFilter: ['class']
+});
+
+// Scroll animations
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -10% 0px'
+};
+
+const scrollObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, observerOptions);
+
+// Apply scroll animations to sections
+document.querySelectorAll('section').forEach((section) => {
+    section.style.opacity = '0';
+    section.style.transform = 'translateY(20px)';
+    section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+    scrollObserver.observe(section);
+});
+
+// Make first section (hero) immediately visible
+document.querySelector('section').style.opacity = '1';
+document.querySelector('section').style.transform = 'translateY(0)';
+</script>
+
+</body>
+</html>
