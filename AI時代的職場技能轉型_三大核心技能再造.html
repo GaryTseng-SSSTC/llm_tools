@@ -1,0 +1,628 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI時代的職場技能轉型：三大核心技能再造</title>
+    <meta name="description" content="探討AI時代職場變革，分析未來核心技能需求與轉型策略">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/material-icons@1.13.14/iconfont/material-icons.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/preline@3.0.1/dist/preline.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'Noto Sans TC', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.6s ease-out forwards;
+            opacity: 0;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .skill-icon {
+            transition: all 0.3s ease;
+        }
+        
+        .skill-icon:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+    </style>
+<script src="https://felo.ai/js/webpageIframe.js"></script>
+ <style>
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: #bfc5ce transparent !important;
+}
+*::-webkit-scrollbar {
+  width: 6px !important;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: #bfc5ce !important;
+  border-radius: 9999px !important;
+}
+*::-webkit-scrollbar-track {
+  background-color: transparent !important;
+  border-radius: 9999px !important;
+}
+</style></head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+    <!-- 主題切換按鈕 -->
+    <button id="theme-toggle" class="fixed top-4 right-4 z-50 p-3 bg-white dark:bg-gray-800 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-gray-700">
+        <i class="fas fa-sun text-yellow-500 dark:hidden"></i>
+        <i class="fas fa-moon text-blue-400 hidden dark:inline"></i>
+    </button>
+
+    <!-- 原始文章連結 -->
+    <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-2">
+        <div class="container mx-auto px-4 text-center">
+            <a href="https://edge.aif.tw/three-job-skills-in-the-new-era/" target="_blank" rel="noopener" class="inline-flex items-center gap-2 hover:text-blue-200 transition-colors">
+                <i class="fas fa-external-link-alt text-sm"></i>
+                <span class="text-sm">閱讀原始文章</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Hero區域 -->
+    <header class="gradient-bg text-white py-16">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto text-center animate-fade-in">
+                <h1 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">
+                    AI時代的職場<br>
+                    <span class="text-yellow-300">技能轉型</span>
+                </h1>
+                <p class="text-xl md:text-2xl mb-8 opacity-90">
+                    三大核心技能再造策略
+                </p>
+                <div class="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20">
+                    <div class="flex items-center justify-center gap-4 text-sm">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-user-circle"></i>
+                            <span>溫怡玲</span>
+                        </div>
+                        <div class="w-px h-4 bg-white/40"></div>
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-building"></i>
+                            <span>人工智慧科技基金會執行長</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要內容 -->
+    <main class="container mx-auto px-4 py-16">
+        <!-- 現狀分析 -->
+        <section class="mb-20">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl font-bold text-center mb-12 text-gray-800 dark:text-white">
+                    AI革命對職場的衝擊
+                </h2>
+                
+                <div class="grid md:grid-cols-2 gap-8 mb-12">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg card-hover">
+                        <div class="text-red-500 mb-4">
+                            <i class="fas fa-exclamation-triangle text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-4">白領工作面臨危機</h3>
+                        <p class="text-gray-600 dark:text-gray-300 mb-4">
+                            生成式AI正在快速自動化傳統的知識型工作，從文檔處理到數據分析，許多白領職位面臨被取代的風險。
+                        </p>
+                        <ul class="text-sm text-gray-500 dark:text-gray-400 space-y-2">
+                            <li class="flex items-center gap-2">
+                                <i class="fas fa-dot-circle text-xs"></i>
+                                文檔撰寫與編輯
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i class="fas fa-dot-circle text-xs"></i>
+                                數據處理與分析
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i class="fas fa-dot-circle text-xs"></i>
+                                重複性決策工作
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg card-hover">
+                        <div class="text-orange-500 mb-4">
+                            <i class="fas fa-brain text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-4">認知能力退化風險</h3>
+                        <p class="text-gray-600 dark:text-gray-300 mb-4">
+                            過度依賴AI工具可能導致大腦活動減少，影響創造性思維和批判性思考能力的發展。
+                        </p>
+                        <ul class="text-sm text-gray-500 dark:text-gray-400 space-y-2">
+                            <li class="flex items-center gap-2">
+                                <i class="fas fa-dot-circle text-xs"></i>
+                                思考深度降低
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i class="fas fa-dot-circle text-xs"></i>
+                                創新能力弱化
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i class="fas fa-dot-circle text-xs"></i>
+                                人才斷層問題
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 三大核心技能 -->
+        <section class="mb-20">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl font-bold text-center mb-12 text-gray-800 dark:text-white">
+                    三大核心技能再造
+                </h2><div class="grid lg:grid-cols-3 gap-8">
+                    <!-- 思辨力 -->
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-8 card-hover border border-blue-200 dark:border-blue-700">
+                        <div class="text-blue-600 dark:text-blue-400 mb-6 text-center">
+                            <i class="fas fa-lightbulb text-5xl skill-icon"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-center mb-4 text-blue-800 dark:text-blue-300">思辨力</h3>
+                        <p class="text-gray-700 dark:text-gray-300 mb-6 text-center">
+                            AI思辨能力與批判性思維
+                        </p>
+                        <ul class="space-y-3 text-sm">
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check-circle text-blue-500 mt-0.5"></i>
+                                <span>質疑AI產出結果的能力</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check-circle text-blue-500 mt-0.5"></i>
+                                <span>判斷資訊真偽與準確性</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check-circle text-blue-500 mt-0.5"></i>
+                                <span>深度思考與邏輯推理</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check-circle text-blue-500 mt-0.5"></i>
+                                <span>多角度分析問題</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- 策略整合力 -->
+                    <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-8 card-hover border border-purple-200 dark:border-purple-700">
+                        <div class="text-purple-600 dark:text-purple-400 mb-6 text-center">
+                            <i class="fas fa-chess text-5xl skill-icon"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-center mb-4 text-purple-800 dark:text-purple-300">策略整合力</h3>
+                        <p class="text-gray-700 dark:text-gray-300 mb-6 text-center">
+                            從資訊處理者到總建築師
+                        </p>
+                        <ul class="space-y-3 text-sm">
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check-circle text-purple-500 mt-0.5"></i>
+                                <span>整合多元資訊源頭</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check-circle text-purple-500 mt-0.5"></i>
+                                <span>制定長期策略規劃</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check-circle text-purple-500 mt-0.5"></i>
+                                <span>跨領域知識整合</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check-circle text-purple-500 mt-0.5"></i>
+                                <span>系統性思維建構</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- 人性價值 -->
+                    <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-xl p-8 card-hover border border-green-200 dark:border-green-700">
+                        <div class="text-green-600 dark:text-green-400 mb-6 text-center">
+                            <i class="fas fa-heart text-5xl skill-icon"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-center mb-4 text-green-800 dark:text-green-300">人性價值</h3>
+                        <p class="text-gray-700 dark:text-gray-300 mb-6 text-center">
+                            同理心與跨域協作
+                        </p>
+                        <ul class="space-y-3 text-sm">
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check-circle text-green-500 mt-0.5"></i>
+                                <span>情感智慧與同理心</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check-circle text-green-500 mt-0.5"></i>
+                                <span>有效溝通協調</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check-circle text-green-500 mt-0.5"></i>
+                                <span>團隊領導與激勵</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <i class="fas fa-check-circle text-green-500 mt-0.5"></i>
+                                <span>創意與創新思維</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 技能發展路徑 -->
+        <section class="mb-20">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl font-bold text-center mb-12 text-gray-800 dark:text-white">
+                    技能發展路徑
+                </h2>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg">
+                    <div class="mermaid" id="skillPath">
+                        graph TD
+                            A[傳統職場技能] --> B{AI時代挑戰}
+                            B --> C[思辨力重塑]
+                            B --> D[策略整合力培養]
+                            B --> E[人性價值強化]
+                            
+                            C --> C1[批判性思維]
+                            C --> C2[AI結果驗證]
+                            C --> C3[邏輯推理能力]
+                            
+                            D --> D1[跨域整合]
+                            D --> D2[策略規劃]
+                            D --> D3[系統思考]
+                            
+                            E --> E1[情感智慧]
+                            E --> E2[團隊協作]
+                            E --> E3[創新思維]
+                            
+                            C1 --> F[新時代職場競爭力]
+                            C2 --> F
+                            C3 --> F
+                            D1 --> F
+                            D2 --> F
+                            D3 --> F
+                            E1 --> F
+                            E2 --> F
+                            E3 --> F
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 自我評估問題 -->
+        <section class="mb-20">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-3xl font-bold text-center mb-12 text-gray-800 dark:text-white">
+                    自我評估與思考
+                </h2>
+                
+                <div class="space-y-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg card-hover border-l-4 border-blue-500">
+                        <h3 class="font-semibold mb-3 text-blue-600 dark:text-blue-400">
+                            <i class="fas fa-question-circle mr-2"></i>
+                            技能現狀分析
+                        </h3>
+                        <p class="text-gray-700 dark:text-gray-300">
+                            您目前的工作中，哪些部分最容易被AI取代？哪些部分需要人類獨有的判斷力？
+                        </p>
+                    </div><div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg card-hover border-l-4 border-purple-500">
+                        <h3 class="font-semibold mb-3 text-purple-600 dark:text-purple-400">
+                            <i class="fas fa-question-circle mr-2"></i>
+                            學習投資重點
+                        </h3>
+                        <p class="text-gray-700 dark:text-gray-300">
+                            在思辨力、策略整合力、人性價值三大領域中，您認為自己最需要加強的是哪一項？
+                        </p>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg card-hover border-l-4 border-green-500">
+                        <h3 class="font-semibold mb-3 text-green-600 dark:text-green-400">
+                            <i class="fas fa-question-circle mr-2"></i>
+                            AI協作能力
+                        </h3>
+                        <p class="text-gray-700 dark:text-gray-300">
+                            您如何看待與AI的協作關係？如何在利用AI效率的同時，保持自身的思考能力？
+                        </p>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg card-hover border-l-4 border-orange-500">
+                        <h3 class="font-semibold mb-3 text-orange-600 dark:text-orange-400">
+                            <i class="fas fa-question-circle mr-2"></i>
+                            未來職涯規劃
+                        </h3>
+                        <p class="text-gray-700 dark:text-gray-300">
+                            面對AI時代的變革，您計劃如何調整自己的職涯發展方向？
+                        </p>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg card-hover border-l-4 border-red-500">
+                        <h3 class="font-semibold mb-3 text-red-600 dark:text-red-400">
+                            <i class="fas fa-question-circle mr-2"></i>
+                            組織變革準備
+                        </h3>
+                        <p class="text-gray-700 dark:text-gray-300">
+                            您所在的組織是否已經開始為AI時代做準備？您如何參與並推動這種變革？
+                        </p>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg card-hover border-l-4 border-teal-500">
+                        <h3 class="font-semibold mb-3 text-teal-600 dark:text-teal-400">
+                            <i class="fas fa-question-circle mr-2"></i>
+                            持續學習策略
+                        </h3>
+                        <p class="text-gray-700 dark:text-gray-300">
+                            在快速變化的AI時代，您如何建立有效的持續學習機制？
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 行動指南 -->
+        <section class="mb-20">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl font-bold text-center mb-12 text-gray-800 dark:text-white">
+                    實踐行動指南
+                </h2>
+                
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="text-center">
+                        <div class="bg-gradient-to-br from-blue-500 to-blue-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                            <span class="text-white font-bold text-xl">1</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-4">立即開始</h3>
+                        <p class="text-gray-600 dark:text-gray-400">
+                            評估現有技能，識別需要強化的領域，制定學習計劃
+                        </p>
+                    </div>
+                    
+                    <div class="text-center">
+                        <div class="bg-gradient-to-br from-purple-500 to-purple-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                            <span class="text-white font-bold text-xl">2</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-4">持續實踐</h3>
+                        <p class="text-gray-600 dark:text-gray-400">
+                            在日常工作中練習新技能，與AI協作但保持獨立思考
+                        </p>
+                    </div><div class="text-center">
+                        <div class="bg-gradient-to-br from-green-500 to-green-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                            <span class="text-white font-bold text-xl">3</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-4">優化調整</h3>
+                        <p class="text-gray-600 dark:text-gray-400">
+                            定期檢視進展，根據市場變化調整學習重點和方向
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+        // 主題切換功能
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+
+        // 檢查系統偏好設定
+        const getThemePreference = () => {
+            if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+                return localStorage.getItem('theme');
+            }
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        };
+
+        const setTheme = (theme) => {
+            if (theme === 'light') {
+                html.classList.remove('dark');
+            } else {
+                html.classList.add('dark');
+            }
+            localStorage.setItem('theme', theme);
+        };
+
+        // 初始化主題
+        setTheme(getThemePreference());
+
+        // 主題切換事件
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            setTheme(newTheme);
+        });
+
+        // 監聽系統主題變化
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            if (!localStorage.getItem('theme')) {
+                setTheme(e.matches ? 'dark' : 'light');
+            }
+        });
+
+        // 初始化 Mermaid
+        document.addEventListener('DOMContentLoaded', function() {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'base',
+                themeVariables: {
+                    primaryColor: '#0ea5e9',
+                    primaryTextColor: '#374151',
+                    primaryBorderColor: '#0ea5e9',
+                    lineColor: '#6b7280',
+                    secondaryColor: '#f3f4f6',
+                    tertiaryColor: '#f9fafb'
+                }
+            });
+        });
+
+        // 初始化 ECharts 圖表
+        document.addEventListener('DOMContentLoaded', function() {
+            const chartDom = document.getElementById('skillsChart');
+            const myChart = echarts.init(chartDom);
+
+            const option = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                legend: {
+                    data: ['傳統需求', '新興需求'],
+                    top: 20
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: [
+                    {
+                        type: 'category',
+                        data: ['資料處理', '重複性任務', '基礎分析', '思辨能力', '策略規劃', '人際協作', 'AI操作', '創新思維'],
+                        axisPointer: {
+                            type: 'shadow'
+                        }
+                    }
+                ],
+                yAxis: [
+                    {
+                        type: 'value',
+                        name: '需求程度',
+                        min: 0,
+                        max: 100,
+                        axisLabel: {
+                            formatter: '{value}%'
+                        }
+                    }
+                ],
+                series: [
+                    {
+                        name: '傳統需求',
+                        type: 'bar',
+                        emphasis: {
+                            focus: 'series'
+                        },
+                        data: [85, 90, 75, 60, 50, 65, 10, 55],
+                        itemStyle: {
+                            color: '#ef4444'
+                        }
+                    },
+                    {
+                        name: '新興需求',
+                        type: 'bar',
+                        emphasis: {
+                            focus: 'series'
+                        },
+                        data: [30, 20, 40, 95, 90, 85, 90, 95],
+                        itemStyle: {
+                            color: '#0ea5e9'
+                        }
+                    }
+                ],
+                animationDuration: 2000,
+                animationEasing: 'cubicOut'
+            };
+
+            myChart.setOption(option);
+
+            // 響應式調整
+            window.addEventListener('resize', function() {
+                myChart.resize();
+            });
+
+            // 主題切換時更新圖表
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                        const isDark = html.classList.contains('dark');
+                        myChart.setOption({
+                            backgroundColor: isDark ? '#1f2937' : '#ffffff',
+                            textStyle: {
+                                color: isDark ? '#f9fafb' : '#374151'
+                            },
+                            legend: {
+                                textStyle: {
+                                    color: isDark ? '#f9fafb' : '#374151'
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+            observer.observe(html, { attributes: true });
+        });
+
+        // 平滑滾動動畫
+        document.addEventListener('DOMContentLoaded', function() {
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate-fade-in');
+                    }
+                });
+            }, observerOptions);
+
+            document.querySelectorAll('section, .card-hover').forEach(el => {
+                observer.observe(el);
+            });
+        });
+
+        // 按鈕懸停效果
+        document.querySelectorAll('.card-hover').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px)';
+            });
+
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body>
+</html>

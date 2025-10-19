@@ -1,0 +1,651 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 企業應用的深層準備度 - 導讀</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Material Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/material-icons@1.13.14/iconfont/material-icons.min.css">
+    
+    <!-- Preline UI -->
+    <script src="https://cdn.jsdelivr.net/npm/preline@3.0.1/dist/preline.min.js"></script>
+    
+    <!-- Mermaid -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a'
+                        }
+                    },
+                    fontFamily: {
+                        'sans': ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script><style>
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+        
+        .dark .card-hover:hover {
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.2);
+        }
+        
+        .btn-primary {
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .btn-primary:hover {
+            transform: scale(1.05);
+        }
+    </style>
+<script src="https://felo.ai/js/webpageIframe.js"></script>
+ <style>
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: #bfc5ce transparent !important;
+}
+*::-webkit-scrollbar {
+  width: 6px !important;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: #bfc5ce !important;
+  border-radius: 9999px !important;
+}
+*::-webkit-scrollbar-track {
+  background-color: transparent !important;
+  border-radius: 9999px !important;
+}
+</style></head>
+
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-brain text-2xl text-primary-600"></i>
+                    <h1 class="text-xl font-bold">AI 企業應用導讀</h1>
+                </div>
+                
+                <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                    <i class="fas fa-moon dark:hidden text-lg"></i>
+                    <i class="fas fa-sun hidden dark:inline text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative py-20 bg-gradient-to-br from-primary-50 to-blue-100 dark:from-gray-800 dark:to-gray-900">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center fade-in">
+                <h1 class="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary-600 to-blue-600 bg-clip-text text-transparent">
+                    AI 企業應用的深層準備度
+                </h1>
+                <p class="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+                    解析企業導入 AI 的三大核心能力：問題駕馭力、流程整合力、信任建立力
+                </p>
+                
+                <div class="flex flex-wrap justify-center gap-3 mb-8">
+                    <span class="px-4 py-2 bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-300 rounded-full text-sm font-medium">
+                        #AI導入
+                    </span>
+                    <span class="px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full text-sm font-medium">
+                        #問題駕馭力
+                    </span>
+                    <span class="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-full text-sm font-medium">
+                        #流程整合力
+                    </span>
+                    <span class="px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 rounded-full text-sm font-medium">
+                        #信任建立力
+                    </span>
+                    <span class="px-4 py-2 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 rounded-full text-sm font-medium">
+                        #組織變革
+                    </span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Author Info -->
+    <section class="py-12">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg card-hover fade-in">
+                <div class="flex items-center space-x-6">
+                    <div class="w-20 h-20 bg-gradient-to-r from-primary-500 to-blue-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user-tie text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold mb-2">洪為璽博士</h3>
+                        <p class="text-gray-600 dark:text-gray-300 mb-2">國立政治大學資訊管理學系教授、CINTES 研究中心主任</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">專長：資訊策略管理、資訊安全管理、大型資訊系統導入</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Three Core Capabilities -->
+    <section class="py-16 bg-gray-50 dark:bg-gray-800">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">三大核心能力</h2>
+                <p class="text-xl text-gray-600 dark:text-gray-300">AI 成功落地的關鍵不在技術，而在組織能力</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg card-hover fade-in">
+                    <div class="text-center mb-6">
+                        <div class="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-crosshairs text-2xl text-green-600"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-green-600">問題駕馭力</h3>
+                    </div>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">釐清痛點、對齊指標</p>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-times-circle text-red-500"></i>
+                            <span class="text-red-600 dark:text-red-400">常見誤區：先做模型再找應用</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-check-circle text-green-500"></i>
+                            <span class="text-green-600 dark:text-green-400">實務建議：業務與技術共同定義 KPI</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg card-hover fade-in">
+                    <div class="text-center mb-6">
+                        <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-cogs text-2xl text-blue-600"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-blue-600">流程整合力</h3>
+                    </div>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">AI 融入既有流程</p>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-times-circle text-red-500"></i>
+                            <span class="text-red-600 dark:text-red-400">常見誤區：獨立平台、使用率低</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-check-circle text-green-500"></i>
+                            <span class="text-green-600 dark:text-green-400">實務建議：嵌入操作介面、標準化</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg card-hover fade-in">
+                    <div class="text-center mb-6">
+                        <div class="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-handshake text-2xl text-purple-600"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-purple-600">信任建立力</h3>
+                    </div>
+                    <p class="text-gray-600 dark:text-gray-300 mb-4">模型可解釋、參與、容錯</p>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-times-circle text-red-500"></i>
+                            <span class="text-red-600 dark:text-red-400">常見誤區：黑箱 + 問責失衡</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-check-circle text-green-500"></i>
+                            <span class="text-green-600 dark:text-green-400">實務建議：跨部門共創、容錯範圍</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Case Study Comparison -->
+    <section class="py-16">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">案例對照：P&G vs. GE</h2>
+                <p class="text-xl text-gray-600 dark:text-gray-300">成功與受挫的關鍵差異</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- P&G Success -->
+                <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-2xl p-8 shadow-lg card-hover fade-in">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-trophy text-white text-lg"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-green-700 dark:text-green-400">P&G 成功案例</h3>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-bullseye text-green-600 mt-1"></i>
+                            <div>
+                                <h4 class="font-semibold text-green-800 dark:text-green-300">明確目標</h4>
+                                <p class="text-sm text-green-700 dark:text-green-400">清晰定義業務痛點與預期成果</p>
+                            </div>
+                        </div>
+                <div class="flex items-start space-x-3">
+                            <i class="fas fa-puzzle-piece text-green-600 mt-1"></i>
+                            <div>
+                                <h4 class="font-semibold text-green-800 dark:text-green-300">嵌入式應用</h4>
+                                <p class="text-sm text-green-700 dark:text-green-400">AI 深度整合到日常作業流程</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-users text-green-600 mt-1"></i>
+                            <div>
+                                <h4 class="font-semibold text-green-800 dark:text-green-300">共創文化</h4>
+                                <p class="text-sm text-green-700 dark:text-green-400">跨部門協作與持續學習機制</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GE Challenge -->
+                <div class="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-2xl p-8 shadow-lg card-hover fade-in">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center mr-4">
+                            <i class="fas fa-exclamation-triangle text-white text-lg"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-red-700 dark:text-red-400">GE 受挫經驗</h3>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-question-circle text-red-600 mt-1"></i>
+                            <div>
+                                <h4 class="font-semibold text-red-800 dark:text-red-300">願景模糊</h4>
+                                <p class="text-sm text-red-700 dark:text-red-400">缺乏明確的應用場景與成功指標</p>
+                            </div>
+                        </div>
+                <div class="flex items-start space-x-3">
+                            <i class="fas fa-island-tropical text-red-600 mt-1"></i>
+                            <div>
+                                <h4 class="font-semibold text-red-800 dark:text-red-300">平台孤島</h4>
+                                <p class="text-sm text-red-700 dark:text-red-400">AI 系統與既有流程脫節</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-unlink text-red-600 mt-1"></i>
+                            <div>
+                                <h4 class="font-semibold text-red-800 dark:text-red-300">責任真空</h4>
+                                <p class="text-sm text-red-700 dark:text-red-400">缺乏清晰的責任歸屬與協作機制</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Insights -->
+    <section class="py-16 bg-gray-50 dark:bg-gray-800">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">精彩洞見</h2>
+                <p class="text-xl text-gray-600 dark:text-gray-300">來自文章的關鍵思考</p>
+            </div>
+
+            <div class="space-y-8"><div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg card-hover fade-in">
+                    <div class="flex items-start space-x-4">
+                        <i class="fas fa-quote-left text-3xl text-primary-600 mt-2"></i>
+                        <div>
+                            <p class="text-xl font-medium mb-3 text-gray-800 dark:text-gray-200">
+                                AI 再強也無法解決『定義錯誤』的問題。
+                            </p>
+                            <p class="text-gray-600 dark:text-gray-400">
+                                點出技術與商業目標脫節的根本症結
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg card-hover fade-in">
+                    <div class="flex items-start space-x-4">
+                        <i class="fas fa-quote-left text-3xl text-green-600 mt-2"></i>
+                        <div>
+                            <p class="text-xl font-medium mb-3 text-gray-800 dark:text-gray-200">
+                                AI 只有在持續被使用的情況下才會浮現真正價值。
+                            </p>
+                            <p class="text-gray-600 dark:text-gray-400">
+                                提醒評估 ROI 時不可忽視使用率
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg card-hover fade-in">
+                    <div class="flex items-start space-x-4">
+                        <i class="fas fa-quote-left text-3xl text-purple-600 mt-2"></i>
+                        <div>
+                            <p class="text-xl font-medium mb-3 text-gray-800 dark:text-gray-200">
+                                信任 AI，不是單靠準確率說服，而是來自文化。
+                            </p>
+                            <p class="text-gray-600 dark:text-gray-400">
+                                將 AI 成敗提升到組織文化層級
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reflection Questions -->
+    <section class="py-16">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">深度思考問題</h2>
+                <p class="text-xl text-gray-600 dark:text-gray-300">引導您反思組織的 AI 準備度</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg card-hover fade-in">
+                    <div class="flex items-center mb-4">
+                        <span class="w-8 h-8 bg-primary-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">1</span>
+                        <h3 class="text-lg font-semibold">問題定義</h3>
+                    </div>
+                    <p class="text-gray-600 dark:text-gray-300">
+                        你的組織目前的 AI 專案是否清楚回答「解決什麼痛點」？
+                    </p>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg card-hover fade-in">
+                    <div class="flex items-center mb-4">
+                        <span class="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">2</span>
+                        <h3 class="text-lg font-semibold">流程整合</h3>
+                    </div>
+                    <p class="text-gray-600 dark:text-gray-300">
+                        若明天停用 AI 模型，日常流程是否會中斷？代表整合度多深？
+                    </p>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg card-hover fade-in">
+                    <div class="flex items-center mb-4">
+                        <span class="w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">3</span>
+                        <h3 class="text-lg font-semibold">信任建立</h3>
+                    </div>
+                    <p class="text-gray-600 dark:text-gray-300">
+                        使用者在模型設計與迭代中擁有多少話語權？錯誤發生時責任如何劃分？
+                    </p>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg card-hover fade-in">
+                    <div class="flex items-center mb-4">
+                        <span class="w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm font-bold mr-3">4</span>
+                        <h3 class="text-lg font-semibold">能力評估</h3>
+                    </div>
+                    <p class="text-gray-600 dark:text-gray-300">
+                        三項能力中，貴公司最弱的一環是什麼？短期可採取哪些補強措施？
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Readiness Assessment Chart -->
+    <section class="py-16 bg-gray-50 dark:bg-gray-800">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">AI 準備度雷達圖</h2>
+                <p class="text-xl text-gray-600 dark:text-gray-300">P&G vs. GE</p>
+            </div>
+
+            <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg card-hover fade-in">
+                <div id="radarChart" class="w-full h-96"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reading Suggestions -->
+    <section class="py-16">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="bg-gradient-to-r from-primary-600 to-blue-600 rounded-2xl p-8 text-white fade-in">
+                <h2 class="text-2xl md:text-3xl font-bold mb-6">閱讀建議</h2>
+                
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-sm font-bold">1</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold mb-2">快速掌握框架</h3>
+                            <p class="text-sm opacity-90">先快速瀏覽「三項核心能力」小節，掌握評估框架</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-sm font-bold">2</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold mb-2">案例對照學習</h3>
+                            <p class="text-sm opacity-90">細讀 P&G／GE 對照案例，對號入座檢視自身痛點</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start space-x-3">
+                        <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-sm font-bold">3</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold mb-2">實踐行動</h3>
+                            <p class="text-sm opacity-90">召開部門工作坊，自評三力成熟度，形成行動計畫</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+	
+	<section class="py-2">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16 fade-in">
+                <p class="text-xl text-gray-600 dark:text-gray-300">原文:</p><a href="https://www.cio.com.tw/94296/?utm_source=line&utm_medium=column&utm_campaign=250717" target="_blank">AI 企業應用的深層準備度</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 dark:bg-black text-white py-12">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h3 class="text-xl font-bold mb-4">Cl Tseng</h3>
+                <div class="flex justify-center space-x-6 mb-6">
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fab fa-twitter text-xl"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fab fa-linkedin text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fab fa-github text-xl"></i>
+                    </a>
+                </div>
+                <p class="text-gray-400 text-sm">
+                    © 2025 Cl Tseng. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Theme Toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+        
+        // Check for saved theme preference or default to system preference
+        const savedTheme = localStorage.getItem('theme') || 
+                          (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        
+        html.classList.toggle('dark', savedTheme === 'dark');
+        
+        themeToggle.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        });
+
+        // Initialize Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'default'
+        });
+
+        // ECharts Radar Chart
+        const radarChartDom = document.getElementById('radarChart');
+        const radarChart = echarts.init(radarChartDom);
+
+        const radarOption = {
+            tooltip: {
+                trigger: 'axis'
+            },
+            radar: {
+                indicator: [
+                    { name: '問題駕馭力', max: 100 },
+                    { name: '流程整合力', max: 100 },
+                    { name: '信任建立力', max: 100 },
+                    { name: '技術能力', max: 100 },
+                    { name: '組織文化', max: 100 },
+                    { name: '變革管理', max: 100 }
+                ],
+                radius: 120,
+                splitNumber: 4,
+                axisName: {
+                    color: '#666'
+                },
+                splitLine: {
+                    lineStyle: {
+                        color: '#ddd'
+                    }
+                },
+                splitArea: {
+                    areaStyle: {
+                        color: ['rgba(59,130,246,0.1)', 'rgba(59,130,246,0.05)']
+                    }
+                }
+            },
+            series: [{
+                type: 'radar',
+                data: [
+                    {
+                        value: [80, 90, 85, 70, 75, 85],
+                        name: 'P&G 成功案例',
+                        itemStyle: {
+                            color: '#10b981'
+                        },
+                        areaStyle: {
+                            color: 'rgba(16,185,129,0.2)'
+                        }
+                    },
+                    {
+                        value: [45, 40, 35, 85, 50, 45],
+                        name: 'GE 受挫經驗',
+                        itemStyle: {
+                            color: '#ef4444'
+                        },
+                        areaStyle: {
+                            color: 'rgba(239,68,68,0.2)'
+                        }
+                    }
+                ]
+            }]
+        };
+
+        radarChart.setOption(radarOption);
+
+        // Responsive chart
+        window.addEventListener('resize', () => {
+            radarChart.resize();
+        });
+
+        // Theme change for chart
+        const observer = new MutationObserver(() => {
+            const isDark = html.classList.contains('dark');
+            radarChart.dispose();
+            const newChart = echarts.init(radarChartDom, isDark ? 'dark' : null);
+            newChart.setOption(radarOption);
+        });
+
+        observer.observe(html, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Intersection Observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const fadeObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationDelay = '0.2s';
+                    entry.target.classList.add('fade-in');
+                    fadeObserver.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        // Observe all elements with fade-in class
+        document.querySelectorAll('.fade-in').forEach(el => {
+            fadeObserver.observe(el);
+        });
+    </script>
+</body>
+</html>

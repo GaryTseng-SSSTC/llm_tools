@@ -1,0 +1,460 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一頁秒懂 MCP（Model Context Protocol）</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/preline@3.0.1/dist/preline.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0f9ff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a'
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.6s ease-in-out',
+                        'slide-up': 'slideUp 0.8s ease-out',
+                        'float': 'float 3s ease-in-out infinite'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .dark .gradient-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%);
+        }
+    </style>
+<script src="https://felo.ai/js/webpageIframe.js"></script>
+ <style>
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: #bfc5ce transparent !important;
+}
+*::-webkit-scrollbar {
+  width: 6px !important;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: #bfc5ce !important;
+  border-radius: 9999px !important;
+}
+*::-webkit-scrollbar-track {
+  background-color: transparent !important;
+  border-radius: 9999px !important;
+}
+</style></head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+    <!-- Theme Toggle -->
+    <button id="theme-toggle" class="fixed top-4 right-4 z-50 p-3 rounded-full bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110">
+        <i class="fas fa-sun text-yellow-500 dark:hidden"></i>
+        <i class="fas fa-moon text-blue-500 hidden dark:block"></i>
+    </button>
+
+    <!-- Header -->
+    <header class="gradient-bg text-white py-16 px-4 text-center relative overflow-hidden">
+        <div class="absolute inset-0 opacity-20">
+            <div class="absolute top-10 left-10 w-20 h-20 bg-white rounded-full animate-float"></div>
+            <div class="absolute top-32 right-20 w-16 h-16 bg-white rounded-full animate-float" style="animation-delay: 1s;"></div>
+            <div class="absolute bottom-20 left-1/4 w-12 h-12 bg-white rounded-full animate-float" style="animation-delay: 2s;"></div>
+        </div>
+        <div class="relative z-10 max-w-4xl mx-auto animate-fade-in">
+            <h1 class="text-4xl md:text-6xl font-bold mb-6"><i class="fas fa-network-wired mr-4"></i>
+                一頁秒懂 MCP
+            </h1>
+            <p class="text-xl md:text-2xl opacity-90 mb-8">Model Context Protocol</p>
+            <div class="text-lg md:text-xl max-w-3xl mx-auto">
+                把「讓 AI 做事」變得像插 USB 一樣簡單——一條協定，連接萬物
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-16 space-y-16">
+        
+        <!-- What is MCP -->
+        <section class="animate-slide-up">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-shadow duration-300">
+                <div class="flex items-center mb-8">
+                    <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-question text-white text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-blue-600 dark:text-blue-400">MCP 是什麼？</h2>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div class="space-y-6">
+                        <div class="flex items-start space-x-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                            <div class="flex-shrink-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-building text-white text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-lg mb-2">Anthropic 提出的開放標準</h3>
+                                <p class="text-gray-600 dark:text-gray-300">為 AI 模型建立統一的通信協定</p>
+                            </div>
+                        </div><div class="flex items-start space-x-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-xl">
+                            <div class="flex-shrink-0 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-usb text-white text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-lg mb-2">為 LLM 建立「USB-C」式通用介面</h3>
+                                <p class="text-gray-600 dark:text-gray-300">標準化的連接方式，簡化整合流程</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-4 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+                            <div class="flex-shrink-0 w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-shield-alt text-white text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-lg mb-2">透過 JSON-RPC 安全呼叫外部資料與工具</h3>
+                                <p class="text-gray-600 dark:text-gray-300">安全且高效的資料交換機制</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-center">
+                        <div id="mcp-architecture" class="w-full h-64"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Why MCP -->
+        <section class="animate-slide-up">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-shadow duration-300">
+                <div class="flex items-center mb-8">
+                    <div class="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-lightbulb text-white text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-green-600 dark:text-green-400">為什麼要用 MCP？</h2>
+                </div><div class="grid md:grid-cols-3 gap-6">
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-6 rounded-xl hover:scale-105 transition-transform duration-300">
+                        <div class="text-center mb-4">
+                            <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-plug text-white text-2xl"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold mb-2">一次接入→多源共用</h3>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-300 text-center">免除 N×M 客製 API 整合，大幅降低開發複雜度</p>
+                    </div><div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-6 rounded-xl hover:scale-105 transition-transform duration-300">
+                        <div class="text-center mb-4">
+                            <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-rocket text-white text-2xl"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold mb-2">即時存取資料</h3>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-300 text-center">不需預先索引，降低延遲與運算成本</p>
+                    </div>
+                <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-6 rounded-xl hover:scale-105 transition-transform duration-300">
+                        <div class="text-center mb-4">
+                            <div class="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-lock text-white text-2xl"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold mb-2">內建權限控制</h3>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-300 text-center">強化企業安全合規，內建審計功能</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Value -->
+        <section class="animate-slide-up">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-shadow duration-300">
+                <div class="flex items-center mb-8">
+                    <div class="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-star text-white text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">最快看到的價值</h2>
+                </div>
+                
+                <div class="space-y-6">
+                    <div class="flex items-start space-x-6 p-6 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-300">
+                        <div class="flex-shrink-0 w-12 h-12 bg-indigo-500 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-code text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold mb-2">IDE 助理</h3>
+                            <p class="text-gray-600 dark:text-gray-300">讀檔、查 Git、寫測試立刻回覆，提升開發效率</p>
+                        </div>
+                    </div>    <div class="flex items-start space-x-6 p-6 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-300">
+                        <div class="flex-shrink-0 w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-chart-bar text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold mb-2">企業查詢</h3>
+                            <p class="text-gray-600 dark:text-gray-300">自然語言拉 SQL / ERP 報表，簡化資料分析流程</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start space-x-6 p-6 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-300">
+                        <div class="flex-shrink-0 w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-cogs text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold mb-2">自動流程</h3>
+                            <p class="text-gray-600 dark:text-gray-300">AI 直接發信、建工單、更新 CRM，實現業務自動化</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Use Cases -->
+        <section class="animate-slide-up">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-shadow duration-300">
+                <div class="flex items-center mb-8">
+                    <div class="w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-rocket text-white text-xl"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-red-600 dark:text-red-400">MCP 的應用場景</h2>
+                </div>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-800/20 p-6 rounded-xl hover:scale-105 transition-all duration-300">
+                        <div class="text-center mb-4">
+                            <div class="w-16 h-16 bg-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-code text-white text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold mb-2">開發者工具</h3>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-300 text-sm text-center">Zed、Cursor 透過 Filesystem/Git MCP 伺服器即時分析整個專案</p>
+                    </div>
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-6 rounded-xl hover:scale-105 transition-all duration-300">
+                        <div class="text-center mb-4">
+                            <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-briefcase text-white text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold mb-2">商業自動化</h3>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-300 text-sm text-center">AI 連接 Slack、Gmail、JIRA，完成任務指派與進度回報</p>
+                    </div>    <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-6 rounded-xl hover:scale-105 transition-all duration-300">
+                        <div class="text-center mb-4">
+                            <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-chart-line text-white text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold mb-2">供應鏈 / 財務</h3>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-300 text-sm text-center">多代理協作即時抓 KPI、偵測庫存或詐欺</p>
+                    </div>
+                    
+                    <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-6 rounded-xl hover:scale-105 transition-all duration-300">
+                        <div class="text-center mb-4">
+                            <div class="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-home text-white text-2xl"></i>
+                            </div>
+                            <h3 class="text-lg font-semibold mb-2">IoT 與智慧家居</h3>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-300 text-sm text-center">AI 透過 MCP 控制感測器、執行排程</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Diagram -->
+        <section class="animate-slide-up">
+            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 hover:shadow-2xl transition-shadow duration-300">
+                <h2 class="text-3xl font-bold text-center mb-8 text-gray-800 dark:text-gray-200">MCP 架構流程圖</h2>
+                <div class="mermaid" id="mcp-flow">
+                    graph TD
+                        A[AI 應用程式] --> B[MCP Client]
+                        B --> C[JSON-RPC 通信]
+                        C --> D[MCP Server]
+                        D --> E[外部資源/工具]
+                        
+                        E --> F[檔案系統]
+                        E --> G[資料庫]
+                        E --> H[API 服務]
+                        E --> I[Git 儲存庫]
+                        
+                        J[權限控制] --> D
+                        K[安全審計] --> D
+                        
+                        style A fill:#e1f5fe
+                        style B fill:#f3e5f5
+                        style C fill:#e8f5e8
+                        style D fill:#fff3e0
+                        style E fill:#fce4ec
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12 px-4">
+        <div class="max-w-4xl mx-auto text-center">
+            <div class="mb-8">
+                <h3 class="text-2xl font-bold mb-4">作者資訊</h3>
+                <p class="text-xl font-semibold text-blue-400 mb-4">Cl Tseng</p>
+                <div class="flex justify-center space-x-6">
+                    <a href="https://twitter.com" class="text-gray-400 hover:text-blue-400 transition-colors duration-300 hover:scale-110 transform">
+                        <i class="fab fa-twitter text-2xl"></i>
+                    </a>
+                    <a href="https://github.com" class="text-gray-400 hover:text-white transition-colors duration-300 hover:scale-110 transform">
+                        <i class="fab fa-github text-2xl"></i>
+                    </a>
+                    <a href="https://linkedin.com" class="text-gray-400 hover:text-blue-600 transition-colors duration-300 hover:scale-110 transform">
+                        <i class="fab fa-linkedin text-2xl"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 pt-8">
+                <p class="text-gray-400">&copy; 2025 Cl Tseng. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({ 
+            theme: 'dark',
+            startOnLoad: true 
+        });
+
+        // Initialize ECharts for MCP Architecture
+        const chartDom = document.getElementById('mcp-architecture');
+        const myChart = echarts.init(chartDom);
+        
+        const option = {
+            title: {
+                text: 'MCP 連接架構',
+                textStyle: {
+                    color: '#333'
+                }
+            },
+            tooltip: {
+                trigger: 'item'
+            },
+            series: [
+                {
+                    name: 'MCP 架構',
+                    type: 'sankey',
+                    layout: 'none',
+                    data: [
+                        { name: 'AI 應用' },
+                        { name: 'MCP Client' },
+                        { name: 'JSON-RPC' },
+                        { name: 'MCP Server' },
+                        { name: '檔案系統' },
+                        { name: '資料庫' },
+                        { name: 'API 服務' }
+                    ],
+                    links: [
+                        { source: 'AI 應用', target: 'MCP Client', value: 100 },
+                        { source: 'MCP Client', target: 'JSON-RPC', value: 100 },
+                        { source: 'JSON-RPC', target: 'MCP Server', value: 100 },
+                        { source: 'MCP Server', target: '檔案系統', value: 30 },
+                        { source: 'MCP Server', target: '資料庫', value: 40 },
+                        { source: 'MCP Server', target: 'API 服務', value: 30 }
+                    ],
+                    emphasis: {
+                        focus: 'adjacency'
+                    },
+                    levels: [
+                        { depth: 0, itemStyle: { color: '#3b82f6' } },
+                        { depth: 1, itemStyle: { color: '#8b5cf6' } },
+                        { depth: 2, itemStyle: { color: '#10b981' } },
+                        { depth: 3, itemStyle: { color: '#f59e0b' } }
+                    ]
+                }
+            ]
+        };
+        
+        myChart.setOption(option);
+
+        // Theme Toggle Functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+        
+        // Check for saved theme preference or default to system preference
+        const savedTheme = localStorage.getItem('theme');
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        const currentTheme = savedTheme || systemTheme;
+        
+        html.classList.toggle('dark', currentTheme === 'dark');
+        
+        themeToggle.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            
+            // Update chart theme
+            myChart.dispose();
+            const newChart = echarts.init(chartDom, isDark ? 'dark' : 'light');
+            newChart.setOption(option);
+        });
+
+        // Smooth scrolling for anchor links
+        document.addEventListener('DOMContentLoaded', function() {
+            const links = document.querySelectorAll('a[href^="#"]');
+            links.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        });
+
+        // Intersection Observer for animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all animated elements
+        document.querySelectorAll('.animate-slide-up').forEach((el) => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+            observer.observe(el);
+        });
+
+        // Resize chart on window resize
+        window.addEventListener('resize', () => {
+            myChart.resize();
+        });
+    </script>
+</body>
+</html>

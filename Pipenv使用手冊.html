@@ -1,0 +1,1128 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipenv 企業使用手冊 - 為企業開發團隊量身打造</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/preline@2.3.0/dist/preline.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Noto Sans TC', 'sans-serif'],
+                        'mono': ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+<script src="https://felo.ai/js/iframe.js?v=1759973676075"></script>
+ <style>
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: #bfc5ce transparent !important;
+}
+*::-webkit-scrollbar {
+  width: 6px !important;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: #bfc5ce !important;
+  border-radius: 9999px !important;
+}
+*::-webkit-scrollbar-track {
+  background-color: transparent !important;
+  border-radius: 9999px !important;
+}
+</style></head>
+<body class="font-sans bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200">
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-cube text-primary-600 text-xl"></i>
+                    <span class="font-semibold text-lg">Pipenv 企業手冊</span>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#overview" class="hover:text-primary-600 transition-colors duration-200">概述</a>
+                    <a href="#governance" class="hover:text-primary-600 transition-colors duration-200">團隊規範</a>
+                    <a href="#workflow" class="hover:text-primary-600 transition-colors duration-200">工作流程</a>
+                    <a href="#cicd" class="hover:text-primary-600 transition-colors duration-200">CI/CD</a>
+                    <a href="#commands" class="hover:text-primary-600 transition-colors duration-200">速查指令</a>
+                </div>
+                <button id="theme-toggle" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200">
+                    <i id="theme-icon" class="fas fa-moon dark:hidden"></i>
+                    <i class="fas fa-sun hidden dark:inline"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <header class="pt-24 pb-16 bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 relative overflow-hidden">
+        <div class="absolute inset-0 bg-grid-pattern opacity-10"></div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-8">
+                    <div class="space-y-4">
+                        <div class="inline-flex items-center px-4 py-2 bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 rounded-full text-sm font-medium">
+                            <i class="fas fa-shield-alt mr-2"></i>
+                            企業級 Python 依賴管理
+                        </div>
+                        <h1 class="text-5xl lg:text-6xl font-bold leading-tight">
+                            為企業團隊而調整的
+                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-indigo-600">
+                                Pipenv 使用手冊
+                            </span>
+                        </h1>
+                        <p class="text-xl text-gray-600 dark:text-gray-300 leading-relaxed">
+                            在企業內部開發情境，Pipenv的價值在於提供可重現與可治理的依賴管理：
+                            以 Pipfile/Pipfile.lock 建立決定性組建、整合虛擬環境與套件安裝、
+                            支援以 .env 管理環境變數，並能依群組分類依賴。
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap gap-4">
+                        <div class="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
+                            <i class="fas fa-check-circle text-green-500"></i>
+                            <span>可重現部署</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
+                            <i class="fas fa-check-circle text-green-500"></i>
+                            <span>安全檢查</span>
+                        </div>
+                        <div class="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
+                            <i class="fas fa-check-circle text-green-500"></i>
+                            <span>團隊協作</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative">
+                    <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 transform rotate-2 hover:rotate-0 transition-transform duration-300">
+                        <div class="bg-gray-100 dark:bg-gray-700 rounded-lg p-4 font-mono text-sm">
+                            <div class="flex items-center space-x-2 mb-3">
+                                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                                <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                <span class="text-gray-500 ml-4">Pipfile</span>
+                            </div>
+                            <div class="space-y-2 text-gray-800 dark:text-gray-200">
+                                <div><span class="text-blue-600 dark:text-blue-400">[[source]]</span></div>
+                                <div><span class="text-green-600 dark:text-green-400">name</span> = <span class="text-orange-600 dark:text-orange-400">"pypi"</span></div>
+                                <div><span class="text-green-600 dark:text-green-400">url</span> = <span class="text-orange-600 dark:text-orange-400">"https://pypi.org/simple"</span></div>
+                                <div class="mt-3"><span class="text-blue-600 dark:text-blue-400">[[packages]]</span></div>
+                                <div><span class="text-green-600 dark:text-green-400">requests</span> = <span class="text-orange-600 dark:text-orange-400">"*"</span></div>
+                                <div><span class="text-green-600 dark:text-green-400">django</span> = <span class="text-orange-600 dark:text-orange-400">">=4.0"</span></div>
+                                <div class="mt-3"><span class="text-blue-600 dark:text-blue-400">[[requires]]</span></div>
+                                <div><span class="text-green-600 dark:text-green-400">python_version</span> = <span class="text-orange-600 dark:text-orange-400">"3.11"</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section id="overview" class="py-20 bg-white dark:bg-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">目標與適用範圍</h2>
+                <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                    建立跨專案一致的 Python 依賴與環境管理方式，確保供應鏈安全與可重現部署
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-6 rounded-xl border border-blue-200 dark:border-blue-700">
+                    <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-sync-alt text-white"></i>
+                    </div>
+                    <h3 class="font-semibold text-lg mb-2">一致性管理</h3>
+                    <p class="text-gray-600 dark:text-gray-300 text-sm">
+                        跨專案統一的依賴與環境管理方式，涵蓋開發、測試、Staging、Production 各階段
+                    </p>
+                </div>
+                
+                <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 p-6 rounded-xl border border-green-200 dark:border-green-700">
+                    <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-lock text-white"></i>
+                    </div>
+                    <h3 class="font-semibold text-lg mb-2">安全檢查</h3>
+                    <p class="text-gray-600 dark:text-gray-300 text-sm">
+                        落實依賴鎖定與安全檢查，確保供應鏈安全與可重現部署
+                    </p>
+                </div>
+                
+                <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 p-6 rounded-xl border border-purple-200 dark:border-purple-700">
+                    <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-server text-white"></i>
+                    </div>
+                    <h3 class="font-semibold text-lg mb-2">私有套件源</h3>
+                    <p class="text-gray-600 dark:text-gray-300 text-sm">
+                        定義私有套件源與鏡像使用規則，支援企業內部套件與離線環境
+                    </p>
+                </div>
+                
+                <div class="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 p-6 rounded-xl border border-orange-200 dark:border-orange-700">
+                    <div class="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-code-branch text-white"></i>
+                    </div>
+                    <h3 class="font-semibold text-lg mb-2">審核流程</h3>
+                    <p class="text-gray-600 dark:text-gray-300 text-sm">
+                        規範 Pipfile/Pipfile.lock 的提交、更新與審核流程，避免格式或政策偏差
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="governance" class="py-20 bg-gray-50 dark:bg-gray-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">團隊規範（Governance）</h2>
+                <p class="text-xl text-gray-600 dark:text-gray-300">
+                    建立企業級的配置標準與審核流程，降低團隊間差異與格式問題的風險
+                </p>
+            </div>
+
+            <div class="space-y-16">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-cog text-white"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold">統一工具與版本</h3>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-semibold text-lg mb-3 text-primary-600 dark:text-primary-400">Python 版本管理</h4>
+                            <ul class="space-y-2 text-gray-600 dark:text-gray-300">
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2 flex-shrink-0"></i>
+                                    指定團隊支援的 Python 主版本，並在 Pipfile 中標註 required version
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2 flex-shrink-0"></i>
+                                    可透過 pyenv/asdf 自動對應安裝，確保跨平台一致性
+                                </li>
+                                <li class="flex items-start">
+                                    <i class="fas fa-check text-green-500 mt-1 mr-2 flex-shrink-0"></i>
+                                    指定 Pipenv 版本範圍，於 CI 驗證版本相容性
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                            <pre class="text-sm text-gray-800 dark:text-gray-200 font-mono">
+<span class="text-blue-600 dark:text-blue-400">[[requires]]</span>
+<span class="text-green-600 dark:text-green-400">python_version</span> = <span class="text-orange-600 dark:text-orange-400">"3.11"</span>
+
+<span class="text-gray-500 dark:text-gray-400"># CI 中驗證 Pipenv 版本</span>
+<span class="text-purple-600 dark:text-purple-400">pipenv</span> <span class="text-blue-600 dark:text-blue-400">--version</span>
+                            </pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-file-code text-white"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold">Pipfile 標準</h3>
+                    </div>
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="font-semibold text-lg mb-3 text-green-600 dark:text-green-400">結構與欄位規範</h4>
+                            <div class="grid md:grid-cols-3 gap-4 mb-4">
+                                <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-700">
+                                    <div class="font-semibold text-blue-700 dark:text-blue-300 mb-2">source</div>
+                                    <div class="text-sm text-gray-600 dark:text-gray-300">套件源配置</div>
+                                </div>
+                                <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-700">
+                                    <div class="font-semibold text-green-700 dark:text-green-300 mb-2">packages</div>
+                                    <div class="text-sm text-gray-600 dark:text-gray-300">正式環境依賴</div>
+                                </div>
+                                <div class="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg border border-orange-200 dark:border-orange-700">
+                                    <div class="font-semibold text-orange-700 dark:text-orange-300 mb-2">dev-packages</div>
+                                    <div class="text-sm text-gray-600 dark:text-gray-300">開發環境依賴</div>
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                                <p class="text-gray-600 dark:text-gray-300 mb-2">
+                                    <strong>企業私有源配置：</strong>
+                                </p>
+                                <ul class="space-y-1 text-sm text-gray-600 dark:text-gray-300">
+                                    <li>• 針對企業需求設定私有套件源（internal index）與鏡像（mirror）</li>
+                                    <li>• 規範認證方式（環境變數/CI Secret），避免硬編碼憑證</li>
+                                    <li>• 定期檢查格式與內容，避免團隊間寫法不一致</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-lock text-white"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold">鎖檔策略</h3>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div>
+                            <h4 class="font-semibold text-lg mb-3 text-purple-600 dark:text-purple-400">核心原則</h4>
+                            <div class="space-y-4">
+                                <div class="flex items-start">
+                                    <div class="w-6 h-6 bg-purple-100 dark:bg-purple-900/50 rounded-full flex items-center justify-center mr-3 mt-0.5">
+                                        <i class="fas fa-file-contract text-purple-600 dark:text-purple-400 text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium">單一真相來源</div>
+                                        <div class="text-sm text-gray-600 dark:text-gray-300">以 Pipfile.lock 作為部署依據，落實可重現組建與雜湊驗證</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <div class="w-6 h-6 bg-purple-100 dark:bg-purple-900/50 rounded-full flex items-center justify-center mr-3 mt-0.5">
+                                        <i class="fas fa-code-branch text-purple-600 dark:text-purple-400 text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <div class="font-medium">版本控制</div>
+                                        <div class="text-sm text-gray-600 dark:text-gray-300">App 專案務必提交 Pipfile 與 Pipfile.lock 至版本控制</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-lg mb-3 text-purple-600 dark:text-purple-400">升級策略</h4>
+                            <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-clock text-yellow-600 dark:text-yellow-400 mr-2"></i>
+                                    <span class="font-medium">例行升級視窗</span>
+                                </div>
+                                <div class="text-sm text-gray-600 dark:text-gray-300">
+                                    建議訂定每雙週或每月進行 pipenv update 與安全修補，
+                                    更新依賴需伴隨風險評估與 CI 全套測試
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-red-500 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-shield-alt text-white"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold">安全與合規</h3>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div>
+                            <h4 class="font-semibold text-lg mb-3 text-red-600 dark:text-red-400">安全檢查</h4>
+                            <div class="space-y-3">
+                                <div class="flex items-center">
+                                    <i class="fas fa-bug text-red-500 mr-3"></i>
+                                    <span>在 CI 導入 pipenv check 並 Fail Fast</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-exclamation-triangle text-yellow-500 mr-3"></i>
+                                    <span>對高風險套件建立升級或替代方案</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-lg mb-3 text-red-600 dark:text-red-400">機密管理</h4>
+                            <div class="space-y-3">
+                                <div class="flex items-center">
+                                    <i class="fas fa-file-alt text-blue-500 mr-3"></i>
+                                    <span>.env 僅用於本機開發</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-key text-green-500 mr-3"></i>
+                                    <span>生產機密走機密管理系統</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="workflow" class="py-20 bg-white dark:bg-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">基本工作流（開發者視角）</h2>
+                <p class="text-xl text-gray-600 dark:text-gray-300">
+                    完整的 Pipenv 操作流程，從專案初始化到日常依賴管理
+                </p>
+            </div>
+
+            <div class="space-y-12">
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-8 border border-blue-200 dark:border-blue-700">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center mr-4">
+                            <i class="fas fa-play text-white text-lg"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold">專案初始化與安裝</h3>
+                    </div>
+                    <div class="grid lg:grid-cols-2 gap-8">
+                        <div>
+                            <h4 class="font-semibold text-lg mb-4 text-blue-700 dark:text-blue-300">基本安裝</h4>
+                            <div class="bg-gray-900 dark:bg-gray-800 rounded-lg p-4 font-mono text-sm">
+                                <div class="text-green-400 mb-2"># 建立虛擬環境與 Pipfile</div>
+                                <div class="text-yellow-300">pipenv install</div>
+                                <div class="text-green-400 mt-3 mb-2"># 安裝套件並更新鎖檔</div>
+                                <div class="text-yellow-300">pipenv install requests</div>
+                            </div>
+                            <div class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                                <p class="text-sm text-blue-700 dark:text-blue-300">
+                                    Pipenv 會自動創建/管理虛擬環境，並以 Pipfile/Pipfile.lock 維持可重現的依賴圖
+                                </p>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-lg mb-4 text-blue-700 dark:text-blue-300">指定 Python 版本</h4>
+                            <div class="bg-gray-900 dark:bg-gray-800 rounded-lg p-4 font-mono text-sm">
+                                <div class="text-yellow-300">pipenv --python 3.11</div>
+                            </div>
+                            <div class="mt-4 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                                <p class="text-sm text-blue-700 dark:text-blue-300">
+                                    若安裝了 pyenv/asdf，Pipenv 可自動管理所需版本，提升一致性
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-8 border border-green-200 dark:border-green-700">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mr-4">
+                            <i class="fas fa-terminal text-white text-lg"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold">執行環境</h3>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-8">
+                        <div>
+                            <h4 class="font-semibold text-lg mb-4 text-green-700 dark:text-green-300">進入虛擬環境</h4>
+                            <div class="bg-gray-900 dark:bg-gray-800 rounded-lg p-4 font-mono text-sm">
+                                <div class="text-yellow-300">pipenv shell</div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-lg mb-4 text-green-700 dark:text-green-300">直接執行指令</h4>
+                            <div class="bg-gray-900 dark:bg-gray-800 rounded-lg p-4 font-mono text-sm">
+                                <div class="text-yellow-300">pipenv run python app.py</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-6 p-4 bg-green-50 dark:bg-green-900/30 rounded-lg">
+                        <p class="text-sm text-green-700 dark:text-green-300">
+                            <strong>建議：</strong> 使用 pipenv run 確保於正確虛擬環境執行，避免全域干擾
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20 rounded-2xl p-8 border border-purple-200 dark:border-purple-700">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center mr-4">
+                            <i class="fas fa-cubes text-white text-lg"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold">依賴管理</h3>
+                    </div>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div>
+                            <h4 class="font-semibold mb-3 text-purple-700 dark:text-purple-300">安裝套件</h4>
+                            <div class="bg-gray-900 dark:bg-gray-800 rounded-lg p-3 font-mono text-sm space-y-1">
+                                <div><span class="text-green-400"># 正式依賴</span></div>
+                                <div class="text-yellow-300">pipenv install &lt;pkg&gt;</div>
+                                <div><span class="text-green-400"># 開發依賴</span></div>
+                                <div class="text-yellow-300">pipenv install --dev &lt;pkg&gt;</div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold mb-3 text-purple-700 dark:text-purple-300">移除與查看</h4>
+                            <div class="bg-gray-900 dark:bg-gray-800 rounded-lg p-3 font-mono text-sm space-y-1">
+                                <div class="text-yellow-300">pipenv uninstall &lt;pkg&gt;</div>
+                                <div class="text-yellow-300">pipenv graph</div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold mb-3 text-purple-700 dark:text-purple-300">檢查與更新</h4>
+                            <div class="bg-gray-900 dark:bg-gray-800 rounded-lg p-3 font-mono text-sm space-y-1">
+                                <div class="text-yellow-300">pipenv check</div>
+                                <div class="text-yellow-300">pipenv update</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-6 p-4 bg-purple-50 dark:bg-purple-900/30 rounded-lg">
+                        <p class="text-sm text-purple-700 dark:text-purple-300">
+                            Pipenv 以鎖檔確保決定性組建，並內建安全檢查與依賴可視化
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 bg-gray-50 dark:bg-gray-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">私有套件源與鏡像</h2>
+                <p class="text-xl text-gray-600 dark:text-gray-300">
+                    企業內部封裝共用庫、法規/離線環境、加速安裝與可控供應鏈
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-12 items-center mb-16">
+                <div>
+                    <h3 class="text-2xl font-bold mb-6">需求場景</h3>
+                    <div class="space-y-6">
+                        <div class="flex items-start">
+                            <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center mr-4 mt-1">
+                                <i class="fas fa-building text-white text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-lg mb-2">內部封裝共用庫</h4>
+                                <p class="text-gray-600 dark:text-gray-300">
+                                    企業內部開發的通用模組和工具包需要統一管理和分發
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center mr-4 mt-1">
+                                <i class="fas fa-shield-alt text-white text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-lg mb-2">法規/離線環境</h4>
+                                <p class="text-gray-600 dark:text-gray-300">
+                                    符合企業安全政策，支援內網環境的套件安裝需求
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center mr-4 mt-1">
+                                <i class="fas fa-tachometer-alt text-white text-sm"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-lg mb-2">加速安裝與可控供應鏈</h4>
+                                <p class="text-gray-600 dark:text-gray-300">
+                                    透過內部鏡像提升下載速度，並確保套件來源的可控性
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+                    <h4 class="font-semibold text-lg mb-4">Pipfile 私有源配置範例</h4>
+                    <div class="bg-gray-900 dark:bg-gray-800 rounded-lg p-4 font-mono text-sm">
+                        <div class="space-y-2">
+                            <div><span class="text-blue-400">[[source]]</span></div>
+                            <div><span class="text-green-400">name</span> = <span class="text-orange-400">"internal"</span></div>
+                            <div><span class="text-green-400">url</span> = <span class="text-orange-400">"https://pypi.company.com/simple"</span></div>
+                            <div><span class="text-green-400">verify_ssl</span> = <span class="text-blue-400">true</span></div>
+                            <div class="mt-3"><span class="text-blue-400">[[source]]</span></div>
+                            <div><span class="text-green-400">name</span> = <span class="text-orange-400">"pypi"</span></div>
+                            <div><span class="text-green-400">url</span> = <span class="text-orange-400">"https://pypi.org/simple"</span></div>
+                            <div><span class="text-green-400">verify_ssl</span> = <span class="text-blue-400">true</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg mb-12">
+                <h3 class="text-2xl font-bold mb-6">作法要點</h3>
+                <div class="grid md:grid-cols-2 gap-8">
+                    <div>
+                        <h4 class="font-semibold text-lg mb-4 text-primary-600 dark:text-primary-400">配置策略</h4>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span class="text-gray-600 dark:text-gray-300">
+                                    於 Pipfile 配置私有源與鏡像，包含優先順序與驗證機制
+                                </span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span class="text-gray-600 dark:text-gray-300">
+                                    在 CI 與本地透過環境變數提供憑證，避免憑證洩漏
+                                </span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-check-circle text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span class="text-gray-600 dark:text-gray-300">
+                                    設定主私有源＋只讀鏡像（Failover）提高穩定性
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold text-lg mb-4 text-primary-600 dark:text-primary-400">政策提示</h4>
+                        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
+                            <div class="flex items-start">
+                                <i class="fas fa-exclamation-triangle text-yellow-600 dark:text-yellow-400 mt-1 mr-3"></i>
+                                <div>
+                                    <p class="font-medium text-yellow-800 dark:text-yellow-200 mb-2">安全審核</p>
+                                    <p class="text-sm text-yellow-700 dark:text-yellow-300">
+                                        新增第三方來源需安全與法遵審核；對高風險來源採取阻擋或隔離，
+                                        並對外源設白名單與審核流程
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="cicd" class="py-20 bg-white dark:bg-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">CI/CD 實務</h2>
+                <p class="text-xl text-gray-600 dark:text-gray-300">
+                    Linux runner 範例與企業級部署流程
+                </p>
+            </div>
+
+            <div class="bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800 dark:to-blue-900/20 rounded-2xl p-8 mb-12 border border-gray-200 dark:border-gray-700">
+                <h3 class="text-2xl font-bold mb-6">基礎步驟</h3>
+                <div class="bg-gray-900 dark:bg-gray-800 rounded-lg p-6 font-mono text-sm overflow-x-auto">
+                    <div class="space-y-3">
+                        <div class="text-green-400"># 1) 設定 Python 版本（依 CI 平台使用對應 action/setup）</div>
+                        <div class="text-green-400"># 2) 安裝 pipenv</div>
+                        <div class="text-yellow-300">python -m pip install --upgrade pip</div>
+                        <div class="text-yellow-300">pip install --user pipenv</div>
+                        <div class="text-green-400 mt-4"># 3) 設定私有源憑證（以環境變數或 CI Secret 注入）</div>
+                        <div class="text-gray-400"># export PIP_INDEX_URL=...</div>
+                        <div class="text-gray-400"># export PIP_EXTRA_INDEX_URL=...</div>
+                        <div class="text-green-400 mt-4"># 4) 依鎖檔安裝（建議在受控視窗同步更新鎖檔）</div>
+                        <div class="text-yellow-300">pipenv install --dev</div>
+                        <div class="text-green-400 mt-4"># 5) 安全檢查與測試</div>
+                        <div class="text-yellow-300">pipenv check</div>
+                        <div class="text-yellow-300">pipenv run pytest -q</div>
+                        <div class="text-green-400 mt-4"># 6) 導出需求（供某些部署/容器基底鏡像僅支援 pip 的情境）</div>
+                        <div class="text-yellow-300">pipenv lock -r > requirements.txt</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-rocket text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold">快取與加速</h3>
+                    </div>
+                    <ul class="space-y-3 text-gray-600 dark:text-gray-300">
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                            啟用 pip 快取與倉庫鏡像，縮短 CI 時間
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                            變更 Pipfile.lock 時才失效相依快取
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-4">
+                            <i class="fas fa-sync-alt text-white"></i>
+                        </div>
+                        <h3 class="text-xl font-bold">階段一致性</h3>
+                    </div>
+                    <ul class="space-y-3 text-gray-600 dark:text-gray-300">
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                            開發、測試、Staging、Production 皆使用同一鎖檔
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                            在升級視窗內更新並完整驗證
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-12 bg-blue-50 dark:bg-blue-900/20 rounded-2xl p-6 border border-blue-200 dark:border-blue-700">
+                <h4 class="font-semibold text-lg mb-3 text-blue-700 dark:text-blue-300">部署相容性</h4>
+                <p class="text-gray-600 dark:text-gray-300 mb-4">
+                    在以 pip 為主的部署環境，可先由 Pipenv 鎖檔導出 requirements.txt，
+                    再使用 pip 安裝，以維持與鎖檔一致的版本。
+                </p>
+                <div class="bg-gray-900 dark:bg-gray-800 rounded-lg p-4 font-mono text-sm">
+                    <div class="text-yellow-300">pipenv lock -r > requirements.txt</div>
+                    <div class="text-yellow-300">pip install -r requirements.txt</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 bg-gray-50 dark:bg-gray-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">與其他工具的定位</h2>
+                <p class="text-xl text-gray-600 dark:text-gray-300">
+                    了解 Pipenv 在 Python 生態系統中的角色與優勢
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-12">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center mr-4">
+                            <i class="fas fa-balance-scale text-white"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold">pipenv vs pip+virtualenv</h3>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
+                            <h4 class="font-semibold text-green-700 dark:text-green-300 mb-2">Pipenv 優勢</h4>
+                            <ul class="text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                                <li>• 將兩者工作流整合，降低手動管理成本</li>
+                                <li>• 以 Pipfile/Pipfile.lock 解決版本鎖定</li>
+                                <li>• 內建依賴樹處理與安全檢查</li>
+                                <li>• 自動虛擬環境管理</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl flex items-center justify-center mr-4">
+                            <i class="fas fa-tools text-white"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold">pipenv vs pip-tools</h3>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                            <h4 class="font-semibold text-blue-700 dark:text-blue-300 mb-2">相容策略</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                                pip-tools 側重生成鎖定版 requirements，若組織已有 pip 為核心的成熟流程：
+                            </p>
+                            <div class="bg-gray-900 dark:bg-gray-800 rounded p-3 font-mono text-xs">
+                                <div class="text-yellow-300">pipenv lock -r > requirements.txt</div>
+                            </div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                可透過 Pipenv 導出 requirements.txt 相容現有工具鏈
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 bg-white dark:bg-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">遷移與相容</h2>
+                <p class="text-xl text-gray-600 dark:text-gray-300">
+                    從現有工具平滑遷移到 Pipenv 的實用指南
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-12">
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-8 border border-green-200 dark:border-green-700">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mr-4">
+                            <i class="fas fa-file-import text-white"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold">從 requirements.txt 遷移</h3>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="bg-gray-900 dark:bg-gray-800 rounded-lg p-4 font-mono text-sm">
+                            <div class="text-yellow-300">pipenv install -r requirements.txt</div>
+                        </div>
+                        <div class="p-4 bg-green-50 dark:bg-green-900/30 rounded-lg">
+                            <p class="text-sm text-green-700 dark:text-green-300">
+                                會依原本需求導入至 Pipfile 與鎖檔，後續以 Pipenv 管理
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-8 border border-blue-200 dark:border-blue-700">
+                    <div class="flex items-center mb-6">
+                        <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center mr-4">
+                            <i class="fas fa-file-export text-white"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold">導出支援既有系統</h3>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="bg-gray-900 dark:bg-gray-800 rounded-lg p-4 font-mono text-sm">
+                            <div class="text-yellow-300">pipenv lock -r > requirements.txt</div>
+                        </div>
+                        <div class="p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+                            <p class="text-sm text-blue-700 dark:text-blue-300">
+                                供只支援 pip 的平台使用，仍維持與 Pipfile.lock 一致
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 bg-gray-50 dark:bg-gray-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">常見問題與處理建議</h2>
+                <p class="text-xl text-gray-600 dark:text-gray-300">
+                    企業環境中最常遇到的問題及其解決方案
+                </p>
+            </div>
+
+            <div class="space-y-8">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
+                    <div class="flex items-start">
+                        <div class="w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center mr-6 mt-1">
+                            <i class="fas fa-exclamation-triangle text-white"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold mb-3">「在我機器可以跑」的差異</h3>
+                            <p class="text-gray-600 dark:text-gray-300 mb-4">
+                                最常見的環境不一致問題，通常源於開發者沒有正確使用 Pipenv 環境
+                            </p>
+                            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-4">
+                                <h4 class="font-semibold text-red-700 dark:text-red-300 mb-2">解決方案</h4>
+                                <ul class="text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                                    <li>• 落實用 Pipenv 啟動與執行（pipenv run）</li>
+                                    <li>• 以鎖檔安裝，確保版本一致性</li>
+                                    <li>• 透過 CI 驗證鎖檔一致性</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
+                    <div class="flex items-start">
+                        <div class="w-12 h-12 bg-yellow-500 rounded-xl flex items-center justify-center mr-6 mt-1">
+                            <i class="fas fa-file-alt text-white"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold mb-3">Pipfile 格式/內容不一致</h3>
+                            <p class="text-gray-600 dark:text-gray-300 mb-4">
+                                團隊成員使用不同的 Pipfile 格式，導致合併衝突或執行問題
+                            </p>
+                            <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
+                                <h4 class="font-semibold text-yellow-700 dark:text-yellow-300 mb-2">解決方案</h4>
+                                <ul class="text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                                    <li>• 建立團隊標準與自動化檢查（CI 驗證）</li>
+                                    <li>• 定期審視並修正格式問題</li>
+                                    <li>• 使用統一的 Pipfile 模板</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
+                    <div class="flex items-start">
+                        <div class="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center mr-6 mt-1">
+                            <i class="fas fa-network-wired text-white"></i>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold mb-3">私有源連線或認證失敗</h3>
+                            <p class="text-gray-600 dark:text-gray-300 mb-4">
+                                企業內部套件源的連線問題，通常與網路配置或憑證管理相關
+                            </p>
+                            <div class="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg p-4">
+                                <h4 class="font-semibold text-purple-700 dark:text-purple-300 mb-2">解決方案</h4>
+                                <ul class="text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                                    <li>• 使用環境變數/CI Secret 管理憑證</li>
+                                    <li>• 建立鏡像與重試策略</li>
+                                    <li>• 避免在 Pipfile 硬編碼敏感字串</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">企業最佳實務摘要</h2>
+                <p class="text-xl text-gray-600 dark:text-gray-300">
+                    關鍵原則與實施要點的綜合指南
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                    <div class="w-14 h-14 bg-blue-500 rounded-2xl flex items-center justify-center mb-4 mx-auto">
+                        <i class="fas fa-check-double text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-center mb-3">一致性</h3>
+                    <ul class="text-sm text-gray-600 dark:text-gray-300 space-y-2">
+                        <li>• 指定 Python 版本與 Pipenv 版本策略</li>
+                        <li>• 以 Pipfile.lock 作為部署依據</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                    <div class="w-14 h-14 bg-green-500 rounded-2xl flex items-center justify-center mb-4 mx-auto">
+                        <i class="fas fa-shield-alt text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-center mb-3">安全性</h3>
+                    <ul class="text-sm text-gray-600 dark:text-gray-300 space-y-2">
+                        <li>• 開啟漏洞掃描與雜湊驗證</li>
+                        <li>• 管理私有源與鏡像</li>
+                        <li>• 機密不入庫</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                    <div class="w-14 h-14 bg-purple-500 rounded-2xl flex items-center justify-center mb-4 mx-auto">
+                        <i class="fas fa-cogs text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-center mb-3">維運性</h3>
+                    <ul class="text-sm text-gray-600 dark:text-gray-300 space-y-2">
+                        <li>• 設定例行升級視窗與回歸測試</li>
+                        <li>• 圖形化依賴檢視管理風險</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                    <div class="w-14 h-14 bg-orange-500 rounded-2xl flex items-center justify-center mb-4 mx-auto">
+                        <i class="fas fa-exchange-alt text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-center mb-3">可相容</h3>
+                    <ul class="text-sm text-gray-600 dark:text-gray-300 space-y-2">
+                        <li>• 必要時導出 requirements.txt</li>
+                        <li>• 融合既有生態或平台要求</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-12 bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-balance-scale text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold">治理</h3>
+                </div>
+                <p class="text-gray-600 dark:text-gray-300 text-lg">
+                    制定 Pipfile 標準、變更審核與自動化檢查流程，避免團隊間偏差。
+                    建議配合組織級的配置標準與審核流程，以提升整體效率與可靠性。
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section id="commands" class="py-20 bg-white dark:bg-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">速查指令（企業常用）</h2>
+                <p class="text-xl text-gray-600 dark:text-gray-300">
+                    企業開發環境中最常用的 Pipenv 指令速查表
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+                <div class="space-y-6">
+                    <div class="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-2xl p-6 border border-blue-200 dark:border-blue-700">
+                        <h3 class="text-xl font-bold mb-4 text-blue-700 dark:text-blue-300">建置/安裝</h3>
+                        <div class="bg-gray-900 dark:bg-gray-800 rounded-lg p-4 font-mono text-sm space-y-2">
+                            <div><span class="text-gray-400"># 指定 Python 版本</span></div>
+                            <div class="text-yellow-300">pipenv --python 3.11</div>
+                            <div class="mt-3"><span class="text-gray-400"># 安裝依賴</span></div>
+                            <div class="text-yellow-300">pipenv install</div>
+                            <div class="text-yellow-300">pipenv install &lt;pkg&gt;</div>
+                            <div class="text-yellow-300">pipenv install --dev &lt;pkg&gt;</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-2xl p-6 border border-green-200 dark:border-green-700">
+                        <h3 class="text-xl font-bold mb-4 text-green-700 dark:text-green-300">執行/排錯</h3>
+                        <div class="bg-gray-900 dark:bg-gray-800 rounded-lg p-4 font-mono text-sm space-y-2">
+                            <div><span class="text-gray-400"># 進入虛擬環境</span></div>
+                            <div class="text-yellow-300">pipenv shell</div>
+                            <div class="mt-3"><span class="text-gray-400"># 執行指令</span></div>
+                            <div class="text-yellow-300">pipenv run &lt;cmd&gt;</div>
+                            <div class="mt-3"><span class="text-gray-400"># 依賴分析</span></div>
+                            <div class="text-yellow-300">pipenv graph</div>
+                            <div class="text-yellow-300">pipenv check</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-2xl p-6 border border-purple-200 dark:border-purple-700">
+                        <h3 class="text-xl font-bold mb-4 text-purple-700 dark:text-purple-300">更新/鎖定/匯出</h3>
+                        <div class="bg-gray-900 dark:bg-gray-800 rounded-lg p-4 font-mono text-sm space-y-2">
+                            <div><span class="text-gray-400"># 更新依賴</span></div>
+                            <div class="text-yellow-300">pipenv update</div>
+                            <div class="mt-3"><span class="text-gray-400"># 匯出 requirements</span></div>
+                            <div class="text-yellow-300">pipenv lock -r > requirements.txt</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-2xl p-6 border border-orange-200 dark:border-orange-700">
+                        <h3 class="text-xl font-bold mb-4 text-orange-700 dark:text-orange-300">查詢/清理</h3>
+                        <div class="bg-gray-900 dark:bg-gray-800 rounded-lg p-4 font-mono text-sm space-y-2">
+                            <div><span class="text-gray-400"># 專案路徑</span></div>
+                            <div class="text-yellow-300">pipenv --where</div>
+                            <div class="mt-3"><span class="text-gray-400"># 虛擬環境路徑</span></div>
+                            <div class="text-yellow-300">pipenv --venv</div>
+                            <div class="mt-3"><span class="text-gray-400"># Python 解釋器路徑</span></div>
+                            <div class="text-yellow-300">pipenv --py</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20 rounded-2xl p-6 border border-red-200 dark:border-red-700">
+                        <h3 class="text-xl font-bold mb-4 text-red-700 dark:text-red-300">企業常用組合</h3>
+                        <div class="bg-gray-900 dark:bg-gray-800 rounded-lg p-4 font-mono text-sm space-y-2">
+                            <div><span class="text-gray-400"># 完整檢查流程</span></div>
+                            <div class="text-yellow-300">pipenv install --dev</div>
+                            <div class="text-yellow-300">pipenv check</div>
+                            <div class="text-yellow-300">pipenv run pytest</div>
+                            <div class="mt-3"><span class="text-gray-400"># 鎖檔更新</span></div>
+                            <div class="text-yellow-300">pipenv update</div>
+                            <div class="text-yellow-300">pipenv lock</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-2xl p-6 border border-gray-200 dark:border-gray-600">
+                        <h3 class="text-xl font-bold mb-4">重要提醒</h3>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex items-start">
+                                <i class="fas fa-exclamation-triangle text-yellow-500 mt-1 mr-3"></i>
+                                <span class="text-gray-600 dark:text-gray-300">
+                                    pipenv update 有風險，建議於受控視窗與 CI 驗證
+                                </span>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-shield-alt text-green-500 mt-1 mr-3"></i>
+                                <span class="text-gray-600 dark:text-gray-300">
+                                    定期執行 pipenv check 確保安全性
+                                </span>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-code-branch text-blue-500 mt-1 mr-3"></i>
+                                <span class="text-gray-600 dark:text-gray-300">
+                                    務必將 Pipfile.lock 納入版本控制
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-gray-900 dark:bg-black text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="border-t border-gray-700 pt-8 text-center">
+                <div class="flex items-center justify-center space-x-2 mb-4">
+                    <i class="fas fa-cube text-primary-500 text-xl"></i>
+                    <span class="text-xl font-bold">Pipenv 企業使用手冊</span>
+                </div>
+                <p class="text-gray-400 mb-4">
+                    利用 Pipenv 的決定性組建、版本管理與安全檢查能力，配合企業級的配置標準、
+                    私有源策略與 CI/CD 驗證機制，在跨平台與多階段的情境下維持穩定可重現的 Python 供應鏈。
+                </p>
+                <div class="text-sm text-gray-500">
+                    <p>&copy; 2025 Cl Tseng. 為企業開發團隊量身打造的專業指南。</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 深色模式切換
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+        
+        // 檢查本地存儲或系統偏好
+        const getTheme = () => {
+            if (localStorage.theme === 'dark' || (!localStorage.theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                return 'dark';
+            }
+            return 'light';
+        };
+        
+        // 應用主題
+        const applyTheme = (theme) => {
+            if (theme === 'dark') {
+                html.classList.add('dark');
+            } else {
+                html.classList.remove('dark');
+            }
+            localStorage.theme = theme;
+        };
+        
+        // 初始化主題
+        applyTheme(getTheme());
+        
+        // 主題切換事件
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.classList.contains('dark') ? 'dark' : 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(newTheme);
+        });
+        
+        // 平滑滾動
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // 滾動動畫
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+        
+        // 添加動畫效果
+        document.querySelectorAll('section').forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(20px)';
+            section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(section);
+        });
+    </script>
+</body>
+</html>
