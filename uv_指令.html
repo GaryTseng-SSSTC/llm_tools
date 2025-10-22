@@ -675,7 +675,13 @@ uv sync --locked
 uv sync --no-group dev
 
 # 重新安裝所有依賴
-uv sync --reinstall</code></pre>
+uv sync --reinstall
+
+# 以「可編輯模式」安裝當前目錄中的 Python 套件，
+# 當前目錄必須包含 setup.py、setup.cfg 或 pyproject.toml 
+# 等套件配置檔案。
+uv pip install -e .
+</code></pre>
                                 </div>
                             </div>
                         </div>
