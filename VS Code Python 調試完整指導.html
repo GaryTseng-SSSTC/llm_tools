@@ -1,0 +1,723 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VS Code Python 調試完整指導</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/preline@2.3.0/dist/preline.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Noto Sans TC', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+<script src="https://felo.ai/js/iframe.js?v=1762260159851"></script>
+ <style>
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: #bfc5ce transparent !important;
+}
+*::-webkit-scrollbar {
+  width: 6px !important;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: #bfc5ce !important;
+  border-radius: 9999px !important;
+}
+*::-webkit-scrollbar-track {
+  background-color: transparent !important;
+  border-radius: 9999px !important;
+}
+</style></head>
+<body class="font-sans antialiased bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-200">
+    <nav class="fixed top-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <i class="fab fa-python text-2xl text-primary-500"></i>
+                    <span class="text-xl font-semibold">Python 調試指導</span>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <a href="#setup" class="text-gray-600 dark:text-gray-300 hover:text-primary-500 transition-colors duration-200">安裝設置</a>
+                    <a href="#config" class="text-gray-600 dark:text-gray-300 hover:text-primary-500 transition-colors duration-200">調試配置</a>
+                    <a href="#operation" class="text-gray-600 dark:text-gray-300 hover:text-primary-500 transition-colors duration-200">實際操作</a>
+                    <a href="#advanced" class="text-gray-600 dark:text-gray-300 hover:text-primary-500 transition-colors duration-200">進階技巧</a>
+                    <button id="theme-toggle" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200">
+                        <i class="fas fa-sun text-yellow-500 dark:hidden"></i>
+                        <i class="fas fa-moon text-blue-500 hidden dark:block"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-16">
+        <section class="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900">
+            <div class="absolute inset-0 opacity-10 dark:opacity-5">
+                <svg class="w-full h-full" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <pattern id="code-pattern" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+                            <text x="10" y="20" font-family="JetBrains Mono" font-size="12" fill="currentColor" opacity="0.3">def debug():</text>
+                            <text x="20" y="40" font-family="JetBrains Mono" font-size="12" fill="currentColor" opacity="0.3">print("Hello")</text>
+                            <text x="10" y="60" font-family="JetBrains Mono" font-size="12" fill="currentColor" opacity="0.3">breakpoint()</text>
+                        </pattern>
+                    </defs>
+                    <rect width="100%" height="100%" fill="url(#code-pattern)"/>
+                </svg>
+            </div>
+            
+            <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <div class="mb-8">
+                    <div class="inline-flex items-center space-x-3 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 px-4 py-2 rounded-full text-sm font-medium mb-6">
+                        <i class="fas fa-code"></i>
+                        <span>開發者必備技能</span>
+                    </div>
+                </div>
+                
+                <h1 class="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-900 dark:from-white dark:via-blue-200 dark:to-indigo-200 bg-clip-text text-transparent leading-tight">
+                    VS Code Python<br>調試完整指導
+                </h1>
+                
+                <p class="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed">
+                    從基礎安裝到進階技巧，全面掌握 Visual Studio Code 中的 Python 調試功能，提升開發效率和代碼品質
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    <a href="#setup" class="group inline-flex items-center px-8 py-4 bg-primary-500 hover:bg-primary-600 text-white rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                        <span>開始學習</span>
+                        <i class="fas fa-arrow-right ml-2 transition-transform duration-200 group-hover:translate-x-1"></i>
+                    </a>
+                    <a href="#config" class="inline-flex items-center px-8 py-4 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-xl font-semibold hover:border-primary-500 transition-all duration-200">
+                        <i class="fas fa-cog mr-2"></i>
+                        <span>查看配置</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+                <i class="fas fa-chevron-down text-2xl text-gray-400 dark:text-gray-500"></i>
+            </div>
+        </section>
+
+        <section id="setup" class="py-20 bg-white dark:bg-gray-900">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl md:text-5xl font-bold mb-6">
+                        <span class="bg-gradient-to-r from-primary-500 to-indigo-600 bg-clip-text text-transparent">1. 安裝必要的擴展</span>
+                    </h2>
+                    <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                        開始調試之前，首先需要確保已安裝 Python 擴展，這是進行 Python 調試的必要條件
+                    </p>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                    <div class="space-y-8">
+                        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-8 border border-blue-100 dark:border-blue-800/30">
+                            <div class="flex items-center mb-6">
+                                <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-puzzle-piece text-white text-xl"></i>
+                                </div>
+                                <h3 class="text-2xl font-semibold ml-4">Python 擴展安裝</h3>
+                            </div>
+                            
+                            <div class="space-y-6">
+                                <div class="flex items-start space-x-4">
+                                    <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-semibold shrink-0 mt-1">1</div>
+                                    <div>
+                                        <p class="font-semibold text-gray-900 dark:text-white mb-2">打開擴展市場</p>
+                                        <p class="text-gray-600 dark:text-gray-300">在 VS Code 中，前往側邊欄的擴展視圖（Extensions）</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start space-x-4">
+                                    <div class="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-semibold shrink-0 mt-1">2</div>
+                                    <div>
+                                        <p class="font-semibold text-gray-900 dark:text-white mb-2">搜尋並安裝</p>
+                                        <p class="text-gray-600 dark:text-gray-300">搜尋並安裝 Python 擴展（由 Microsoft 提供）</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="relative">
+                        <div class="bg-gray-900 dark:bg-black rounded-2xl p-6 shadow-2xl">
+                            <div class="flex items-center space-x-2 mb-4">
+                                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                                <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                <span class="text-gray-400 text-sm ml-2">VS Code - 擴展</span>
+                            </div>
+                            <img src="https://api.felo.ai/images/s/EnZYKbVWnJ" alt="VS Code Python 擴展安裝界面" class="w-full rounded-lg">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="config" class="py-20 bg-gray-50 dark:bg-gray-800">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl md:text-5xl font-bold mb-6">
+                        <span class="bg-gradient-to-r from-indigo-500 to-purple-600 bg-clip-text text-transparent">2. 設定調試配置</span>
+                    </h2>
+                    <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                        在 VS Code 中，調試配置存儲在 launch.json 文件中，讓我們來創建和配置這個關鍵文件
+                    </p>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-12 items-start">
+                    <div class="space-y-8">
+                        <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                            <h3 class="text-2xl font-semibold mb-6 flex items-center">
+                                <i class="fas fa-cogs text-indigo-500 mr-3"></i>
+                                配置步驟
+                            </h3>
+                            
+                            <div class="space-y-6">
+                                <div class="flex items-start space-x-4">
+                                    <div class="w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-semibold shrink-0">1</div>
+                                    <div>
+                                        <p class="font-semibold mb-2">打開運行和調試視圖</p>
+                                        <p class="text-gray-600 dark:text-gray-300">在側邊欄找到並點擊 "運行和調試" 視圖</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start space-x-4">
+                                    <div class="w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-semibold shrink-0">2</div>
+                                    <div>
+                                        <p class="font-semibold mb-2">創建 launch.json 文件</p>
+                                        <p class="text-gray-600 dark:text-gray-300">點擊 "創建一個 launch.json 文件" 的鏈接</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-start space-x-4">
+                                    <div class="w-8 h-8 bg-indigo-500 text-white rounded-full flex items-center justify-center text-sm font-semibold shrink-0">3</div>
+                                    <div>
+                                        <p class="font-semibold mb-2">選擇 Python 調試器</p>
+                                        <p class="text-gray-600 dark:text-gray-300">從選項中選擇 Python 作為調試器類型</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div class="bg-gray-900 dark:bg-black rounded-2xl overflow-hidden shadow-2xl">
+                            <div class="bg-gray-800 dark:bg-gray-900 px-4 py-3 flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-file-code text-yellow-400"></i>
+                                    <span class="text-white text-sm">launch.json</span>
+                                </div>
+                                <div class="flex space-x-1">
+                                    <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                                    <div class="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                                    <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                                </div>
+                            </div>
+                            <div class="p-6">
+                                <pre class="text-sm text-gray-300 font-mono leading-relaxed overflow-x-auto"><code>{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: 當前文件",
+      "type": "python",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    }
+  ]
+}</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
+                            <div class="flex items-start space-x-3">
+                                <i class="fas fa-info-circle text-blue-500 mt-1"></i>
+                                <div>
+                                    <h4 class="font-semibold text-blue-900 dark:text-blue-200 mb-2">配置說明</h4>
+                                    <p class="text-blue-800 dark:text-blue-300 text-sm">
+                                        VS Code 將自動生成基本的配置文件，您可以根據專案需要進行修改和擴展
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="operation" class="py-20 bg-white dark:bg-gray-900">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl md:text-5xl font-bold mb-6">
+                        <span class="bg-gradient-to-r from-green-500 to-teal-600 bg-clip-text text-transparent">3. 實際調試操作</span>
+                    </h2>
+                    <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                        學會設置斷點、開始調試，以及使用各種調試控制功能來排查和修復代碼問題
+                    </p>
+                </div>
+
+                <div class="space-y-16">
+                    <div class="grid lg:grid-cols-2 gap-12 items-center">
+                        <div>
+                            <h3 class="text-3xl font-bold mb-6 flex items-center">
+                                <i class="fas fa-circle text-red-500 mr-3"></i>
+                                設置斷點
+                            </h3>
+                            <p class="text-lg text-gray-600 dark:text-gray-300 mb-6">
+                                在您希望調試的代碼行旁邊點擊行號，將出現紅點，這表示您已設置了一個斷點。當程序執行到這一行時，將會暫停，讓您檢查變數的狀態。
+                            </p>
+                            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-6">
+                                <h4 class="font-semibold text-green-900 dark:text-green-200 mb-2">💡 提示</h4>
+                                <p class="text-green-800 dark:text-green-300">
+                                    斷點可以隨時添加或移除，只需再次點擊行號即可切換斷點狀態
+                                </p>
+                            </div>
+                        </div>
+                        <div class="relative">
+                            <img src="https://api.felo.ai/images/s/4v9FPpSopQ" alt="VS Code 設置斷點示例" class="w-full rounded-2xl shadow-lg">
+                        </div>
+                    </div>
+
+                    <div class="grid lg:grid-cols-2 gap-12 items-center">
+                        <div class="lg:order-2">
+                            <h3 class="text-3xl font-bold mb-6 flex items-center">
+                                <i class="fas fa-play text-green-500 mr-3"></i>
+                                開始調試
+                            </h3>
+                            <p class="text-lg text-gray-600 dark:text-gray-300 mb-6">
+                                要開始調試，您可以使用以下方式：
+                            </p>
+                            <div class="space-y-4">
+                                <div class="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                                    <div class="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center">
+                                        <i class="fas fa-keyboard text-white"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold">按下 F5 鍵</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">最快的啟動方式</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex items-center space-x-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                                    <div class="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center">
+                                        <i class="fas fa-mouse-pointer text-white"></i>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold">點擊開始調試按鈕</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">在運行和調試視圖中</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="lg:order-1">
+                            <img src="https://api.felo.ai/images/s/5Xz2Kc1b5s" alt="VS Code 開始調試界面" class="w-full rounded-2xl shadow-lg">
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-3xl p-8 lg:p-12">
+                        <h3 class="text-3xl font-bold mb-8 text-center">
+                            <i class="fas fa-gamepad text-blue-500 mr-3"></i>
+                            調試控制快捷鍵
+                        </h3>
+                        <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 text-center shadow-lg">
+                                <div class="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-step-forward text-white text-xl"></i>
+                                </div>
+                                <h4 class="font-semibold mb-2">步過 (Step Over)</h4>
+                                <div class="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-lg text-sm font-mono mb-2">F10</div>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">跳過當前行，執行下一行</p>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 text-center shadow-lg">
+                                <div class="w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-arrow-down text-white text-xl"></i>
+                                </div>
+                                <h4 class="font-semibold mb-2">步入 (Step Into)</h4>
+                                <div class="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-lg text-sm font-mono mb-2">F11</div>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">進入函數內部</p>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 text-center shadow-lg">
+                                <div class="w-16 h-16 bg-yellow-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-arrow-up text-white text-xl"></i>
+                                </div>
+                                <h4 class="font-semibold mb-2">步出 (Step Out)</h4>
+                                <div class="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-lg text-sm font-mono mb-2">Shift + F11</div>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">返回到調用函數的地方</p>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 text-center shadow-lg">
+                                <div class="w-16 h-16 bg-purple-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-play text-white text-xl"></i>
+                                </div>
+                                <h4 class="font-semibold mb-2">繼續 (Continue)</h4>
+                                <div class="bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-lg text-sm font-mono mb-2">F5</div>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">繼續執行直到下一個斷點</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-20 bg-gray-50 dark:bg-gray-800">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl md:text-5xl font-bold mb-6">
+                        <span class="bg-gradient-to-r from-purple-500 to-pink-600 bg-clip-text text-transparent">變數檢查與監控</span>
+                    </h2>
+                    <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                        在調試過程中，您可以檢查變數值、監控表達式，並在調試控制台中執行代碼片段
+                    </p>
+                </div>
+
+                <div class="grid lg:grid-cols-3 gap-8">
+                    <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                        <div class="w-16 h-16 bg-purple-500 rounded-2xl flex items-center justify-center mb-6">
+                            <i class="fas fa-eye text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-semibold mb-4">變數面板</h3>
+                        <p class="text-gray-600 dark:text-gray-300 mb-4">
+                            在調試過程中，變數面板會自動顯示當前作用域內所有變數的即時值，讓您輕鬆追蹤數據變化。
+                        </p>
+                        <ul class="space-y-2 text-sm text-gray-500 dark:text-gray-400">
+                            <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>本地變數</li>
+                            <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>全局變數</li>
+                            <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>函數參數</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                        <div class="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center mb-6">
+                            <i class="fas fa-search text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-semibold mb-4">監視面板</h3>
+                        <p class="text-gray-600 dark:text-gray-300 mb-4">
+                            在監視面板中添加自定義表達式，持續監控特定變數或計算結果的變化，幫助您發現問題。
+                        </p>
+                        <ul class="space-y-2 text-sm text-gray-500 dark:text-gray-400">
+                            <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>自定義表達式</li>
+                            <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>即時計算</li>
+                            <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>持續監控</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-700">
+                        <div class="w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center mb-6">
+                            <i class="fas fa-terminal text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-semibold mb-4">調試控制台</h3>
+                        <p class="text-gray-600 dark:text-gray-300 mb-4">
+                            在調試控制台中，您可以執行任意 Python 代碼片段，檢查變數狀態，或測試修復方案。
+                        </p>
+                        <ul class="space-y-2 text-sm text-gray-500 dark:text-gray-400">
+                            <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>執行代碼</li>
+                            <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>查看輸出</li>
+                            <li class="flex items-center"><i class="fas fa-check text-green-500 mr-2"></i>互動式調試</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="advanced" class="py-20 bg-white dark:bg-gray-900">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-4xl md:text-5xl font-bold mb-6">
+                        <span class="bg-gradient-to-r from-orange-500 to-red-600 bg-clip-text text-transparent">進階調試技巧</span>
+                    </h2>
+                    <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                        掌握條件斷點和多配置支持等進階功能，讓您的調試工作更加高效和精準
+                    </p>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-12">
+                    <div class="space-y-8">
+                        <div class="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-2xl p-8 border border-orange-100 dark:border-orange-800/30">
+                            <h3 class="text-2xl font-semibold mb-6 flex items-center">
+                                <i class="fas fa-filter text-orange-500 mr-3"></i>
+                                條件斷點
+                            </h3>
+                            <p class="text-gray-600 dark:text-gray-300 mb-6">
+                                右鍵單擊行號，選擇添加條件斷點，只有在滿足特定條件時才會觸發。這對於循環調試特別有用。
+                            </p>
+                            
+                            <div class="bg-white dark:bg-gray-800 rounded-xl p-6 border border-orange-200 dark:border-orange-700">
+                                <h4 class="font-semibold mb-4 text-orange-900 dark:text-orange-200">使用場景範例</h4>
+                                <ul class="space-y-3 text-sm">
+                                    <li class="flex items-start space-x-3">
+                                        <i class="fas fa-code text-orange-500 mt-1"></i>
+                                        <span><code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs font-mono">i == 100</code> - 當循環變數達到特定值</span>
+                                    </li>
+                                    <li class="flex items-start space-x-3">
+                                        <i class="fas fa-code text-orange-500 mt-1"></i>
+                                        <span><code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs font-mono">error_count > 0</code> - 當錯誤數量超過閾值</span>
+                                    </li>
+                                    <li class="flex items-start space-x-3">
+                                        <i class="fas fa-code text-orange-500 mt-1"></i>
+                                        <span><code class="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs font-mono">data is None</code> - 當數據為空值時</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl p-8 border border-blue-100 dark:border-blue-800/30">
+                            <h3 class="text-2xl font-semibold mb-6 flex items-center">
+                                <i class="fas fa-layer-group text-blue-500 mr-3"></i>
+                                多配置支持
+                            </h3>
+                            <p class="text-gray-600 dark:text-gray-300 mb-6">
+                                您可以在 launch.json 中添加多個配置，以便在不同情況下使用，例如不同的啟動參數或環境設置。
+                            </p>
+                            
+                            <div class="space-y-4">
+                                <div class="bg-white dark:bg-gray-800 rounded-lg p-4 border border-blue-200 dark:border-blue-700">
+                                    <h5 class="font-semibold text-blue-900 dark:text-blue-200 mb-2">配置類型</h5>
+                                    <ul class="text-sm space-y-1 text-gray-600 dark:text-gray-300">
+                                        <li>• 當前文件調試</li>
+                                        <li>• 模組調試</li>
+                                        <li>• 遠程調試</li>
+                                        <li>• 帶參數啟動</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-8">
+                        <div class="bg-gray-900 dark:bg-black rounded-2xl overflow-hidden shadow-2xl">
+                            <div class="bg-gray-800 dark:bg-gray-900 px-4 py-3 flex items-center justify-between">
+                                <div class="flex items-center space-x-2">
+                                    <i class="fas fa-file-code text-yellow-400"></i>
+                                    <span class="text-white text-sm">多配置範例</span>
+                                </div>
+                            </div>
+                            <div class="p-6">
+                                <pre class="text-sm text-gray-300 font-mono leading-relaxed overflow-x-auto"><code>{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: 當前文件",
+      "type": "python",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Python: 模組",
+      "type": "python",
+      "request": "launch",
+      "module": "myapp",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Python: 帶參數",
+      "type": "python",
+      "request": "launch",
+      "program": "${file}",
+      "args": ["--debug", "--verbose"],
+      "console": "integratedTerminal"
+    }
+  ]
+}</code></pre>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-gradient-to-r from-green-500 to-teal-500 rounded-2xl p-8 text-white">
+                            <h3 class="text-2xl font-semibold mb-4 flex items-center">
+                                <i class="fas fa-lightbulb mr-3"></i>
+                                最佳實踐建議
+                            </h3>
+                            <ul class="space-y-3">
+                                <li class="flex items-start space-x-3">
+                                    <i class="fas fa-check-circle mt-1 shrink-0"></i>
+                                    <span>合理設置斷點，避免在性能敏感的循環中設置過多斷點</span>
+                                </li>
+                                <li class="flex items-start space-x-3">
+                                    <i class="fas fa-check-circle mt-1 shrink-0"></i>
+                                    <span>使用條件斷點來精確定位問題，減少不必要的停頓</span>
+                                </li>
+                                <li class="flex items-start space-x-3">
+                                    <i class="fas fa-check-circle mt-1 shrink-0"></i>
+                                    <span>善用監視面板追蹤關鍵變數的變化趨勢</span>
+                                </li>
+                                <li class="flex items-start space-x-3">
+                                    <i class="fas fa-check-circle mt-1 shrink-0"></i>
+                                    <span>為不同的專案需求建立專用的調試配置</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-20 bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 dark:from-gray-800 dark:via-blue-900/20 dark:to-indigo-900/20">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <div class="bg-white dark:bg-gray-900 rounded-3xl p-12 shadow-xl border border-gray-200 dark:border-gray-700">
+                    <div class="w-20 h-20 bg-gradient-to-r from-green-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-8">
+                        <i class="fas fa-graduation-cap text-white text-2xl"></i>
+                    </div>
+                    
+                    <h2 class="text-4xl font-bold mb-6">
+                        <span class="bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent">
+                            恭喜！您已掌握 VS Code Python 調試
+                        </span>
+                    </h2>
+                    
+                    <p class="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
+                        這些步驟將幫助您在 VS Code 中高效地進行 Python 調試，從而提高開發效率和代碼質量。如果您在調試過程中遇到任何問題，請隨時查閱 VS Code 的官方文檔或社區資源以獲取更多幫助。
+                    </p>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="#setup" class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-xl font-semibold hover:from-green-600 hover:to-teal-600 transition-all duration-200 transform hover:scale-105 shadow-lg">
+                            <i class="fas fa-redo mr-2"></i>
+                            重新學習
+                        </a>
+                        <a href="https://code.visualstudio.com/docs/python/debugging" class="inline-flex items-center px-8 py-4 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 rounded-xl font-semibold hover:border-green-500 transition-all duration-200" target="_blank">
+                            <i class="fas fa-external-link-alt mr-2"></i>
+                            官方文檔
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-900 dark:bg-black text-white py-12">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <div class="flex items-center justify-center space-x-2 mb-4">
+                    <i class="fab fa-python text-2xl text-primary-500"></i>
+                    <span class="text-xl font-semibold">Python 調試指導</span>
+                </div>
+                <p class="text-gray-400 mb-6">掌握專業的 Python 調試技能，提升開發效率</p>
+                <div class="border-t border-gray-700 pt-6">
+                    <p class="text-gray-500 text-sm">
+                        © 2025 Cl Tseng. 版權所有。
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+
+        function setTheme(theme) {
+            if (theme === 'dark') {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        function getTheme() {
+            const stored = localStorage.getItem('theme');
+            if (stored) {
+                return stored;
+            }
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+
+        setTheme(getTheme());
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.classList.contains('dark') ? 'dark' : 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        });
+
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            if (!localStorage.getItem('theme')) {
+                setTheme(e.matches ? 'dark' : 'light');
+            }
+        });
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('section').forEach(section => {
+            observer.observe(section);
+        });
+    </script>
+
+    <style>
+        .animate-fade-in {
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        .group:hover .group-hover\:translate-x-1 {
+            transform: translateX(0.25rem);
+        }
+    </style>
+</body>
+</html>

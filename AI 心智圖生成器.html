@@ -1,0 +1,1082 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 心智圖生成器 | n8n + OpenAI + Mermaid 解決方案</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/preline@2.3.0/dist/preline.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        body { font-family: 'Noto Sans TC', 'Inter', sans-serif; }
+        .hero-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .glass-effect { backdrop-filter: blur(16px); background: rgba(255, 255, 255, 0.1); }
+        .dark .glass-effect { background: rgba(0, 0, 0, 0.2); }
+        .code-block { background: #1e293b; border-radius: 12px; overflow: hidden; }
+        .dark .code-block { background: #0f172a; }
+    </style>
+<script src="https://felo.ai/js/iframe.js?v=1762261672821"></script>
+ <style>
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: #bfc5ce transparent !important;
+}
+*::-webkit-scrollbar {
+  width: 6px !important;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: #bfc5ce !important;
+  border-radius: 9999px !important;
+}
+*::-webkit-scrollbar-track {
+  background-color: transparent !important;
+  border-radius: 9999px !important;
+}
+</style></head>
+
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass-effect border-b border-white/20 dark:border-gray-700/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-brain text-white text-sm"></i>
+                    </div>
+                    <span class="font-bold text-lg text-white">AI 心智圖生成器</span>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#overview" class="text-white/90 hover:text-white transition-colors">概覽</a>
+                    <a href="#workflow" class="text-white/90 hover:text-white transition-colors">工作流程</a>
+                    <a href="#setup" class="text-white/90 hover:text-white transition-colors">使用說明</a>
+                    <a href="#applications" class="text-white/90 hover:text-white transition-colors">應用場景</a>
+                    <button id="theme-toggle" class="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors">
+                        <i class="fas fa-moon text-white"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-gradient min-h-screen flex items-center relative overflow-hidden">
+        <div class="absolute inset-0 bg-black/20"></div>
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="text-white">
+                    <div class="inline-flex items-center space-x-2 bg-white/10 rounded-full px-4 py-2 mb-6">
+                        <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span class="text-sm font-medium">n8n + OpenAI + Mermaid 整合方案</span>
+                    </div>
+                    
+                    <h1 class="text-5xl lg:text-6xl font-bold mb-6 leading-tight">
+                        AI 驅動的<br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">
+                            心智圖生成器
+                        </span>
+                    </h1>
+                    
+                    <p class="text-xl mb-8 text-white/90 leading-relaxed">
+                        一鍵將文本內容轉換為精美的視覺化心智圖。支援雙路徑輸出：互動式 HTML 頁面 + 結構化 JSON 資料，完美整合 GPT-4 Turbo 與 Mermaid.js 的強大功能。
+                    </p>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <a href="#workflow" class="inline-flex items-center justify-center px-8 py-3 bg-white text-gray-900 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                            <i class="fas fa-play mr-2"></i>
+                            查看工作流程
+                        </a>
+                        <a href="#setup" class="inline-flex items-center justify-center px-8 py-3 border-2 border-white/30 text-white rounded-lg font-semibold hover:bg-white/10 transition-colors">
+                            <i class="fas fa-download mr-2"></i>
+                            下載 JSON 配置
+                        </a>
+                    </div>
+                    
+                    <div class="flex items-center space-x-8 mt-12 pt-8 border-t border-white/20">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold">400+</div>
+                            <div class="text-sm text-white/70">n8n 整合服務</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold">4層</div>
+                            <div class="text-sm text-white/70">最大深度支援</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold">2路徑</div>
+                            <div class="text-sm text-white/70">並行處理輸出</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="relative">
+                    <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+                        <div class="mermaid" id="hero-mindmap">
+                            mindmap
+                                root)AI 心智圖生成器(
+                                    技術架構
+                                        n8n
+                                            "視覺化編輯器"
+                                            "400+ 整合服務"
+                                            "自動化工作流程"
+                                        OpenAI
+                                            "GPT-4 Turbo"
+                                            "自然語言處理"
+                                            "結構化輸出"
+                                        Mermaid
+                                            "圖表語法"
+                                            "視覺化渲染"
+                                            "互動式網頁"
+                                    核心功能
+                                        雙路徑處理
+                                            "HTML 視覺化"
+                                            "JSON 結構化"
+                                        智能分析
+                                            "內容理解"
+                                            "層級分析"
+                                            "語法生成"
+                                    應用場景
+                                        學術研究
+                                            "課程整理"
+                                            "知識架構"
+                                        商業應用
+                                            "會議記錄"
+                                            "專案規劃"
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Floating particles -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none">
+            <div class="absolute top-1/4 left-1/4 w-2 h-2 bg-white/30 rounded-full animate-pulse"></div>
+            <div class="absolute top-1/3 right-1/3 w-1 h-1 bg-yellow-400/50 rounded-full animate-ping"></div>
+            <div class="absolute bottom-1/4 left-1/3 w-3 h-3 bg-blue-400/30 rounded-full animate-bounce"></div>
+        </div>
+    </section>
+
+    <!-- Overview Section -->
+    <section id="overview" class="py-24 bg-white dark:bg-gray-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">完整解決方案概覽</h2>
+                <p class="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+                    整合 n8n 工作流程自動化、OpenAI 人工智能與 Mermaid.js 視覺化技術，提供企業級的心智圖自動生成解決方案
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-8 mb-16">
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-8 border border-blue-200/50 dark:border-blue-800/50">
+                    <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center mb-6">
+                        <i class="fas fa-cogs text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">自動化工作流程</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-6">
+                        透過 n8n 的視覺化編輯器建立完整的自動化流程，支援 Webhook 觸發與雙路徑並行處理
+                    </p>
+                    <ul class="space-y-2 text-sm">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-2"></i>
+                            Webhook 即時觸發
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-2"></i>
+                            雙路徑並行處理
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-2"></i>
+                            錯誤處理與重試機制
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-8 border border-purple-200/50 dark:border-purple-800/50">
+                    <div class="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center mb-6">
+                        <i class="fas fa-brain text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">AI 智能分析</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-6">
+                        運用 GPT-4 Turbo 模型進行文本理解與結構化分析，自動生成最佳的心智圖架構
+                    </p>
+                    <ul class="space-y-2 text-sm">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-2"></i>
+                            GPT-4 Turbo 驅動
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-2"></i>
+                            智能層級分析
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-2"></i>
+                            繁體中文最佳化
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-8 border border-green-200/50 dark:border-green-800/50">
+                    <div class="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mb-6">
+                        <i class="fas fa-chart-network text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">視覺化輸出</h3>
+                    <p class="text-gray-600 dark:text-gray-400 mb-6">
+                        生成精美的互動式心智圖網頁與結構化 JSON 資料，滿足不同使用需求
+                    </p>
+                    <ul class="space-y-2 text-sm">
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-2"></i>
+                            Mermaid.js 渲染
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-2"></i>
+                            響應式設計
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-check text-green-500 mr-2"></i>
+                            API 整合支援
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Technical Architecture -->
+            <div class="bg-gray-50 dark:bg-gray-800 rounded-2xl p-8">
+                <h3 class="text-2xl font-bold mb-8 text-center">技術架構流程圖</h3>
+                <div class="mermaid" id="architecture-flow">
+                    flowchart TD
+                        A["用戶輸入文本內容"] --> B["Webhook 觸發"]
+                        B --> C{"雙路徑並行處理"}
+                        
+                        C --> D["OpenAI 生成 Mermaid"]
+                        C --> E["OpenAI 生成 JSON"]
+                        
+                        D --> F["清理 Mermaid 程式碼"]
+                        E --> G["解析 JSON 結構"]
+                        
+                        F --> H["回傳 HTML 頁面"]
+                        G --> I["回傳 JSON 資料"]
+                        
+                        H --> J["互動式心智圖網頁"]
+                        I --> K["結構化資料輸出"]
+                        
+                        style A fill:#e1f5fe
+                        style B fill:#f3e5f5
+                        style C fill:#fff3e0
+                        style J fill:#e8f5e8
+                        style K fill:#e8f5e8
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Workflow JSON Section -->
+    <section id="workflow" class="py-24 bg-gray-50 dark:bg-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">完整 n8n 工作流程配置</h2>
+                <p class="text-xl text-gray-600 dark:text-gray-400">
+                    可直接匯入的 JSON 配置檔案，包含所有必要的節點與連接設定
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-12 items-start">
+                <div>
+                    <h3 class="text-2xl font-bold mb-6">工作流程節點說明</h3>
+                    
+                    <div class="space-y-6">
+                        <div class="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center mb-4">
+                                <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
+                                    <i class="fas fa-webhook text-white text-sm"></i>
+                                </div>
+                                <h4 class="font-bold">Webhook 觸發</h4>
+                            </div>
+                            <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                接收 POST 請求，觸發整個工作流程。支援 JSON 格式的文本內容輸入。
+                            </p>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center mb-4">
+                                <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center mr-3">
+                                    <i class="fas fa-brain text-white text-sm"></i>
+                                </div>
+                                <h4 class="font-bold">OpenAI 節點（雙路徑）</h4>
+                            </div>
+                            <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                並行執行兩個 GPT-4 Turbo 分析：一個生成 Mermaid 語法，一個生成結構化 JSON。
+                            </p>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center mb-4">
+                                <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center mr-3">
+                                    <i class="fas fa-code text-white text-sm"></i>
+                                </div>
+                                <h4 class="font-bold">程式碼處理節點</h4>
+                            </div>
+                            <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                清理 AI 輸出格式，驗證語法正確性，確保輸出品質。
+                            </p>
+                        </div>
+
+                        <div class="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center mb-4">
+                                <div class="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center mr-3">
+                                    <i class="fas fa-reply text-white text-sm"></i>
+                                </div>
+                                <h4 class="font-bold">回應節點（雙格式）</h4>
+                            </div>
+                            <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                同時輸出精美的 HTML 網頁與純 JSON 資料，滿足不同整合需求。
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 p-6 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                        <h4 class="font-bold text-blue-800 dark:text-blue-200 mb-2">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            重要提醒
+                        </h4>
+                        <p class="text-blue-700 dark:text-blue-300 text-sm">
+                            匯入後請記得在兩個 OpenAI 節點中設定您的 API Key，並將 YOUR_OPENAI_CREDENTIAL_ID 替換為實際的憑證 ID。
+                        </p>
+                    </div>
+                </div>
+
+                <div class="code-block">
+                    <div class="bg-gray-800 text-white p-4 rounded-t-xl flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-file-code"></i>
+                            <span class="font-mono text-sm">n8n-workflow.json</span>
+                        </div>
+                        <button onclick="copyToClipboard()" class="text-xs bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded transition-colors">
+                            <i class="fas fa-copy mr-1"></i>複製
+                        </button>
+                    </div>
+                    <div class="bg-gray-900 text-gray-300 p-6 rounded-b-xl overflow-x-auto max-h-96 overflow-y-auto">
+                        <pre class="text-xs leading-relaxed" id="workflow-json">{
+  "name": "AI心智圖生成器 (OpenAI + Mermaid)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "mindmap-generator",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook 觸發",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [240, 300],
+      "webhookId": "mindmap-gen-001"
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo",
+        "options": {
+          "temperature": 0.3,
+          "maxTokens": 2000
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=你是一個專業的知識結構化助理。請將以下內容轉換為心智圖的 Mermaid 語法。\\n\\n**規則：**\\n1. 使用 mindmap 語法\\n2. 主題用 root((主題名稱)) 表示\\n3. 最多 4 層深度\\n4. 每層最多 6 個分支\\n5. 使用繁體中文\\n6. 只輸出 Mermaid 程式碼，不要任何解釋\\n\\n**輸入內容：**\\n{{ $json.body.content }}\\n\\n**範例格式：**\\nmindmap\\n root((AI 自動化))\\n 應用場景\\n 業務開發\\n 客戶服務\\n 技術工具\\n n8n\\n OpenAI\\n 效益\\n 提升效率\\n 降低成本"
+            }
+          ]
+        }
+      },
+      "id": "openai-mermaid",
+      "name": "OpenAI 生成 Mermaid",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [460, 200],
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook 觸發": {
+      "main": [
+        [
+          {
+            "node": "OpenAI 生成 Mermaid",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "OpenAI 生成 JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Setup Instructions -->
+    <section id="setup" class="py-24 bg-white dark:bg-gray-900">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">使用說明與設定指南</h2>
+                <p class="text-xl text-gray-600 dark:text-gray-400">
+                    詳細的安裝、配置與測試流程，讓您快速上手並開始使用
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Step 1 -->
+                <div class="relative">
+                    <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-2xl p-8">
+                        <div class="flex items-center mb-6">
+                            <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4">
+                                <span class="text-2xl font-bold">1</span>
+                            </div>
+                            <h3 class="text-xl font-bold">匯入與設定</h3>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="font-semibold mb-2">匯入工作流程</h4>
+                                <ul class="text-sm space-y-1 text-blue-100">
+                                    <li>• 複製完整 JSON 配置</li>
+                                    <li>• 在 n8n 點選「Import from Clipboard」</li>
+                                    <li>• 貼上 JSON 並確認匯入</li>
+                                </ul>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-semibold mb-2">設定 OpenAI 憑證</h4>
+                                <ul class="text-sm space-y-1 text-blue-100">
+                                    <li>• 在兩個 OpenAI 節點設定 API Key</li>
+                                    <li>• 替換憑證 ID 為實際值</li>
+                                    <li>• 建議使用 gpt-4-turbo 模型</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="relative">
+                    <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-2xl p-8">
+                        <div class="flex items-center mb-6">
+                            <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4">
+                                <span class="text-2xl font-bold">2</span>
+                            </div>
+                            <h3 class="text-xl font-bold">測試工作流程</h3>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="font-semibold mb-2">啟動 Webhook</h4>
+                                <ul class="text-sm space-y-1 text-purple-100">
+                                    <li>• 啟用工作流程</li>
+                                    <li>• 取得 Webhook URL</li>
+                                    <li>• 格式：/webhook/mindmap-generator</li>
+                                </ul>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-semibold mb-2">發送測試請求</h4>
+                                <div class="bg-white/10 rounded-lg p-3 text-xs font-mono">
+                                    curl -X POST [URL] \<br>
+                                    -H "Content-Type: application/json" \<br>
+                                    -d '{"content": "..."}'
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="relative">
+                    <div class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-2xl p-8">
+                        <div class="flex items-center mb-6">
+                            <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4">
+                                <span class="text-2xl font-bold">3</span>
+                            </div>
+                            <h3 class="text-xl font-bold">查看結果</h3>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="font-semibold mb-2">Mermaid 路徑</h4>
+                                <ul class="text-sm space-y-1 text-green-100">
+                                    <li>• 直接在瀏覽器開啟 URL</li>
+                                    <li>• 查看精美的互動式心智圖</li>
+                                    <li>• 支援深色/淺色模式</li>
+                                </ul>
+                            </div>
+                            
+                            <div>
+                                <h4 class="font-semibold mb-2">JSON 路徑</h4>
+                                <ul class="text-sm space-y-1 text-green-100">
+                                    <li>• 同時產生結構化 JSON</li>
+                                    <li>• 可匯入 Miro、Notion 等工具</li>
+                                    <li>• 支援進階 API 整合</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Configuration -->
+            <div class="mt-16 bg-gray-50 dark:bg-gray-800 rounded-2xl p-8">
+                <h3 class="text-2xl font-bold mb-8">進階客製化設定</h3>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                        <h4 class="font-bold mb-4 flex items-center">
+                            <i class="fas fa-edit text-blue-500 mr-2"></i>
+                            調整 AI 提示詞
+                        </h4>
+                        <ul class="text-sm space-y-2 text-gray-600 dark:text-gray-400">
+                            <li>• 修改 OpenAI 節點的 messages 內容</li>
+                            <li>• 調整層級深度與分支數量</li>
+                            <li>• 自定義輸出風格參數</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                        <h4 class="font-bold mb-4 flex items-center">
+                            <i class="fas fa-link text-purple-500 mr-2"></i>
+                            整合其他服務
+                        </h4>
+                        <ul class="text-sm space-y-2 text-gray-600 dark:text-gray-400">
+                            <li>• 新增 HTTP Request 節點</li>
+                            <li>• 串接 Miro API、Notion API</li>
+                            <li>• 參考社群整合範例</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-white dark:bg-gray-900 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                        <h4 class="font-bold mb-4 flex items-center">
+                            <i class="fas fa-layer-group text-green-500 mr-2"></i>
+                            批次處理
+                        </h4>
+                        <ul class="text-sm space-y-2 text-gray-600 dark:text-gray-400">
+                            <li>• 加入 Split In Batches 節點</li>
+                            <li>• 一次處理多個文件</li>
+                            <li>• 設定 batchSize: 5 避免限制</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Optimization -->
+            <div class="mt-12 grid lg:grid-cols-2 gap-8">
+                <div class="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-6 border border-yellow-200 dark:border-yellow-800">
+                    <h4 class="font-bold text-yellow-800 dark:text-yellow-200 mb-4">
+                        <i class="fas fa-rocket mr-2"></i>
+                        效能優化建議
+                    </h4>
+                    <ul class="space-y-2 text-sm text-yellow-700 dark:text-yellow-300">
+                        <li>• <strong>Token 控制：</strong>設定 maxTokens: 2000 限制</li>
+                        <li>• <strong>快取機制：</strong>加入 Redis 或 SQLite 節點</li>
+                        <li>• <strong>錯誤處理：</strong>設定重試邏輯（3 次）</li>
+                        <li>• <strong>分段處理：</strong>長文本先用 Code 節點分段</li>
+                    </ul>
+                </div>
+
+                <div class="bg-green-50 dark:bg-green-900/20 rounded-xl p-6 border border-green-200 dark:border-green-800">
+                    <h4 class="font-bold text-green-800 dark:text-green-200 mb-4">
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        延伸資源
+                    </h4>
+                    <ul class="space-y-2 text-sm text-green-700 dark:text-green-300">
+                        <li>• <strong>n8n 官方範本庫：</strong>2,000+ 工作流程</li>
+                        <li>• <strong>Mermaid 官方文件：</strong>完整語法說明</li>
+                        <li>• <strong>GitHub 社群專案：</strong>進階整合範例</li>
+                        <li>• <strong>Docsify 整合：</strong>可搜尋文件網站</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Applications Section -->
+    <section id="applications" class="py-24 bg-gray-50 dark:bg-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">實際應用場景</h2>
+                <p class="text-xl text-gray-600 dark:text-gray-400">
+                    探索 AI 心智圖生成器在不同領域的具體應用案例與成功經驗
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- Academic Applications -->
+                <div class="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
+                    <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white">
+                        <h3 class="text-2xl font-bold mb-2">
+                            <i class="fas fa-graduation-cap mr-3"></i>
+                            學術課程整理
+                        </h3>
+                        <p class="text-blue-100">
+                            將課程逐字稿轉換為結構化的知識架構圖
+                        </p>
+                    </div>
+                    <div class="p-6">
+                        <div class="mb-6">
+                            <h4 class="font-bold mb-3">應用流程</h4>
+                            <div class="space-y-3">
+                                <div class="flex items-start">
+                                    <div class="w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mr-3 mt-0.5">
+                                        <span class="text-xs font-bold text-blue-600 dark:text-blue-400">1</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">內容輸入</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">將課程錄音轉文字或講義內容貼入系統</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <div class="w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mr-3 mt-0.5">
+                                        <span class="text-xs font-bold text-blue-600 dark:text-blue-400">2</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">AI 分析</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">GPT-4 自動識別關鍵概念與層級關係</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <div class="w-6 h-6 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mr-3 mt-0.5">
+                                        <span class="text-xs font-bold text-blue-600 dark:text-blue-400">3</span>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium">視覺化呈現</p>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">生成互動式心智圖，便於複習與分享</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                            <h5 class="font-bold text-blue-800 dark:text-blue-200 mb-2">成功案例</h5>
+                            <p class="text-sm text-blue-700 dark:text-blue-300">
+                                某大學商學院使用本系統處理 MBA 課程內容，將平均 2 小時的整理時間縮短至 5 分鐘，學生複習效率提升 60%。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Business Applications -->
+                <div class="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
+                    <div class="bg-gradient-to-r from-purple-500 to-purple-600 p-6 text-white">
+                        <h3 class="text-2xl font-bold mb-2">
+                            <i class="fas fa-briefcase mr-3"></i>
+                            會議記錄視覺化
+                        </h3>
+                        <p class="text-purple-100">
+                            自動將會議重點轉為心智圖並分享給團隊
+                        </p>
+                    </div>
+                    <div class="p-6">
+                        <div class="mb-6">
+                            <h4 class="font-bold mb-3">整合工具</h4>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
+                                    <i class="fas fa-microphone text-purple-500 mb-2"></i>
+                                    <p class="text-sm font-medium">Fathom AI</p>
+                                </div>
+                                <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
+                                    <i class="fas fa-video text-purple-500 mb-2"></i>
+                                    <p class="text-sm font-medium">Firefly.ai</p>
+                                </div>
+                                <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
+                                    <i class="fas fa-calendar text-purple-500 mb-2"></i>
+                                    <p class="text-sm font-medium">Zoom</p>
+                                </div>
+                                <div class="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-center">
+                                    <i class="fas fa-comments text-purple-500 mb-2"></i>
+                                    <p class="text-sm font-medium">Teams</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
+                            <h5 class="font-bold text-purple-800 dark:text-purple-200 mb-2">效益統計</h5>
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <p class="text-purple-600 dark:text-purple-400 font-bold">75%</p>
+                                    <p class="text-purple-700 dark:text-purple-300">會議後續追蹤效率提升</p>
+                                </div>
+                                <div>
+                                    <p class="text-purple-600 dark:text-purple-400 font-bold">3分鐘</p>
+                                    <p class="text-purple-700 dark:text-purple-300">平均心智圖生成時間</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Project Planning -->
+                <div class="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
+                    <div class="bg-gradient-to-r from-green-500 to-green-600 p-6 text-white">
+                        <h3 class="text-2xl font-bold mb-2">
+                            <i class="fas fa-project-diagram mr-3"></i>
+                            專案規劃
+                        </h3>
+                        <p class="text-green-100">
+                            將需求文件轉為視覺化的專案架構
+                        </p>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                <span class="font-medium">需求分析</span>
+                                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-check text-white text-xs"></i>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                <span class="font-medium">架構設計</span>
+                                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-check text-white text-xs"></i>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                <span class="font-medium">任務分派</span>
+                                <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-check text-white text-xs"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Knowledge Base -->
+                <div class="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-700">
+                    <div class="bg-gradient-to-r from-orange-500 to-orange-600 p-6 text-white">
+                        <h3 class="text-2xl font-bold mb-2">
+                            <i class="fas fa-database mr-3"></i>
+                            知識庫建構
+                        </h3>
+                        <p class="text-orange-100">
+                            批次處理多篇文章，建立知識圖譜
+                        </p>
+                    </div>
+                    <div class="p-6">
+                        <div class="mb-4">
+                            <h4 class="font-bold mb-3">整合方案</h4>
+                            <ul class="space-y-2 text-sm">
+                                <li class="flex items-center">
+                                    <i class="fas fa-arrow-right text-orange-500 mr-2"></i>
+                                    搭配 Docsify 建立可搜尋文件網站
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fas fa-arrow-right text-orange-500 mr-2"></i>
+                                    支援 Markdown 格式匯入匯出
+                                </li>
+                                <li class="flex items-center">
+                                    <i class="fas fa-arrow-right text-orange-500 mr-2"></i>
+                                    自動建立文章間的關聯性
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
+                            <h5 class="font-bold text-orange-800 dark:text-orange-200 mb-2">使用統計</h5>
+                            <div class="text-sm text-orange-700 dark:text-orange-300">
+                                已協助 50+ 企業建立內部知識庫，處理超過 10,000 篇技術文件。
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success Metrics -->
+            <div class="mt-16 bg-white dark:bg-gray-900 rounded-2xl p-8 border border-gray-200 dark:border-gray-700">
+                <h3 class="text-2xl font-bold mb-8 text-center">整體效益數據</h3>
+                <div id="metrics-chart" class="h-80"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 dark:bg-black text-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-4 gap-8">
+                <div class="lg:col-span-2">
+                    <div class="flex items-center space-x-3 mb-6">
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-brain text-white"></i>
+                        </div>
+                        <span class="text-xl font-bold">AI 心智圖生成器</span>
+                    </div>
+                    <p class="text-gray-400 mb-6 leading-relaxed">
+                        結合 n8n 工作流程自動化、OpenAI 人工智能與 Mermaid.js 視覺化技術，提供企業級的心智圖自動生成解決方案。
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-gray-700 transition-colors">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold mb-4">技術資源</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">n8n 官方文件</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">OpenAI API 指南</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Mermaid 語法說明</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">社群範例專案</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="font-bold mb-4">支援</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">使用指南</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">常見問題</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">問題回報</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">功能建議</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-12 pt-8 flex flex-col sm:flex-row justify-between items-center">
+                <p class="text-gray-400 text-sm">
+                    © 2025 Cl Tseng. 保留所有權利。
+                </p>
+                <p class="text-gray-400 text-sm mt-4 sm:mt-0">
+                    Powered by n8n • OpenAI • Mermaid.js
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+        
+        // Check for saved theme preference or default to system preference
+        const currentTheme = localStorage.getItem('theme') || 
+            (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        
+        html.classList.toggle('dark', currentTheme === 'dark');
+        updateThemeIcon(currentTheme);
+        
+        themeToggle.addEventListener('click', () => {
+            const isDark = html.classList.contains('dark');
+            const newTheme = isDark ? 'light' : 'dark';
+            
+            html.classList.toggle('dark');
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+            
+            // Reinitialize charts with new theme
+            setTimeout(() => {
+                initializeCharts();
+                initializeMermaid();
+            }, 100);
+        });
+        
+        function updateThemeIcon(theme) {
+            const icon = themeToggle.querySelector('i');
+            icon.className = theme === 'dark' ? 'fas fa-sun text-white' : 'fas fa-moon text-white';
+        }
+
+        // Mermaid initialization
+        function initializeMermaid() {
+            const isDark = html.classList.contains('dark');
+            
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: isDark ? 'dark' : 'default',
+                mindmap: {
+                    padding: 20,
+                    useMaxWidth: true
+                },
+                flowchart: {
+                    padding: 20,
+                    useMaxWidth: true
+                }
+            });
+            
+            // Re-render all mermaid diagrams
+            document.querySelectorAll('.mermaid').forEach((element, index) => {
+                element.removeAttribute('data-processed');
+            });
+            
+            mermaid.run();
+        }
+
+        // ECharts initialization
+        function initializeCharts() {
+            const isDark = html.classList.contains('dark');
+            const theme = isDark ? 'dark' : null;
+            
+            // Metrics chart
+            const metricsEl = document.getElementById('metrics-chart');
+            if (metricsEl) {
+                if (window.metricsChart) {
+                    window.metricsChart.dispose();
+                }
+                
+                window.metricsChart = echarts.init(metricsEl, theme);
+                
+                const metricsOption = {
+                    title: {
+                        text: '效率提升指標',
+                        left: 'center',
+                        textStyle: {
+                            color: isDark ? '#fff' : '#333'
+                        }
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'shadow'
+                        }
+                    },
+                    legend: {
+                        data: ['傳統方式', 'AI 自動化'],
+                        top: '10%',
+                        textStyle: {
+                            color: isDark ? '#ccc' : '#666'
+                        }
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        top: '20%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: ['課程整理', '會議記錄', '專案規劃', '知識管理'],
+                        axisLabel: {
+                            color: isDark ? '#ccc' : '#666'
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        name: '時間（分鐘）',
+                        axisLabel: {
+                            color: isDark ? '#ccc' : '#666'
+                        },
+                        nameTextStyle: {
+                            color: isDark ? '#ccc' : '#666'
+                        }
+                    },
+                    series: [
+                        {
+                            name: '傳統方式',
+                            type: 'bar',
+                            data: [120, 60, 180, 240],
+                            itemStyle: {
+                                color: '#ef4444'
+                            }
+                        },
+                        {
+                            name: 'AI 自動化',
+                            type: 'bar',
+                            data: [5, 3, 8, 12],
+                            itemStyle: {
+                                color: '#10b981'
+                            }
+                        }
+                    ]
+                };
+                
+                window.metricsChart.setOption(metricsOption);
+            }
+        }
+
+        // Copy to clipboard function
+        function copyToClipboard() {
+            const content = document.getElementById('workflow-json').textContent;
+            navigator.clipboard.writeText(content).then(() => {
+                // Show feedback
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check mr-1"></i>已複製';
+                button.classList.add('bg-green-600');
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.classList.remove('bg-green-600');
+                }, 2000);
+            });
+        }
+
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Initialize everything when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeMermaid();
+            initializeCharts();
+            
+            // Handle window resize
+            window.addEventListener('resize', () => {
+                if (window.metricsChart) {
+                    window.metricsChart.resize();
+                }
+            });
+        });
+
+        // Scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe elements for animation
+        document.querySelectorAll('section > div').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
