@@ -1,0 +1,1441 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系統分析師專案需求分析工作產出範本</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/preline@2.3.0/dist/preline.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Noto Sans TC', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+<script src="https://felo.ai/js/iframe.js?v=1763360256861"></script>
+ <style>
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: #bfc5ce transparent !important;
+}
+*::-webkit-scrollbar {
+  width: 6px !important;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: #bfc5ce !important;
+  border-radius: 9999px !important;
+}
+*::-webkit-scrollbar-track {
+  background-color: transparent !important;
+  border-radius: 9999px !important;
+}
+</style></head>
+<body class="font-sans antialiased bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-900 dark:via-slate-800 dark:to-blue-900 text-gray-900 dark:text-white transition-all duration-300">
+
+<!-- Navigation -->
+<nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-gray-200/30 dark:border-gray-700/30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center py-4">
+            <div class="flex items-center">
+                <i class="fas fa-project-diagram text-2xl text-blue-600 dark:text-blue-400 mr-3"></i>
+                <span class="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">SA 工作產出範本</span>
+            </div>
+            <div class="flex items-center space-x-6">
+                <a href="#background" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">背景</a>
+                <a href="#stakeholders" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">利害關係人</a>
+                <a href="#requirements" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">需求</a>
+                <a href="#workflow" class="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">流程</a>
+                <button id="themeToggle" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                    <i class="fas fa-moon dark:hidden"></i>
+                    <i class="fas fa-sun hidden dark:inline"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+    <div class="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-indigo-500/10 to-purple-600/10 dark:from-blue-400/20 dark:via-indigo-400/20 dark:to-purple-400/20"></div>
+    <div class="absolute inset-0">
+        <svg class="absolute top-0 left-0 w-full h-full" viewBox="0 0 1200 800">
+            <defs>
+                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="currentColor" stroke-width="0.5" class="text-blue-200/30 dark:text-blue-400/20"/>
+                </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)"/>
+        </svg>
+    </div>
+    
+    <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div class="mb-8">
+            <span class="inline-block px-4 py-2 bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 rounded-full text-sm font-medium mb-4">
+                Jira Issue 資料完整性檢查專案
+            </span>
+        </div>
+        
+        <h1 class="text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight mb-6">
+            系統分析師專案<br>
+            <span class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+                需求分析工作產出範本
+            </span>
+        </h1>
+        
+        <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed mb-12">
+            為 AI/自動化檢查 Jira issue 資料完整性專案，提供完整的系統分析師工作產出文件架構，
+            從專案目的、相關者分析到驗收標準的全面指南。
+        </p>
+        
+        <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6">
+            <a href="#project-info" class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                <i class="fas fa-rocket mr-3"></i>
+                開始使用範本
+            </a>
+            <a href="#workflow" class="inline-flex items-center px-8 py-4 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200">
+                <i class="fas fa-sitemap mr-3"></i>
+                查看流程圖
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Project Info Section -->
+<section id="project-info" class="py-24 bg-white dark:bg-slate-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">專案基本資訊</h2>
+            <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                建立完整的專案基礎資訊架構，確保所有關鍵要素都被妥善記錄和管理
+            </p>
+        </div>
+        
+        <div class="grid md:grid-cols-2 gap-8 mb-16">
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 p-8 rounded-2xl border border-blue-100 dark:border-blue-800/50">
+                <div class="flex items-center mb-6">
+                    <div class="bg-blue-600 dark:bg-blue-500 p-3 rounded-lg mr-4">
+                        <i class="fas fa-info-circle text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white">文件基本資訊</h3>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">專案名稱</label>
+                            <div class="p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <span class="text-gray-600 dark:text-gray-400">【待填入】</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">文件版本</label>
+                            <div class="p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <span class="text-gray-600 dark:text-gray-400">v1.0 / 日期</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">撰寫者</label>
+                            <div class="p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <span class="text-gray-600 dark:text-gray-400">系統分析師</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">審閱者</label>
+                            <div class="p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <span class="text-gray-600 dark:text-gray-400">專案經理</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">文件狀態</label>
+                        <div class="flex space-x-4">
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-2 text-blue-600 dark:text-blue-400">
+                                <span class="text-gray-700 dark:text-gray-300">草案</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-2 text-blue-600 dark:text-blue-400">
+                                <span class="text-gray-700 dark:text-gray-300">審閱中</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" class="mr-2 text-blue-600 dark:text-blue-400">
+                                <span class="text-gray-700 dark:text-gray-300">核准</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 p-8 rounded-2xl border border-green-100 dark:border-green-800/50">
+                <div class="flex items-center mb-6">
+                    <div class="bg-green-600 dark:bg-green-500 p-3 rounded-lg mr-4">
+                        <i class="fas fa-target text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white">專案目的與背景</h3>
+                </div>
+                
+                <div class="space-y-6">
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">1.1 專案目的</h4>
+                        <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
+                            導入 AI/自動化檢查 Jira issue 資料完整性的最終目標，提升回報品質與處理效率。
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">1.2 背景說明</h4>
+                        <ul class="space-y-2">
+                            <li class="flex items-start">
+                                <i class="fas fa-circle text-red-500 text-xs mt-2 mr-3"></i>
+                                <div>
+                                    <strong class="text-gray-900 dark:text-white">現況：</strong>
+                                    <span class="text-gray-600 dark:text-gray-300">使用者依範本填寫，但系統不強制檢查</span>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-circle text-yellow-500 text-xs mt-2 mr-3"></i>
+                                <div>
+                                    <strong class="text-gray-900 dark:text-white">問題：</strong>
+                                    <span class="text-gray-600 dark:text-gray-300">常見漏填必要欄位、回報品質不一，影響後續處理效率</span>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-circle text-blue-500 text-xs mt-2 mr-3"></i>
+                                <div>
+                                    <strong class="text-gray-900 dark:text-white">依據：</strong>
+                                    <span class="text-gray-600 dark:text-gray-300">Ping Chen 提出之需求</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stakeholders Section -->
+<section id="stakeholders" class="py-24 bg-gray-50 dark:bg-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">相關者分析</h2>
+            <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                識別並分析所有專案利害關係人，建立清晰的權責關係矩陣
+            </p>
+        </div>
+        
+        <div class="grid lg:grid-cols-2 gap-12">
+            <!-- Internal Stakeholders -->
+            <div class="space-y-8">
+                <div class="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center mb-6">
+                        <div class="bg-blue-600 dark:bg-blue-500 p-3 rounded-lg mr-4">
+                            <i class="fas fa-users text-white text-xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">內部利害關係人</h3>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg border-l-4 border-blue-600 dark:border-blue-400">
+                            <div class="flex justify-between items-center">
+                                <span class="font-semibold text-gray-900 dark:text-white">專案主管</span>
+                                <span class="text-sm text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-800 px-2 py-1 rounded">決策者</span>
+                            </div>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mt-2">負責專案策略方向與資源配置決策</p>
+                        </div>
+                        
+                        <div class="p-4 bg-green-50 dark:bg-green-900/30 rounded-lg border-l-4 border-green-600 dark:border-green-400">
+                            <div class="flex justify-between items-center">
+                                <span class="font-semibold text-gray-900 dark:text-white">PMO</span>
+                                <span class="text-sm text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-800 px-2 py-1 rounded">監督者</span>
+                            </div>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mt-2">專案管理辦公室，負責專案監督與治理</p>
+                        </div>
+                        
+                        <div class="p-4 bg-purple-50 dark:bg-purple-900/30 rounded-lg border-l-4 border-purple-600 dark:border-purple-400">
+                            <div class="flex justify-between items-center">
+                                <span class="font-semibold text-gray-900 dark:text-white">開發團隊</span>
+                                <span class="text-sm text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-800 px-2 py-1 rounded">執行者</span>
+                            </div>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mt-2">前端／後端／AI 工程師，負責系統實作</p>
+                        </div>
+                        
+                        <div class="p-4 bg-orange-50 dark:bg-orange-900/30 rounded-lg border-l-4 border-orange-600 dark:border-orange-400">
+                            <div class="flex justify-between items-center">
+                                <span class="font-semibold text-gray-900 dark:text-white">測試團隊</span>
+                                <span class="text-sm text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-800 px-2 py-1 rounded">驗證者</span>
+                            </div>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mt-2">負責功能測試與品質保證</p>
+                        </div>
+                        
+                        <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border-l-4 border-gray-600 dark:border-gray-400">
+                            <div class="flex justify-between items-center">
+                                <span class="font-semibold text-gray-900 dark:text-white">IT 運維</span>
+                                <span class="text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-600 px-2 py-1 rounded">支援者</span>
+                            </div>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mt-2">負責系統部署與維運支援</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- External Stakeholders -->
+                <div class="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center mb-6">
+                        <div class="bg-indigo-600 dark:bg-indigo-500 p-3 rounded-lg mr-4">
+                            <i class="fas fa-handshake text-white text-xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white">外部利害關係人</h3>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="p-4 bg-indigo-50 dark:bg-indigo-900/30 rounded-lg border-l-4 border-indigo-600 dark:border-indigo-400">
+                            <div class="flex justify-between items-center">
+                                <span class="font-semibold text-gray-900 dark:text-white">最終使用者</span>
+                                <span class="text-sm text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-800 px-2 py-1 rounded">受益者</span>
+                            </div>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mt-2">QA／RD／PMA，系統的實際操作者</p>
+                        </div>
+                        
+                        <div class="p-4 bg-teal-50 dark:bg-teal-900/30 rounded-lg border-l-4 border-teal-600 dark:border-teal-400">
+                            <div class="flex justify-between items-center">
+                                <span class="font-semibold text-gray-900 dark:text-white">第三方顧問／廠商</span>
+                                <span class="text-sm text-teal-600 dark:text-teal-400 bg-teal-100 dark:bg-teal-800 px-2 py-1 rounded">協作者</span>
+                            </div>
+                            <p class="text-sm text-gray-600 dark:text-gray-300 mt-2">提供技術支援與專業諮詢服務</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- RACI Matrix -->
+            <div class="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center mb-6">
+                    <div class="bg-red-600 dark:bg-red-500 p-3 rounded-lg mr-4">
+                        <i class="fas fa-table text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white">權責表（RACI）</h3>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-gray-200 dark:border-gray-700">
+                                <th class="text-left py-3 px-2 font-semibold text-gray-900 dark:text-white">角色/階段</th>
+                                <th class="text-center py-3 px-2 font-semibold text-gray-900 dark:text-white">需求定義</th>
+                                <th class="text-center py-3 px-2 font-semibold text-gray-900 dark:text-white">設計</th>
+                                <th class="text-center py-3 px-2 font-semibold text-gray-900 dark:text-white">測試</th>
+                                <th class="text-center py-3 px-2 font-semibold text-gray-900 dark:text-white">驗收</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-gray-100 dark:border-gray-700">
+                                <td class="py-3 px-2 font-medium text-gray-900 dark:text-white">專案主管</td>
+                                <td class="text-center py-3 px-2"><span class="bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 px-2 py-1 rounded text-xs font-bold">A</span></td>
+                                <td class="text-center py-3 px-2"><span class="bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 px-2 py-1 rounded text-xs font-bold">C</span></td>
+                                <td class="text-center py-3 px-2"><span class="bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 px-2 py-1 rounded text-xs font-bold">I</span></td>
+                                <td class="text-center py-3 px-2"><span class="bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 px-2 py-1 rounded text-xs font-bold">A</span></td>
+                            </tr>
+                            <tr class="border-b border-gray-100 dark:border-gray-700">
+                                <td class="py-3 px-2 font-medium text-gray-900 dark:text-white">PMO</td>
+                                <td class="text-center py-3 px-2"><span class="bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 px-2 py-1 rounded text-xs font-bold">C</span></td>
+                                <td class="text-center py-3 px-2"><span class="bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 px-2 py-1 rounded text-xs font-bold">A</span></td>
+                                <td class="text-center py-3 px-2"><span class="bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 px-2 py-1 rounded text-xs font-bold">C</span></td>
+                                <td class="text-center py-3 px-2"><span class="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-2 py-1 rounded text-xs font-bold">R</span></td>
+                            </tr>
+                            <tr class="border-b border-gray-100 dark:border-gray-700">
+                                <td class="py-3 px-2 font-medium text-gray-900 dark:text-white">開發團隊</td>
+                                <td class="text-center py-3 px-2"><span class="bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 px-2 py-1 rounded text-xs font-bold">C</span></td>
+                                <td class="text-center py-3 px-2"><span class="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-2 py-1 rounded text-xs font-bold">R</span></td>
+                                <td class="text-center py-3 px-2"><span class="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-2 py-1 rounded text-xs font-bold">R</span></td>
+                                <td class="text-center py-3 px-2"><span class="bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 px-2 py-1 rounded text-xs font-bold">I</span></td>
+                            </tr>
+                            <tr class="border-b border-gray-100 dark:border-gray-700">
+                                <td class="py-3 px-2 font-medium text-gray-900 dark:text-white">測試團隊</td>
+                                <td class="text-center py-3 px-2"><span class="bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 px-2 py-1 rounded text-xs font-bold">I</span></td>
+                                <td class="text-center py-3 px-2"><span class="bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 px-2 py-1 rounded text-xs font-bold">C</span></td>
+                                <td class="text-center py-3 px-2"><span class="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-2 py-1 rounded text-xs font-bold">R</span></td>
+                                <td class="text-center py-3 px-2"><span class="bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 px-2 py-1 rounded text-xs font-bold">C</span></td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-2 font-medium text-gray-900 dark:text-white">最終使用者</td>
+                                <td class="text-center py-3 px-2"><span class="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-2 py-1 rounded text-xs font-bold">R</span></td>
+                                <td class="text-center py-3 px-2"><span class="bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 px-2 py-1 rounded text-xs font-bold">I</span></td>
+                                <td class="text-center py-3 px-2"><span class="bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 px-2 py-1 rounded text-xs font-bold">C</span></td>
+                                <td class="text-center py-3 px-2"><span class="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-2 py-1 rounded text-xs font-bold">R</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div class="flex items-center">
+                        <span class="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-2 py-1 rounded text-xs font-bold mr-2">R</span>
+                        <span class="text-gray-600 dark:text-gray-300">負責執行</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 px-2 py-1 rounded text-xs font-bold mr-2">A</span>
+                        <span class="text-gray-600 dark:text-gray-300">當責</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 px-2 py-1 rounded text-xs font-bold mr-2">C</span>
+                        <span class="text-gray-600 dark:text-gray-300">諮詢</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 px-2 py-1 rounded text-xs font-bold mr-2">I</span>
+                        <span class="text-gray-600 dark:text-gray-300">知會</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Scope & Analysis Section -->
+<section class="py-24 bg-white dark:bg-slate-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">範疇定義與現況分析</h2>
+            <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                明確定義專案範疇界限，深入分析既有系統現況與差距
+            </p>
+        </div>
+        
+        <div class="grid lg:grid-cols-2 gap-12 mb-16">
+            <!-- Scope Definition -->
+            <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-8 rounded-2xl border border-green-100 dark:border-green-800/50">
+                <div class="flex items-center mb-6">
+                    <div class="bg-green-600 dark:bg-green-500 p-3 rounded-lg mr-4">
+                        <i class="fas fa-bullseye text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white">範疇定義</h3>
+                </div>
+                
+                <div class="space-y-6">
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                            <i class="fas fa-check-circle text-green-600 dark:text-green-400 mr-2"></i>
+                            包含項目
+                        </h4>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-plus text-green-600 dark:text-green-400 text-sm mt-1 mr-3"></i>
+                                <span class="text-gray-700 dark:text-gray-300">Jira issue 建立流程中，加入必要欄位檢查機制</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-plus text-green-600 dark:text-green-400 text-sm mt-1 mr-3"></i>
+                                <span class="text-gray-700 dark:text-gray-300">AI/規則引擎自動判讀與提示</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-plus text-green-600 dark:text-green-400 text-sm mt-1 mr-3"></i>
+                                <span class="text-gray-700 dark:text-gray-300">前端 UI/UX 修改</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-plus text-green-600 dark:text-green-400 text-sm mt-1 mr-3"></i>
+                                <span class="text-gray-700 dark:text-gray-300">後端 API 與資料庫欄位變更</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+                            <i class="fas fa-times-circle text-red-500 mr-2"></i>
+                            排除項目
+                        </h4>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fas fa-minus text-red-500 text-sm mt-1 mr-3"></i>
+                                <span class="text-gray-700 dark:text-gray-300">完整重構 Jira 核心架構</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-minus text-red-500 text-sm mt-1 mr-3"></i>
+                                <span class="text-gray-700 dark:text-gray-300">其他專案管理系統整合</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Current System Analysis -->
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-8 rounded-2xl border border-blue-100 dark:border-blue-800/50">
+                <div class="flex items-center mb-6">
+                    <div class="bg-blue-600 dark:bg-blue-500 p-3 rounded-lg mr-4">
+                        <i class="fas fa-search text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white">既有系統現況分析</h3>
+                </div>
+                
+                <div class="space-y-6">
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">系統功能點</h4>
+                        <div class="grid grid-cols-1 gap-3">
+                            <div class="p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <div class="flex items-center">
+                                    <i class="fas fa-edit text-blue-600 dark:text-blue-400 mr-3"></i>
+                                    <span class="font-medium text-gray-900 dark:text-white">表單欄位</span>
+                                </div>
+                                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1 ml-6">標題、描述、重現步驟等基本欄位</p>
+                            </div>
+                            <div class="p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <div class="flex items-center">
+                                    <i class="fas fa-clipboard-list text-green-600 dark:text-green-400 mr-3"></i>
+                                    <span class="font-medium text-gray-900 dark:text-white">範本管理機制</span>
+                                </div>
+                                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1 ml-6">提供填寫範本指引</p>
+                            </div>
+                            <div class="p-3 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                                <div class="flex items-center">
+                                    <i class="fas fa-exclamation-triangle text-red-500 mr-3"></i>
+                                    <span class="font-medium text-gray-900 dark:text-white">無自動校驗</span>
+                                </div>
+                                <p class="text-sm text-gray-600 dark:text-gray-300 mt-1 ml-6">缺乏必填欄位與格式檢查</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">問題與痛點</h4>
+                        <div class="space-y-3">
+                            <div class="p-3 bg-red-50 dark:bg-red-900/30 rounded-lg border-l-4 border-red-500">
+                                <span class="font-medium text-red-700 dark:text-red-300">欄位漏填率高</span>
+                            </div>
+                            <div class="p-3 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg border-l-4 border-yellow-500">
+                                <span class="font-medium text-yellow-700 dark:text-yellow-300">回報品質無法量化</span>
+                            </div>
+                            <div class="p-3 bg-orange-50 dark:bg-orange-900/30 rounded-lg border-l-4 border-orange-500">
+                                <span class="font-medium text-orange-700 dark:text-orange-300">人工追查成本大</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Gap Analysis -->
+        <div class="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-8 rounded-2xl border border-purple-100 dark:border-purple-800/50">
+            <div class="flex items-center mb-8">
+                <div class="bg-purple-600 dark:bg-purple-500 p-3 rounded-lg mr-4">
+                    <i class="fas fa-chart-line text-white text-xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white">差距分析</h3>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="space-y-6">
+                    <div class="p-6 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-start">
+                            <div class="bg-red-100 dark:bg-red-900/50 p-3 rounded-lg mr-4 mt-1">
+                                <i class="fas fa-times text-red-600 dark:text-red-400"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-900 dark:text-white mb-2">現況問題</h4>
+                                <p class="text-gray-600 dark:text-gray-300 text-sm">缺乏「必填且格式正確」的即時回饋</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-start">
+                            <div class="bg-yellow-100 dark:bg-yellow-900/50 p-3 rounded-lg mr-4 mt-1">
+                                <i class="fas fa-exclamation text-yellow-600 dark:text-yellow-400"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-900 dark:text-white mb-2">邏輯缺失</h4>
+                                <p class="text-gray-600 dark:text-gray-300 text-sm">欄位關聯邏輯未檢查</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-6">
+                    <div class="p-6 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-start">
+                            <div class="bg-green-100 dark:bg-green-900/50 p-3 rounded-lg mr-4 mt-1">
+                                <i class="fas fa-lightbulb text-green-600 dark:text-green-400"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-900 dark:text-white mb-2">解決方案</h4>
+                                <p class="text-gray-600 dark:text-gray-300 text-sm">建議導入前端即時驗證＋AI 自然語言理解</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-start">
+                            <div class="bg-blue-100 dark:bg-blue-900/50 p-3 rounded-lg mr-4 mt-1">
+                                <i class="fas fa-cog text-blue-600 dark:text-blue-400"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-900 dark:text-white mb-2">技術建議</h4>
+                                <p class="text-gray-600 dark:text-gray-300 text-sm">建議以規則引擎或機器學習判斷</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Requirements Section -->
+<section id="requirements" class="py-24 bg-gray-50 dark:bg-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">功能與非功能需求</h2>
+            <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                詳細定義系統功能需求規格與非功能性品質要求
+            </p>
+        </div>
+        
+        <!-- Functional Requirements -->
+        <div class="mb-16">
+            <div class="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 mb-8">
+                <div class="flex items-center mb-8">
+                    <div class="bg-blue-600 dark:bg-blue-500 p-3 rounded-lg mr-4">
+                        <i class="fas fa-cogs text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white">功能需求</h3>
+                </div>
+                
+                <div class="grid md:grid-cols-3 gap-6 mb-8">
+                    <div class="text-center p-6 bg-blue-50 dark:bg-blue-900/30 rounded-xl border border-blue-200 dark:border-blue-700">
+                        <div class="bg-blue-600 dark:bg-blue-500 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-4">
+                            <span class="text-white font-bold">01</span>
+                        </div>
+                        <h4 class="font-bold text-gray-900 dark:text-white mb-2">FR-01</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-300">必填欄位檢查</p>
+                    </div>
+                    <div class="text-center p-6 bg-green-50 dark:bg-green-900/30 rounded-xl border border-green-200 dark:border-green-700">
+                        <div class="bg-green-600 dark:bg-green-500 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-4">
+                            <span class="text-white font-bold">02</span>
+                        </div>
+                        <h4 class="font-bold text-gray-900 dark:text-white mb-2">FR-02</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-300">AI 自動判讀補充</p>
+                    </div>
+                    <div class="text-center p-6 bg-purple-50 dark:bg-purple-900/30 rounded-xl border border-purple-200 dark:border-purple-700">
+                        <div class="bg-purple-600 dark:bg-purple-500 w-12 h-12 rounded-lg flex items-center justify-center mx-auto mb-4">
+                            <span class="text-white font-bold">03</span>
+                        </div>
+                        <h4 class="font-bold text-gray-900 dark:text-white mb-2">FR-03</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-300">提示與修正建議</p>
+                    </div>
+                </div>
+                
+                <!-- Detailed Requirements -->
+                <div class="space-y-8">
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                        <div class="bg-blue-50 dark:bg-blue-900/30 p-6 border-b border-gray-200 dark:border-gray-700">
+                            <h4 class="text-lg font-bold text-gray-900 dark:text-white">FR-01 必填欄位檢查</h4>
+                        </div>
+                        <div class="p-6">
+                            <div class="grid md:grid-cols-3 gap-6">
+                                <div>
+                                    <h5 class="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                                        <i class="fas fa-play text-blue-600 dark:text-blue-400 mr-2"></i>
+                                        觸發時機
+                                    </h5>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm">使用者按下「提交」或離開欄位</p>
+                                </div>
+                                <div>
+                                    <h5 class="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                                        <i class="fas fa-check text-green-600 dark:text-green-400 mr-2"></i>
+                                        檢查規則
+                                    </h5>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm">欄位不可為空，字數最少 20 字</p>
+                                </div>
+                                <div>
+                                    <h5 class="font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
+                                        <i class="fas fa-eye text-purple-600 dark:text-purple-400 mr-2"></i>
+                                        UI 行為
+                                    </h5>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm">紅框標示＋即時提示</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                        <div class="bg-green-50 dark:bg-green-900/30 p-6 border-b border-gray-200 dark:border-gray-700">
+                            <h4 class="text-lg font-bold text-gray-900 dark:text-white">FR-02 AI 自動判讀補充欄位</h4>
+                        </div>
+                        <div class="p-6">
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <div>
+                                    <h5 class="font-semibold text-gray-900 dark:text-white mb-3">功能描述</h5>
+                                    <p class="text-gray-600 dark:text-gray-300 text-sm">AI 自動判別環境描述是否足夠，提供智能補充建議</p>
+                                </div>
+                                <div>
+                                    <h5 class="font-semibold text-gray-900 dark:text-white mb-3">應用場景</h5>
+                                    <ul class="text-gray-600 dark:text-gray-300 text-sm space-y-1">
+                                        <li>• 環境資訊完整性檢查</li>
+                                        <li>• 重現步驟邏輯性驗證</li>
+                                        <li>• 問題描述清晰度評估</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Non-functional Requirements -->
+        <div class="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center mb-8">
+                <div class="bg-indigo-600 dark:bg-indigo-500 p-3 rounded-lg mr-4">
+                    <i class="fas fa-tachometer-alt text-white text-xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white">非功能需求</h3>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
+                <div class="text-center p-6 bg-red-50 dark:bg-red-900/30 rounded-xl border border-red-200 dark:border-red-700">
+                    <div class="bg-red-600 dark:bg-red-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-bolt text-white text-xl"></i>
+                    </div>
+                    <h4 class="font-bold text-gray-900 dark:text-white mb-2">性能</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">回應時間 < 300ms</p>
+                </div>
+                
+                <div class="text-center p-6 bg-green-50 dark:bg-green-900/30 rounded-xl border border-green-200 dark:border-green-700">
+                    <div class="bg-green-600 dark:bg-green-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-check-circle text-white text-xl"></i>
+                    </div>
+                    <h4 class="font-bold text-gray-900 dark:text-white mb-2">可用性</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">99.5% 可用率</p>
+                </div>
+                
+                <div class="text-center p-6 bg-blue-50 dark:bg-blue-900/30 rounded-xl border border-blue-200 dark:border-blue-700">
+                    <div class="bg-blue-600 dark:bg-blue-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-shield-alt text-white text-xl"></i>
+                    </div>
+                    <h4 class="font-bold text-gray-900 dark:text-white mb-2">安全性</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">敏感資訊加密傳輸</p>
+                </div>
+                
+                <div class="text-center p-6 bg-purple-50 dark:bg-purple-900/30 rounded-xl border border-purple-200 dark:border-purple-700">
+                    <div class="bg-purple-600 dark:bg-purple-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-tools text-white text-xl"></i>
+                    </div>
+                    <h4 class="font-bold text-gray-900 dark:text-white mb-2">可維護性</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">模組化設計</p>
+                </div>
+                
+                <div class="text-center p-6 bg-orange-50 dark:bg-orange-900/30 rounded-xl border border-orange-200 dark:border-orange-700">
+                    <div class="bg-orange-600 dark:bg-orange-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-globe text-white text-xl"></i>
+                    </div>
+                    <h4 class="font-bold text-gray-900 dark:text-white mb-2">相容性</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">支援 Chrome、Edge</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Use Cases & Data Model Section -->
+<section class="py-24 bg-white dark:bg-slate-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">用例規格與資料模型</h2>
+            <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                定義系統使用情境與資料結構設計
+            </p>
+        </div>
+        
+        <div class="grid lg:grid-cols-2 gap-12">
+            <!-- Use Cases -->
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-8 rounded-2xl border border-blue-100 dark:border-blue-800/50">
+                <div class="flex items-center mb-8">
+                    <div class="bg-blue-600 dark:bg-blue-500 p-3 rounded-lg mr-4">
+                        <i class="fas fa-user-cog text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white">用例規格</h3>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-gray-200 dark:border-gray-700">
+                                <th class="text-left py-3 font-semibold text-gray-900 dark:text-white">編號</th>
+                                <th class="text-left py-3 font-semibold text-gray-900 dark:text-white">用例名稱</th>
+                                <th class="text-left py-3 font-semibold text-gray-900 dark:text-white">敘述</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-gray-100 dark:border-gray-700">
+                                <td class="py-4">
+                                    <span class="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-2 py-1 rounded text-xs font-bold">UC-01</span>
+                                </td>
+                                <td class="py-4 font-medium text-gray-900 dark:text-white">提交 Jira Issue</td>
+                                <td class="py-4 text-gray-600 dark:text-gray-300">使用者完成欄位填寫並提交</td>
+                            </tr>
+                            <tr class="border-b border-gray-100 dark:border-gray-700">
+                                <td class="py-4">
+                                    <span class="bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 px-2 py-1 rounded text-xs font-bold">UC-02</span>
+                                </td>
+                                <td class="py-4 font-medium text-gray-900 dark:text-white">AI 自動檢查</td>
+                                <td class="py-4 text-gray-600 dark:text-gray-300">系統自動驗證欄位完整性</td>
+                            </tr>
+                            <tr class="border-b border-gray-100 dark:border-gray-700">
+                                <td class="py-4">
+                                    <span class="bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 px-2 py-1 rounded text-xs font-bold">UC-03</span>
+                                </td>
+                                <td class="py-4 font-medium text-gray-900 dark:text-white">錯誤提示</td>
+                                <td class="py-4 text-gray-600 dark:text-gray-300">顯示缺漏欄位與修正建議</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-8 p-6 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <h4 class="font-bold text-gray-900 dark:text-white mb-4">UC-01 詳細規格</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">前置條件</h5>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">使用者已登入 Jira</p>
+                        </div>
+                        <div>
+                            <h5 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">後置結果</h5>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">成功建立 Issue／提示未填欄位</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Data Model -->
+            <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-8 rounded-2xl border border-green-100 dark:border-green-800/50">
+                <div class="flex items-center mb-8">
+                    <div class="bg-green-600 dark:bg-green-500 p-3 rounded-lg mr-4">
+                        <i class="fas fa-database text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white">資料模型初稿</h3>
+                </div>
+                
+                <div class="space-y-6">
+                    <div class="p-6 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <h4 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+                            <i class="fas fa-table text-blue-600 dark:text-blue-400 mr-2"></i>
+                            Issue 表格
+                        </h4>
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-3 gap-4 text-sm">
+                                <div class="font-semibold text-gray-700 dark:text-gray-300">欄位名稱</div>
+                                <div class="font-semibold text-gray-700 dark:text-gray-300">類型</div>
+                                <div class="font-semibold text-gray-700 dark:text-gray-300">說明</div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4 text-sm py-2 border-t border-gray-200 dark:border-gray-700">
+                                <div class="text-gray-900 dark:text-white">AI_檢查狀態</div>
+                                <div class="text-gray-600 dark:text-gray-400">ENUM</div>
+                                <div class="text-gray-600 dark:text-gray-400">通過/失敗/待檢查</div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4 text-sm py-2 border-t border-gray-200 dark:border-gray-700">
+                                <div class="text-gray-900 dark:text-white">缺漏欄位清單</div>
+                                <div class="text-gray-600 dark:text-gray-400">JSON</div>
+                                <div class="text-gray-600 dark:text-gray-400">記錄缺漏的欄位</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <h4 class="font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+                            <i class="fas fa-cogs text-green-600 dark:text-green-400 mr-2"></i>
+                            規則表
+                        </h4>
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-3 gap-4 text-sm">
+                                <div class="font-semibold text-gray-700 dark:text-gray-300">欄位名稱</div>
+                                <div class="font-semibold text-gray-700 dark:text-gray-300">類型</div>
+                                <div class="font-semibold text-gray-700 dark:text-gray-300">說明</div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4 text-sm py-2 border-t border-gray-200 dark:border-gray-700">
+                                <div class="text-gray-900 dark:text-white">規則名稱</div>
+                                <div class="text-gray-600 dark:text-gray-400">VARCHAR</div>
+                                <div class="text-gray-600 dark:text-gray-400">驗證規則識別</div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4 text-sm py-2 border-t border-gray-200 dark:border-gray-700">
+                                <div class="text-gray-900 dark:text-white">驗證條件</div>
+                                <div class="text-gray-600 dark:text-gray-400">TEXT</div>
+                                <div class="text-gray-600 dark:text-gray-400">具體驗證邏輯</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Workflow Section -->
+<section id="workflow" class="py-24 bg-gray-50 dark:bg-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">流程圖與互動流程</h2>
+            <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                系統流程設計與使用者互動模式視覺化
+            </p>
+        </div>
+        
+        <div class="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 mb-12">
+            <div class="flex items-center mb-8">
+                <div class="bg-blue-600 dark:bg-blue-500 p-3 rounded-lg mr-4">
+                    <i class="fas fa-project-diagram text-white text-xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Jira Issue 檢查流程</h3>
+            </div>
+            
+            <div class="mermaid-container bg-gray-50 dark:bg-gray-800 p-6 rounded-xl">
+                <div class="mermaid text-center">
+                    flowchart TD
+                        A["使用者開始填寫 Issue"] --> B["填寫基本欄位"]
+                        B --> C{"即時驗證"}
+                        C -->|"欄位不完整"| D["顯示錯誤提示"]
+                        D --> E["使用者修正"]
+                        E --> C
+                        C -->|"基本驗證通過"| F["AI 智能檢查"]
+                        F --> G{"AI 分析結果"}
+                        G -->|"需要補充"| H["AI 提供建議"]
+                        H --> I["使用者選擇接受/忽略"]
+                        I --> J["更新欄位內容"]
+                        J --> K["最終提交"]
+                        G -->|"內容完整"| K
+                        K --> L["Issue 建立成功"]
+                        
+                        style A fill:#e1f5fe
+                        style L fill:#e8f5e8
+                        style D fill:#ffebee
+                        style H fill:#fff3e0
+                </div>
+            </div>
+        </div>
+        
+        <div class="grid lg:grid-cols-2 gap-8">
+            <!-- Interaction Flow -->
+            <div class="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center mb-8">
+                    <div class="bg-purple-600 dark:bg-purple-500 p-3 rounded-lg mr-4">
+                        <i class="fas fa-mouse-pointer text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white">表單驗證互動流程</h3>
+                </div>
+                
+                <div class="space-y-6">
+                    <div class="flex items-start">
+                        <div class="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">1</div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900 dark:text-white mb-2">欄位焦點離開觸發</h4>
+                            <p class="text-gray-600 dark:text-gray-300 text-sm">使用者完成輸入並離開欄位時，立即進行基本驗證</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <div class="bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">2</div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900 dark:text-white mb-2">即時視覺回饋</h4>
+                            <p class="text-gray-600 dark:text-gray-300 text-sm">錯誤欄位顯示紅色邊框，正確欄位顯示綠色勾號</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <div class="bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">3</div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900 dark:text-white mb-2">AI 智能提示</h4>
+                            <p class="text-gray-600 dark:text-gray-300 text-sm">AI 分析內容並提供具體的改善建議</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start">
+                        <div class="bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mr-4 mt-1">4</div>
+                        <div>
+                            <h4 class="font-semibold text-gray-900 dark:text-white mb-2">確認提交</h4>
+                            <p class="text-gray-600 dark:text-gray-300 text-sm">所有檢查通過後，啟用提交按鈕完成建立</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Wireframe -->
+            <div class="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center mb-8">
+                    <div class="bg-indigo-600 dark:bg-indigo-500 p-3 rounded-lg mr-4">
+                        <i class="fas fa-drafting-compass text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white">介面示意圖</h3>
+                </div>
+                
+                <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 space-y-4">
+                    <div class="bg-gray-100 dark:bg-gray-700 h-8 rounded flex items-center px-3">
+                        <span class="text-xs text-gray-600 dark:text-gray-400">Issue 標題 *</span>
+                    </div>
+                    <div class="bg-gray-100 dark:bg-gray-700 h-20 rounded flex items-start p-3">
+                        <span class="text-xs text-gray-600 dark:text-gray-400">問題描述 *</span>
+                    </div>
+                    <div class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 h-12 rounded flex items-center px-3">
+                        <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+                        <span class="text-xs text-red-600 dark:text-red-400">此欄位為必填，請詳細描述重現步驟</span>
+                    </div>
+                    <div class="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 h-12 rounded flex items-center px-3">
+                        <i class="fas fa-lightbulb text-blue-500 mr-2"></i>
+                        <span class="text-xs text-blue-600 dark:text-blue-400">AI 建議：建議補充瀏覽器版本和操作系統資訊</span>
+                    </div>
+                    <div class="flex space-x-3">
+                        <div class="bg-gray-300 dark:bg-gray-600 h-10 rounded flex-1 flex items-center justify-center">
+                            <span class="text-xs text-gray-600 dark:text-gray-400">取消</span>
+                        </div>
+                        <div class="bg-blue-500 h-10 rounded flex-1 flex items-center justify-center">
+                            <span class="text-xs text-white">提交 Issue</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Risk Assessment Section -->
+<section class="py-24 bg-white dark:bg-slate-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">風險評估與假設</h2>
+            <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                識別專案風險並制定應對策略，明確關鍵假設條件
+            </p>
+        </div>
+        
+        <div class="grid lg:grid-cols-2 gap-12">
+            <!-- Risks -->
+            <div class="bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 p-8 rounded-2xl border border-red-100 dark:border-red-800/50">
+                <div class="flex items-center mb-8">
+                    <div class="bg-red-600 dark:bg-red-500 p-3 rounded-lg mr-4">
+                        <i class="fas fa-exclamation-triangle text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white">主要風險</h3>
+                </div>
+                
+                <div class="space-y-6">
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-start">
+                            <div class="bg-red-100 dark:bg-red-900/50 p-3 rounded-lg mr-4">
+                                <i class="fas fa-robot text-red-600 dark:text-red-400"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-gray-900 dark:text-white mb-3">AI 模型準確度風險</h4>
+                                <div class="space-y-3">
+                                    <div class="p-3 bg-red-50 dark:bg-red-900/30 rounded-lg border-l-4 border-red-500">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <span class="font-semibold text-red-700 dark:text-red-300">風險描述</span>
+                                            <span class="text-xs bg-red-200 dark:bg-red-800 text-red-700 dark:text-red-300 px-2 py-1 rounded">高風險</span>
+                                        </div>
+                                        <p class="text-sm text-red-600 dark:text-red-400">AI 模型對中文語境理解不足，導致誤判率過高</p>
+                                    </div>
+                                    <div class="p-3 bg-green-50 dark:bg-green-900/30 rounded-lg border-l-4 border-green-500">
+                                        <span class="font-semibold text-green-700 dark:text-green-300">應對策略</span>
+                                        <p class="text-sm text-green-600 dark:text-green-400 mt-1">建立持續學習機制，定期收集使用者回饋進行模型調校</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-start">
+                            <div class="bg-yellow-100 dark:bg-yellow-900/50 p-3 rounded-lg mr-4">
+                                <i class="fas fa-puzzle-piece text-yellow-600 dark:text-yellow-400"></i>
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-gray-900 dark:text-white mb-3">Jira 插件相容性</h4>
+                                <div class="space-y-3">
+                                    <div class="p-3 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg border-l-4 border-yellow-500">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <span class="font-semibold text-yellow-700 dark:text-yellow-300">風險描述</span>
+                                            <span class="text-xs bg-yellow-200 dark:bg-yellow-800 text-yellow-700 dark:text-yellow-300 px-2 py-1 rounded">中風險</span>
+                                        </div>
+                                        <p class="text-sm text-yellow-600 dark:text-yellow-400">Jira 版本升級可能導致插件不相容</p>
+                                    </div>
+                                    <div class="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg border-l-4 border-blue-500">
+                                        <span class="font-semibold text-blue-700 dark:text-blue-300">應對策略</span>
+                                        <p class="text-sm text-blue-600 dark:text-blue-400 mt-1">設計 fallback 機制，確保基本功能在任何情況下都能運作</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Assumptions -->
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-8 rounded-2xl border border-blue-100 dark:border-blue-800/50">
+                <div class="flex items-center mb-8">
+                    <div class="bg-blue-600 dark:bg-blue-500 p-3 rounded-lg mr-4">
+                        <i class="fas fa-lightbulb text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white">關鍵假設</h3>
+                </div>
+                
+                <div class="space-y-6">
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-users text-blue-600 dark:text-blue-400 mr-3"></i>
+                            <h4 class="font-bold text-gray-900 dark:text-white">使用者接受度假設</h4>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-300 mb-3">使用者願意配合新介面流程，接受 AI 輔助功能的建議</p>
+                        <div class="flex items-center text-sm">
+                            <span class="bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 px-3 py-1 rounded-full mr-3">驗證方式</span>
+                            <span class="text-gray-600 dark:text-gray-300">用戶調研與原型測試</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-network-wired text-green-600 dark:text-green-400 mr-3"></i>
+                            <h4 class="font-bold text-gray-900 dark:text-white">技術環境假設</h4>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-300 mb-3">企業網路可正常呼叫外部 AI API，無防火牆限制</p>
+                        <div class="flex items-center text-sm">
+                            <span class="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full mr-3">驗證方式</span>
+                            <span class="text-gray-600 dark:text-gray-300">網路連通性測試</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-clock text-purple-600 dark:text-purple-400 mr-3"></i>
+                            <h4 class="font-bold text-gray-900 dark:text-white">時程假設</h4>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-300 mb-3">相關團隊能按預定時程配合專案進度，無資源衝突</p>
+                        <div class="flex items-center text-sm">
+                            <span class="bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full mr-3">驗證方式</span>
+                            <span class="text-gray-600 dark:text-gray-300">資源排程確認</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Acceptance Criteria Section -->
+<section class="py-24 bg-gray-50 dark:bg-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-16">
+            <h2 class="text-4xl font-bold text-gray-900 dark:text-white mb-4">驗收標準與時程規劃</h2>
+            <p class="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+                定義明確的成功標準與專案執行時程
+            </p>
+        </div>
+        
+        <div class="grid lg:grid-cols-2 gap-12 mb-16">
+            <!-- Acceptance Criteria -->
+            <div class="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center mb-8">
+                    <div class="bg-green-600 dark:bg-green-500 p-3 rounded-lg mr-4">
+                        <i class="fas fa-check-double text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white">驗收標準</h3>
+                </div>
+                
+                <div class="space-y-6">
+                    <div class="p-6 border border-green-200 dark:border-green-700 rounded-xl bg-green-50 dark:bg-green-900/30">
+                        <div class="flex items-center mb-3">
+                            <span class="bg-green-600 dark:bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold mr-3">AC-01</span>
+                            <h4 class="font-bold text-gray-900 dark:text-white">欄位檢查功能</h4>
+                        </div>
+                        <p class="text-gray-700 dark:text-gray-300 mb-3">提交時若缺漏欄位，前端阻擋並列出缺漏清單</p>
+                        <div class="flex items-center text-sm">
+                            <i class="fas fa-target text-green-600 dark:text-green-400 mr-2"></i>
+                            <span class="text-green-700 dark:text-green-300">預期成功率：100%</span>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 border border-blue-200 dark:border-blue-700 rounded-xl bg-blue-50 dark:bg-blue-900/30">
+                        <div class="flex items-center mb-3">
+                            <span class="bg-blue-600 dark:bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-bold mr-3">AC-02</span>
+                            <h4 class="font-bold text-gray-900 dark:text-white">AI 判讀準確性</h4>
+                        </div>
+                        <p class="text-gray-700 dark:text-gray-300 mb-3">AI 判讀正確率達 85％ 以上</p>
+                        <div class="flex items-center text-sm">
+                            <i class="fas fa-brain text-blue-600 dark:text-blue-400 mr-2"></i>
+                            <span class="text-blue-700 dark:text-blue-300">測試樣本：1000+ issue</span>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 border border-purple-200 dark:border-purple-700 rounded-xl bg-purple-50 dark:bg-purple-900/30">
+                        <div class="flex items-center mb-3">
+                            <span class="bg-purple-600 dark:bg-purple-500 text-white px-3 py-1 rounded-full text-sm font-bold mr-3">AC-03</span>
+                            <h4 class="font-bold text-gray-900 dark:text-white">系統性能</h4>
+                        </div>
+                        <p class="text-gray-700 dark:text-gray-300 mb-3">系統回應時間 < 300ms</p>
+                        <div class="flex items-center text-sm">
+                            <i class="fas fa-tachometer-alt text-purple-600 dark:text-purple-400 mr-2"></i>
+                            <span class="text-purple-700 dark:text-purple-300">負載條件：100 併發用戶</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Timeline -->
+            <div class="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+                <div class="flex items-center mb-8">
+                    <div class="bg-orange-600 dark:bg-orange-500 p-3 rounded-lg mr-4">
+                        <i class="fas fa-calendar-alt text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white">預估時程與資源</h3>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg border-l-4 border-blue-600 dark:border-blue-400">
+                        <div class="bg-blue-600 dark:bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mr-4">1</div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-900 dark:text-white">需求確認</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-300">工作坊與需求 review</p>
+                        </div>
+                        <span class="bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-full text-sm font-bold">1週</span>
+                    </div>
+                    
+                    <div class="flex items-center p-4 bg-green-50 dark:bg-green-900/30 rounded-lg border-l-4 border-green-600 dark:border-green-400">
+                        <div class="bg-green-600 dark:bg-green-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mr-4">2</div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-900 dark:text-white">系統設計</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-300">架構設計與 API 規格</p>
+                        </div>
+                        <span class="bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300 px-3 py-1 rounded-full text-sm font-bold">2週</span>
+                    </div>
+                    
+                    <div class="flex items-center p-4 bg-purple-50 dark:bg-purple-900/30 rounded-lg border-l-4 border-purple-600 dark:border-purple-400">
+                        <div class="bg-purple-600 dark:bg-purple-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mr-4">3</div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-900 dark:text-white">開發</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-300">前端、後端、AI 模型整合</p>
+                        </div>
+                        <span class="bg-purple-100 dark:bg-purple-800 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full text-sm font-bold">4週</span>
+                    </div>
+                    
+                    <div class="flex items-center p-4 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg border-l-4 border-yellow-600 dark:border-yellow-400">
+                        <div class="bg-yellow-600 dark:bg-yellow-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mr-4">4</div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-900 dark:text-white">測試</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-300">功能測試與性能驗證</p>
+                        </div>
+                        <span class="bg-yellow-100 dark:bg-yellow-800 text-yellow-700 dark:text-yellow-300 px-3 py-1 rounded-full text-sm font-bold">2週</span>
+                    </div>
+                    
+                    <div class="flex items-center p-4 bg-red-50 dark:bg-red-900/30 rounded-lg border-l-4 border-red-600 dark:border-red-400">
+                        <div class="bg-red-600 dark:bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mr-4">5</div>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-900 dark:text-white">部署與驗收</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-300">上線部署與使用者驗收</p>
+                        </div>
+                        <span class="bg-red-100 dark:bg-red-800 text-red-700 dark:text-red-300 px-3 py-1 rounded-full text-sm font-bold">1週</span>
+                    </div>
+                </div>
+                
+                <div class="mt-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl border border-blue-200 dark:border-blue-700">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-bold text-gray-900 dark:text-white">總計時程</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-300">專案預計執行週期</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-3xl font-bold text-blue-600 dark:text-blue-400">10週</span>
+                            <p class="text-sm text-gray-600 dark:text-gray-300">約 2.5 個月</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Next Steps -->
+        <div class="bg-white dark:bg-slate-900 p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
+            <div class="flex items-center mb-8">
+                <div class="bg-indigo-600 dark:bg-indigo-500 p-3 rounded-lg mr-4">
+                    <i class="fas fa-rocket text-white text-xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white">後續建議</h3>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="text-center p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl border border-blue-200 dark:border-blue-700">
+                    <div class="bg-blue-600 dark:bg-blue-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-users text-white text-xl"></i>
+                    </div>
+                    <h4 class="font-bold text-gray-900 dark:text-white mb-3">需求確認工作坊</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">召集所有相關者進行需求細化與確認</p>
+                </div>
+                
+                <div class="text-center p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 rounded-xl border border-green-200 dark:border-green-700">
+                    <div class="bg-green-600 dark:bg-green-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-drafting-compass text-white text-xl"></i>
+                    </div>
+                    <h4 class="font-bold text-gray-900 dark:text-white mb-3">系統設計文件</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">撰寫詳細的技術設計規格文件</p>
+                </div>
+                
+                <div class="text-center p-6 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 rounded-xl border border-purple-200 dark:border-purple-700">
+                    <div class="bg-purple-600 dark:bg-purple-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-code text-white text-xl"></i>
+                    </div>
+                    <h4 class="font-bold text-gray-900 dark:text-white mb-3">啟動開發測試</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">組建開發團隊並開始技術實作</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="py-16 bg-gray-900 dark:bg-slate-950">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+            <div class="mb-8">
+                <h3 class="text-2xl font-bold text-white mb-4">系統分析師工作產出範本</h3>
+                <p class="text-gray-400 max-w-2xl mx-auto">
+                    此範本可作為 Jira issue 資料完整性檢查專案的系統分析產出起點，
+                    請依實際情況細化內容。祝專案順利！
+                </p>
+            </div>
+            
+            <div class="border-t border-gray-800 pt-8">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="text-gray-400 text-sm">
+                        <p>&copy; 2025 Cl Tseng. All rights reserved.</p>
+                    </div>
+                    <div class="mt-4 md:mt-0">
+                        <div class="flex space-x-6">
+                            <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                                <i class="fab fa-github text-xl"></i>
+                            </a>
+                            <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                                <i class="fab fa-linkedin text-xl"></i>
+                            </a>
+                            <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                                <i class="fas fa-envelope text-xl"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+// Theme toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const themeToggle = document.getElementById('themeToggle');
+    const html = document.documentElement;
+    
+    // Check for saved theme preference
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+        html.classList.toggle('dark', savedTheme === 'dark');
+    } else {
+        // Default to system preference
+        html.classList.toggle('dark', window.matchMedia('(prefers-color-scheme: dark)').matches);
+    }
+    
+    themeToggle.addEventListener('click', function() {
+        html.classList.toggle('dark');
+        localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+        
+        // Reinitialize Mermaid with new theme
+        const isDark = html.classList.contains('dark');
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: isDark ? 'dark' : 'default',
+            themeVariables: {
+                primaryColor: isDark ? '#3b82f6' : '#2563eb',
+                primaryTextColor: isDark ? '#f1f5f9' : '#1e293b',
+                primaryBorderColor: isDark ? '#475569' : '#cbd5e1',
+                lineColor: isDark ? '#64748b' : '#94a3b8',
+                secondaryColor: isDark ? '#1e293b' : '#f8fafc',
+                tertiaryColor: isDark ? '#334155' : '#e2e8f0'
+            }
+        });
+        
+        // Re-render all Mermaid diagrams
+        const mermaidElements = document.querySelectorAll('.mermaid');
+        mermaidElements.forEach((element, index) => {
+            const graphDefinition = element.textContent;
+            element.innerHTML = '';
+            mermaid.render(`mermaid-${index}`, graphDefinition).then(result => {
+                element.innerHTML = result.svg;
+            });
+        });
+    });
+    
+    // Initialize Mermaid
+    const isDark = html.classList.contains('dark');
+    mermaid.initialize({
+        startOnLoad: true,
+        theme: isDark ? 'dark' : 'default',
+        themeVariables: {
+            primaryColor: isDark ? '#3b82f6' : '#2563eb',
+            primaryTextColor: isDark ? '#f1f5f9' : '#1e293b',
+            primaryBorderColor: isDark ? '#475569' : '#cbd5e1',
+            lineColor: isDark ? '#64748b' : '#94a3b8',
+            secondaryColor: isDark ? '#1e293b' : '#f8fafc',
+            tertiaryColor: isDark ? '#334155' : '#e2e8f0'
+        }
+    });
+    
+    // Smooth scroll for navigation links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+    
+    // Intersection Observer for animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+    
+    // Apply animation to sections
+    document.querySelectorAll('section').forEach(section => {
+        section.style.opacity = '0';
+        section.style.transform = 'translateY(20px)';
+        section.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+        observer.observe(section);
+    });
+    
+    // Hero section is always visible
+    const heroSection = document.querySelector('section');
+    if (heroSection) {
+        heroSection.style.opacity = '1';
+        heroSection.style.transform = 'translateY(0)';
+    }
+});
+</script>
+
+</body>
+</html>
